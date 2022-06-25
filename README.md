@@ -7,4 +7,4 @@ Collection of scripts, I've found or have managed to coble together related to m
 
 ***
 ##### [TODO](/TODO.md)
-#### License: [GPLv3](/license)
+#### License: [GPLv3](/LICENSE)
