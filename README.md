@@ -66,7 +66,7 @@ For a full list of all authors and contributors, see [the contributors page](htt
 
 
 ***
-##### [TODO](/TODO.md)
+##### [TODO](docs/TODO.md)
 ***
 ## License
 
