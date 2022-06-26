@@ -31,6 +31,7 @@ Collection of scripts, I've found or have managed to coble together related to m
 - mpd
 - mpc
 - python3
+- BASH
 
 ### Installation
 Add the scripts you want to use to a directory in your path.
