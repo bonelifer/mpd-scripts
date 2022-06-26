@@ -12,8 +12,6 @@ To set up a development environment, please follow these steps:
    git clone https://github.com/bonelifer/mpd-scripts
    ```
 
-2. TODO
-
 ## Issues and feature requests
 
 You've found a bug in the source code, a mistake in the documentation or maybe you'd like a new feature?Take a look at [GitHub Discussions](https://github.com/bonelifer/mpd-scripts/discussions) to see if it's already being discussed.  You can help us by [submitting an issue on GitHub](https://github.com/bonelifer/mpd-scripts/issues). Before you create an issue, make sure to search the issue archive -- your issue may have already been addressed!
