@@ -4,10 +4,6 @@ When contributing to this repository, please first discuss the change you wish t
 
 ## Development environment setup
 
-> **[?]**
-> Proceed to describe how to setup local development environment.
-> e.g:
-
 To set up a development environment, please follow these steps:
 
 1. Clone the repo
