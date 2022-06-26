@@ -48,7 +48,6 @@ Reach out to the maintainer at one of the following places:
 - <a href="https://github.com/bonelifer/mpd-scripts/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
   ·
   <a href="https://github.com/bonelifer/mpd-scripts/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feature%3A+">Request a Feature</a>
-  · <a href="https://github.com/bonelifer/mpd-scripts/discussions">Ask a Question</a>
 
 ## Project assistance
 If you want to say **thank you** or/and support active development of mpd-scripts:
