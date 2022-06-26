@@ -40,7 +40,6 @@ Add the scripts you want to use to a directory in your path.
 Reach out to the maintainer at one of the following places:
 
 - [GitHub Discussions](https://github.com/bonelifer/mpd-scripts/discussions)
-- Contact options listed on [this GitHub profile](https://github.com/bonelifer)
 - <a href="https://github.com/bonelifer/mpd-scripts/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
   ·
   <a href="https://github.com/bonelifer/mpd-scripts/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feature%3A+">Request a Feature</a>
