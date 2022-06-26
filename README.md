@@ -27,8 +27,10 @@
 ## About
 Collection of scripts, I've found or have managed to coble together related to mpd &amp; mpc.
 
-[lastfm-love](/lastfm-love/README.md): Love or unlove tracks on lastfm  
-[mpd-notifier](/mpd-notifier/README.md): Notify users of currently playing track or mpd status. Complete with artwork.  
+| Name              | Description              |
+| --- | --- |
+| **[lastfm-love](/lastfm-love/README.md)** | Love or unlove tracks on lastfm |
+| **[mpd-notifier](/mpd-notifier/README.md)** | Notify users of currently playing track or mpd status. Complete with artwork. |
 
 ### Prerequisites
 - mpd
