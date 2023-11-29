@@ -3,7 +3,7 @@ image_server.service
 
 # Ignore Python bytecode files
 *.pyc
-*.py
+mpd-webserver.py
 
 # Bash installer for web server
 mpd-installer.sh
