@@ -4,8 +4,7 @@
 # the mpc command-line tool. Provides a fallback image when the album art is absent.
 
 # Cobled together from other now playing scripts.
-# with Base64 image code from https://github.com/uriel1998/vindauga
-# Base64 encoded image found on Google Images
+# Image found on Google Images
 
 
 # BEGIN CONFIG
