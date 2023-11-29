@@ -3,6 +3,10 @@
 # Displays and retrieves album cover art for the currently playing track in MPD using
 # the mpc command-line tool. Provides a fallback image when the album art is absent.
 
+# Cobled together from other now playing scripts.
+# with Base64 image code from https://github.com/uriel1998/vindauga
+# Base64 encoded image found on Google Images
+
 
 # BEGIN CONFIG
 dir="/media/william/Data2/BACKUP/MP3/"
