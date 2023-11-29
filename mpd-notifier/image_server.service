@@ -1,5 +1,12 @@
+[Unit]
+Description=MPD Web Server
+After=network.target
+
 [Service]
-ExecStart=/usr/bin/python3 /path/to/image_server.py 9555
+ExecStart=/usr/bin/python3 placeholder_path_to_image_server.py 9555
 Restart=always
 RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
 

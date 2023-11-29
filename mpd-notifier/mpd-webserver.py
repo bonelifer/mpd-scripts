@@ -2,11 +2,9 @@ import os
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import sys
 
-# Define the path to the directory containing the album cover images
-image_dir = os.path.expanduser("~/Music")
-
-# Change directory to the image directory
-os.chdir(image_dir)
+# BEGIN User Editable Block
+image_dir = "placeholder_image_dir"
+# END User Editable Block
 
 # Define a simple HTTP request handler
 class ImageServer(SimpleHTTPRequestHandler):

@@ -7,11 +7,11 @@
 # Image found on Google Images
 
 # BEGIN CONFIG
-dir="/media/william/Data2/BACKUP/MP3/"
+dir="placeholder_dir"
 MPD_NETWORK_ENABLED="true" # Set to "true" to enable network mode or "false" to disable
 MPD_HOST="192.168.1.80" # Set your MPD host address here
 notify_duration="5000"
-cache_dir="/media/william/DataOrig/MPD/.notify-cache/"
+cache_dir="placeholder_cache_dir"
 web_server="http://localhost:9555/"  # Set your web server address here
 ## END CONFIG
 
