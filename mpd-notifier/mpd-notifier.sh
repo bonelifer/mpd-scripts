@@ -1,6 +1,8 @@
-#!/usr/bin/bash
+#!/bin/bash
 
-# Notify user of playing track state. Present Artist, Album, Title and cover artwork.
+# This script displays the album cover art for the currently playing track in MPD (Music Player Daemon).
+# It uses the mpc command-line tool to retrieve the album cover art information and then decodes
+# the base64-encoded image data to render the album cover art to the terminal using ANSI escape sequences.
 
 # Cobled together from other now playing scripts.
 # with Base64 image code from https://github.com/uriel1998/vindauga
@@ -8,8 +10,7 @@
 
 # BEGIN CONFIG
 dir="/media/william/Data2/BACKUP/MP3/"
-#fallback_image="${dir}unknown.jpg"
-#MPD_HOST="192.168.1.80"
+#MPD_HOST="192.168.1.80" # Uncomment for connecting to non local MPD instance
 notify_duration="5000"
 cache_dir="/media/william/DataOrig/MPD/.notify-cache/"
 ## END CONFIG
@@ -287,10 +288,16 @@ fallback_image="$cache_dir/unknown.jpg"
 output=$(mpc -f "%title%\n%albumartist%\n%album%\n%file%" current)
 
 #Get mpd status
-#status=`mpc -h ${MPD_HOST} -p 6600 | grep playing | cut -c2-8`
-#status2=`mpc -h ${MPD_HOST} -p 6600 | grep pause | cut -c2-7`
-status=`mpc | grep playing | cut -c2-8`
-status2=`mpc | grep pause | cut -c2-7`
+# Check if MPD_HOST is uncommented and has a value
+if [ -n "${MPD_HOST}" ]; then
+    # Use mpc with MPD_HOST if it's set
+    status=$(mpc -h "${MPD_HOST}" -p 6600 | grep playing | cut -c2-8)
+    status2=$(mpc -h "${MPD_HOST}" -p 6600 | grep pause | cut -c2-7)
+else
+    # Use default behavior if MPD_HOST is not set
+    status=$(mpc | grep playing | cut -c2-8)
+    status2=$(mpc | grep pause | cut -c2-7)
+fi
 
 #echo "$status"
 if [ “$status” == “playing” ]; then

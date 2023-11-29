@@ -3,6 +3,11 @@
 import pylast
 import os
 
+"""
+This script utilizes Last.fm's API via pylast to retrieve currently playing track information 
+from MPC (Music Player Command Line) and 'ulove' it (remove the love) from your Last.fm account.
+"""
+
 # You have to have your own unique two values for API_KEY and API_SECRET
 # Obtain yours from https://www.last.fm/api/account/create for Last.fm
 API_KEY = "XXXreplacethisXXX"  # this is a sample key

@@ -3,6 +3,12 @@
 import pylast
 import os
 
+"""
+This script interacts with Last.fm's API through pylast to love a currently playing track and 
+add tags to it using MPC (Music Player Command Line).
+"""
+
+
 # You have to have your own unique two values for API_KEY and API_SECRET
 # Obtain yours from https://www.last.fm/api/account/create for Last.fm
 API_KEY = "XXXreplacethisXXX"  # this is a sample key
