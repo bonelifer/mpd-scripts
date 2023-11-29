@@ -1,0 +1,5 @@
+[Service]
+ExecStart=/usr/bin/python3 /path/to/image_server.py 9555
+Restart=always
+RestartSec=3
+
