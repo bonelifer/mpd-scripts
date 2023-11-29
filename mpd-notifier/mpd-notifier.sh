@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # This script displays the album cover art for the currently playing track in MPD (Music Player Daemon).
-# It uses the mpc command-line tool to retrieve the album cover art information and then decodes
-# the base64-encoded image data to render the album cover art to the terminal using ANSI escape sequences.
+# It retrieves album cover art information using the mpc command-line tool and decodes base64-encoded image data,
+# rendering the album cover art to the terminal using ANSI escape sequences only when a cover image isn't available.
 
 # Cobled together from other now playing scripts.
 # with Base64 image code from https://github.com/uriel1998/vindauga
