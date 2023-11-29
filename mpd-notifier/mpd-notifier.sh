@@ -6,12 +6,13 @@
 # Cobled together from other now playing scripts.
 # Image found on Google Images
 
-
 # BEGIN CONFIG
 dir="/media/william/Data2/BACKUP/MP3/"
-# MPD_HOST="192.168.1.80" # Uncomment for connecting to a non-local MPD instance
+MPD_NETWORK_ENABLED="true" # Set to "true" to enable network mode or "false" to disable
+MPD_HOST="192.168.1.80" # Set your MPD host address here
 notify_duration="5000"
 cache_dir="/media/william/DataOrig/MPD/.notify-cache/"
+web_server="http://192.168.1.80:9555/"  # Set your web server address here
 ## END CONFIG
 
 fallback_image="$cache_dir/unknown.jpg"
@@ -30,7 +31,7 @@ fi
 output=$(mpc -f "%title%\n%albumartist%\n%album%\n%file%" current)
 
 # Get MPD status
-if [ -n "${MPD_HOST}" ]; then
+if [ "$MPD_NETWORK_ENABLED" == "true" ]; then
     status=$(mpc -h "${MPD_HOST}" -p 6600 | grep playing | cut -c2-8)
     status2=$(mpc -h "${MPD_HOST}" -p 6600 | grep pause | cut -c2-7)
 else
@@ -57,18 +58,46 @@ if [ $? -ne 1 ]; then
     array[2]=$(echo "${array[2]}" | sed 's/\&/\&amp\;/')
     array[3]=$(echo "${array[3]}" | sed 's/\&/\&amp\;/')
 
-    file=$(ls -t "$(dirname "$dir${array[4]}")"/*.{jpg,png} 2> /dev/null | head -n 1)
+    if [ "$MPD_NETWORK_ENABLED" == "false" ]; then
+        local_image="$(dirname "$dir${array[4]}")/cover.jpg"
+        cache_image="$cache_dir/cover.jpg"
+        # Check if cover.jpg exists locally, if not, use the fallback image directly
+        if [ -f "$local_image" ]; then
+            cp "$local_image" "$cache_image"
+        else
+            cache_image="$fallback_image"
+        fi
+    else
+        cache_image="$cache_dir/cover.jpg"
+        wget -q -O "$cache_image" "${web_server}$(basename "$(dirname "$dir${array[4]}")")/cover.jpg"
+        if [ $? -ne 0 ]; then
+            cache_image="$fallback_image"
+        fi
+    fi
 fi
 
-if [[ -f "$file" && "$status" == "playing" ]]; then
-    notify-send "${array[1]}" "${array[2]}\n${array[3]}" -t "$notify_duration" -i "$file"
-elif [[ -f "$file" && "$status" == "paused" ]]; then
-    notify-send "${array[1]}" "${array[2]}\n${array[3]} ($status)" -t "$notify_duration" -i "$file"
-elif [[ ! -f "$file" && "$status" == "playing" ]]; then
-    notify-send "${array[1]}" "${array[2]}\n${array[3]}" -t "$notify_duration" -i "${fallback_image}"
-elif [[ ! -f "$file" && "$status" == "paused" ]]; then
-    notify-send "${array[1]}" "${array[2]}\n${array[3]} ($status)" -t "$notify_duration" -i "${fallback_image}"
+# Construct notify-send command based on image availability
+if [ "$MPD_NETWORK_ENABLED" == "true" ]; then
+    file="$cache_image"
 else
-    notify-send -i "${fallback_image}" -t "$notify_duration" "MPD client $status"
+    file="${web_server}$(basename "$(dirname "$dir${array[4]}")")/cover.jpg"
+fi
+
+if [ -f "$file" ]; then
+    if [ "$status" == "playing" ]; then
+        notify-send "${array[1]}" "${array[2]}\n${array[3]}" -t "$notify_duration" -i "$file"
+    elif [ "$status" == "paused" ]; then
+        notify-send "${array[1]}" "${array[2]}\n${array[3]} ($status)" -t "$notify_duration" -i "$file"
+    else
+        notify-send -i "$file" -t "$notify_duration" "MPD client $status"
+    fi
+else
+    if [ "$status" == "playing" ]; then
+        notify-send "${array[1]}" "${array[2]}\n${array[3]}" -t "$notify_duration" -i "$fallback_image"
+    elif [ "$status" == "paused" ]; then
+        notify-send "${array[1]}" "${array[2]}\n${array[3]} ($status)" -t "$notify_duration" -i "$fallback_image"
+    else
+        notify-send -i "${fallback_image}" -t "$notify_duration" "MPD client $status"
+    fi
 fi
 
