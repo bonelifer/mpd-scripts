@@ -12,7 +12,7 @@ MPD_NETWORK_ENABLED="true" # Set to "true" to enable network mode or "false" to 
 MPD_HOST="192.168.1.80" # Set your MPD host address here
 notify_duration="5000"
 cache_dir="/media/william/DataOrig/MPD/.notify-cache/"
-web_server="http://192.168.1.80:9555/"  # Set your web server address here
+web_server="http://localhost:9555/"  # Set your web server address here
 ## END CONFIG
 
 fallback_image="$cache_dir/unknown.jpg"
