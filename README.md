@@ -25,21 +25,27 @@
 ---
 
 ## About
-Collection of scripts, I've found or have managed to coble together related to mpd &amp; mpc.
+Collection of scripts related to mpd & mpc.
 
 | Name              | Description              |
 | --- | --- |
 | **[lastfm-love](/lastfm-love/README.md)** | Love or unlove tracks on lastfm |
-| **[mpd-notifier](/mpd-notifier/README.md)** | Notify users of currently playing track or mpd status. Complete with artwork. |
+| **[mpd-notifier](/mpd-notifier/README.md)** | Notify users of playing track or mpd status with artwork |
+| **[Tunein Radio Script](/tunein-radio/README.md)** | Fetches Tunein Radio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::Tunein Perl module. |
+| **[iHeartRadio Script](/iheart-radio/README.md)** | Fetches iHeartRadio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::IHeartRadio Perl module. |
 
 ### Prerequisites
 - mpd
 - mpc
 - python3
 - BASH
+- Perl
+- StreamFinder::Tunein (for Tunein Radio Script)
+- StreamFinder::IHeartRadio (for iHeartRadio Script)
+
 
 ### Installation
-Add the scripts you want to use to a directory in your path.
+Add the desired scripts to a directory in your path.
 
 ## Support
 Reach out to the maintainer at one of the following places:
@@ -57,7 +63,6 @@ If you want to say **thank you** or/and support active development of mpd-script
 ## Contributing
 First off, thanks for taking the time to contribute! Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make will benefit everybody else and are **greatly appreciated**.
 
-
 Please read [our contribution guidelines](docs/CONTRIBUTING.md), and thank you for being involved!
 
 ## Authors & contributors
@@ -66,10 +71,6 @@ The original setup of this repository is by [William Jacoby](https://github.com/
 
 For a full list of all authors and contributors, see [the contributors page](https://github.com/bonelifer/mpd-scripts/contributors).
 
-
-***
-##### [TODO](docs/TODO.md)
-***
 ## License
 
 This project is licensed under the **GNU General Public License v3**.
