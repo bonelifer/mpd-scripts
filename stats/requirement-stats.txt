@@ -1,4 +1,4 @@
-mpd
+python-mpd2
 moviepy
 pydub
 mutagen
