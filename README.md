@@ -34,6 +34,7 @@ Collection of scripts related to mpd & mpc.
 | **[Tunein Radio Script](./tunein-radio/)** | Fetches Tunein Radio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::Tunein Perl module. |
 | **[iHeartRadio Script](./iheart-radio/)** | Fetches iHeartRadio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::IHeartRadio Perl module. |
 | **[volume](./volume/)** | Scripts allowing you to control the volume. |
+| **[stats](./stats/)** | Scripts providing statistical information about music files. |
 
 ### Prerequisites
 - mpd
