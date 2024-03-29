@@ -40,7 +40,7 @@ Collection of scripts related to mpd & mpc.
 - mpd
 - mpc
 - python3
-- python-mpd
+- python-mpd2
 - BASH
 - Perl
 - StreamFinder::Tunein (for Tunein Radio Script)
