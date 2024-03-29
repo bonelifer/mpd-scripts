@@ -29,11 +29,11 @@ Collection of scripts related to mpd & mpc.
 ###
 | Name              | Description              |
 | --- | --- |
-| **[lastfm-love](./lastfm-love/README.md)** | Love or unlove tracks on lastfm |
-| **[mpd-notifier](./mpd-notifier/README.md)** | Notify users of playing track or mpd status with artwork |
-| **[Tunein Radio Script](./tunein-radio/README.md)** | Fetches Tunein Radio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::Tunein Perl module. |
-| **[iHeartRadio Script](./iheart-radio/README.md)** | Fetches iHeartRadio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::IHeartRadio Perl module. |
-| **[volume](./volume/README.md)** | Scripts allowing you to control the volume. |
+| **[lastfm-love](./lastfm-love/)** | Love or unlove tracks on lastfm |
+| **[mpd-notifier](./mpd-notifier/)** | Notify users of playing track or mpd status with artwork |
+| **[Tunein Radio Script](./tunein-radio/)** | Fetches Tunein Radio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::Tunein Perl module. |
+| **[iHeartRadio Script](./iheart-radio/)** | Fetches iHeartRadio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::IHeartRadio Perl module. |
+| **[volume](./volume/)** | Scripts allowing you to control the volume. |
 
 ### Prerequisites
 - mpd
