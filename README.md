@@ -1,7 +1,7 @@
 <h1 align="center">
   <a href="https://github.com/bonelifer/mpd-scripts">
     <!-- Please provide path to your logo here -->
-    <img src="docs/images/logo.png" alt="Logo" width="100" height="100">
+    <img src="./docs/images/logo.png" alt="Logo" width="100" height="100">
   </a>
 </h1>
 
@@ -26,18 +26,20 @@
 
 ## About
 Collection of scripts related to mpd & mpc.
-
+###
 | Name              | Description              |
 | --- | --- |
-| **[lastfm-love](/lastfm-love/README.md)** | Love or unlove tracks on lastfm |
-| **[mpd-notifier](/mpd-notifier/README.md)** | Notify users of playing track or mpd status with artwork |
-| **[Tunein Radio Script](/tunein-radio/README.md)** | Fetches Tunein Radio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::Tunein Perl module. |
-| **[iHeartRadio Script](/iheart-radio/README.md)** | Fetches iHeartRadio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::IHeartRadio Perl module. |
+| **[lastfm-love](./lastfm-love/README.md)** | Love or unlove tracks on lastfm |
+| **[mpd-notifier](./mpd-notifier/README.md)** | Notify users of playing track or mpd status with artwork |
+| **[Tunein Radio Script](./tunein-radio/README.md)** | Fetches Tunein Radio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::Tunein Perl module. |
+| **[iHeartRadio Script](./iheart-radio/README.md)** | Fetches iHeartRadio station URLs and generates M3U playlists along with associated information. Uses StreamFinder::IHeartRadio Perl module. |
+| **[volume](./volume/README.md)** | Scripts allowing you to control the volume. |
 
 ### Prerequisites
 - mpd
 - mpc
 - python3
+- python-mpd
 - BASH
 - Perl
 - StreamFinder::Tunein (for Tunein Radio Script)
