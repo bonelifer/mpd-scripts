@@ -6,6 +6,16 @@
 ### Prerequisites
 mpc
 
+#### Instalation of prequisite python libraries
+For **stats.py**, install the following dependencies using:
+
+pip install -r requirement-stats.txt
+
+
+For **stats-mpc.py**, install the following dependencies using:
+
+pip install -r requirement-stats-mpc.txt
+
 ***
 #### License: [GPLv3](../LICENSE)
 
