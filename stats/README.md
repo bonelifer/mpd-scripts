@@ -16,6 +16,10 @@ For **stats-mpc.py**, install the following dependencies using:
 
 pip install -r requirement-stats-mpc.txt
 
+
+## Usage Stats Examples
+[Usage Stats](./example/example.md)
+
 ***
 #### License: [GPLv3](../LICENSE)
 
