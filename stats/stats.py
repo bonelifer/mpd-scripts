@@ -11,7 +11,7 @@ Dependencies:
 - math
 - datetime
 - pathlib
-- mpd
+- python-mpd2
 - moviepy.editor
 - pydub.utils.mediainfo
 - mutagen
@@ -29,7 +29,7 @@ import sys
 import math
 from datetime import datetime
 from pathlib import Path
-import python-mpd2
+import mpd
 from moviepy.editor import VideoFileClip
 from pydub.utils import mediainfo
 from mutagen.mp3 import MP3
@@ -203,5 +203,4 @@ with open(stats_file, "r") as f:
     print(f.read())
 
 client.close()
-client.disconnect()
 
