@@ -7,6 +7,8 @@ and MPD server stats. It also provides extended statistics including the duratio
 
 Dependencies:
 - os
+- sys
+- math
 - datetime
 - pathlib
 - mpd
@@ -24,9 +26,10 @@ Optional arguments:
 
 import os
 import sys
+import math
 from datetime import datetime
 from pathlib import Path
-import mpd
+import python-mpd2
 from moviepy.editor import VideoFileClip
 from pydub.utils import mediainfo
 from mutagen.mp3 import MP3
@@ -36,7 +39,6 @@ from mutagen.oggvorbis import OggVorbis
 from mutagen.m4a import M4A
 from mutagen.oggopus import OggOpus
 
-# Function to read MPD configuration from mpd.conf file
 def read_mpd_config():
     """
     Function to read MPD configuration from mpd.conf file.
@@ -82,16 +84,12 @@ if mpd_password:
 # Get MPD server stats
 mpd_stats = client.stats()
 
-# Function to get duration of audio/video file
 def get_duration(filename):
     """
     Function to get the duration of an audio or video file.
     """
     try:
-        # Get file extension
         _, ext = os.path.splitext(filename)
-
-        # Check file type and extract duration accordingly
         if ext.lower() == ".mp3":
             audio = MP3(filename)
             duration = audio.info.length
@@ -108,18 +106,15 @@ def get_duration(filename):
             audio = M4A(filename)
             duration = audio.info.length
         elif ext.lower() == ".wma":
-            # Use mediainfo from pydub for WMA files
             info = mediainfo(filename)
             duration = float(info["duration"]) / 1000.0
         elif ext.lower() == ".avi":
-            # Use moviepy for AVI files
             video = VideoFileClip(filename)
             duration = video.duration
         elif ext.lower() == ".opus":
             audio = OggOpus(filename)
             duration = audio.info.length
         else:
-            # Exclude unsupported file types
             return 0
 
         return duration
@@ -127,7 +122,6 @@ def get_duration(filename):
         print(f"Error getting duration of {filename}: {e}")
         return 0
 
-# Function to format time
 def format_time(seconds):
     """
     Function to convert seconds to human-readable format (days, hours, minutes, seconds).
@@ -137,7 +131,18 @@ def format_time(seconds):
     minutes, seconds = divmod(seconds, 60)
     return f"{int(days)} days, {int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds"
 
-# Function to get total duration of files
+def convert_size(size_bytes):
+    """
+    Function to convert bytes to a human-readable format (KB, MB, GB).
+    """
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return "%s %s" % (s, size_name[i])
+
 def get_total_duration(base_dir):
     """
     Function to get the total duration of audio and video files in a directory.
@@ -157,7 +162,6 @@ def get_total_duration(base_dir):
                     filetype_durations[ext.lower()] += duration
     return total_duration, filetype_durations
 
-# Check for extended option
 extended = '-e' in sys.argv or '--extended' in sys.argv
 
 stats_file = os.path.join(music_library, "stats")
@@ -168,26 +172,25 @@ with open(stats_file, "a") as f:
     f.write(str(mpd_stats) + "\n\n")
     f.write(".flac files found in library:\t{}\t{}\n".format(
         len(list(Path(music_library).rglob("*.flac"))),
-        sum(f.stat().st_size for f in Path(music_library).rglob("*.flac"))
+        convert_size(sum(f.stat().st_size for f in Path(music_library).rglob("*.flac")))
     ))
     f.write(".mp3 files found in library: \t{}\t{}\n".format(
         len(list(Path(music_library).rglob("*.mp3"))),
-        sum(f.stat().st_size for f in Path(music_library).rglob("*.mp3"))
+        convert_size(sum(f.stat().st_size for f in Path(music_library).rglob("*.mp3")))
     ))
     f.write(".opus files found in library: \t{}\t{}\n".format(
         len(list(Path(music_library).rglob("*.opus"))),
-        sum(f.stat().st_size for f in Path(music_library).rglob("*.opus"))
+        convert_size(sum(f.stat().st_size for f in Path(music_library).rglob("*.opus")))
     ))
     f.write(".ogg files found in library: \t{}\t{}\n".format(
         len(list(Path(music_library).rglob("*.ogg"))),
-        sum(f.stat().st_size for f in Path(music_library).rglob("*.ogg"))
+        convert_size(sum(f.stat().st_size for f in Path(music_library).rglob("*.ogg")))
     ))
     f.write(".mp4 files found in library: \t{}\t{}\n".format(
         len(list(Path(music_library).rglob("*.mp4"))),
-        sum(f.stat().st_size for f in Path(music_library).rglob("*.mp4"))
+        convert_size(sum(f.stat().st_size for f in Path(music_library).rglob("*.mp4")))
     ))
 
-    # Add extended info if requested
     if extended:
         total_duration, filetype_durations = get_total_duration(music_library)
         f.write("\nTotal duration of all valid audio and video files: {}\n".format(format_time(total_duration)))
@@ -199,7 +202,6 @@ print('-' * os.get_terminal_size().columns)
 with open(stats_file, "r") as f:
     print(f.read())
 
-# Close MPD connection
 client.close()
 client.disconnect()
 
