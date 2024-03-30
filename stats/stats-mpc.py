@@ -10,7 +10,6 @@ Dependencies:
 - subprocess
 - datetime
 - pathlib
-- math
 - sys
 - moviepy.editor
 - pydub.utils.mediainfo
@@ -27,7 +26,6 @@ Optional arguments:
 import os
 import subprocess
 import sys
-import math
 from datetime import datetime
 from pathlib import Path
 from moviepy.editor import VideoFileClip
@@ -80,6 +78,32 @@ if mpd_password:
     mpc_stats = subprocess.check_output(["mpc", f"-h{mpd_host}:{mpd_port}", f"-p{mpd_password}", "stats"]).decode()
 else:
     mpc_stats = subprocess.check_output(["mpc", f"-h{mpd_host}:{mpd_port}", "stats"]).decode()
+
+def format_uptime(uptime_seconds):
+    """
+    Function to format uptime into a human-readable format.
+    """
+    uptime_str = ''
+    years, uptime_seconds = divmod(uptime_seconds, 31536000)
+    months, uptime_seconds = divmod(uptime_seconds, 2592000)
+    days, uptime_seconds = divmod(uptime_seconds, 86400)
+    hours, uptime_seconds = divmod(uptime_seconds, 3600)
+    minutes, seconds = divmod(uptime_seconds, 60)
+
+    if years:
+        uptime_str += f"{years} {'year' if years == 1 else 'years'}, "
+    if months:
+        uptime_str += f"{months} {'month' if months == 1 else 'months'}, "
+    if days:
+        uptime_str += f"{days} {'day' if days == 1 else 'days'}, "
+    if hours:
+        uptime_str += f"{hours} {'hour' if hours == 1 else 'hours'}, "
+    if minutes:
+        uptime_str += f"{minutes} {'minute' if minutes == 1 else 'minutes'}, "
+    if seconds:
+        uptime_str += f"{seconds} {'second' if seconds == 1 else 'seconds'}"
+
+    return uptime_str.strip(', ')
 
 # Function to get duration of audio/video file
 def get_duration(filename):
@@ -136,16 +160,6 @@ def format_time(seconds):
     minutes, seconds = divmod(seconds, 60)
     return f"{int(days)} days, {int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds"
 
-# Function to convert bytes to a human-readable format (KB, MB, GB)
-def convert_size(size_bytes):
-    if size_bytes == 0:
-        return "0B"
-    size_name = ("B", "KB", "MB", "GB")
-    i = int(math.floor(math.log(size_bytes, 1024)))
-    p = math.pow(1024, i)
-    s = round(size_bytes / p, 2)
-    return "%s %s" % (s, size_name[i])
-
 # Function to get total duration of files
 def get_total_duration(base_dir):
     """
@@ -177,23 +191,23 @@ with open(stats, "a") as f:
     f.write(mpc_stats + "\n\n")
     f.write(".flac files found in library:\t{}\t{}\n".format(
         len(list(Path(music_library).rglob("*.flac"))),
-        convert_size(sum(f.stat().st_size for f in Path(music_library).rglob("*.flac")))
+        sum(f.stat().st_size for f in Path(music_library).rglob("*.flac"))
     ))
     f.write(".mp3 files found in library: \t{}\t{}\n".format(
         len(list(Path(music_library).rglob("*.mp3"))),
-        convert_size(sum(f.stat().st_size for f in Path(music_library).rglob("*.mp3")))
+        sum(f.stat().st_size for f in Path(music_library).rglob("*.mp3"))
     ))
     f.write(".opus files found in library: \t{}\t{}\n".format(
         len(list(Path(music_library).rglob("*.opus"))),
-        convert_size(sum(f.stat().st_size for f in Path(music_library).rglob("*.opus")))
+        sum(f.stat().st_size for f in Path(music_library).rglob("*.opus"))
     ))
     f.write(".ogg files found in library: \t{}\t{}\n".format(
         len(list(Path(music_library).rglob("*.ogg"))),
-        convert_size(sum(f.stat().st_size for f in Path(music_library).rglob("*.ogg")))
+        sum(f.stat().st_size for f in Path(music_library).rglob("*.ogg"))
     ))
     f.write(".mp4 files found in library: \t{}\t{}\n".format(
         len(list(Path(music_library).rglob("*.mp4"))),
-        convert_size(sum(f.stat().st_size for f in Path(music_library).rglob("*.mp4")))
+        sum(f.stat().st_size for f in Path(music_library).rglob("*.mp4"))
     ))
 
     # Add extended info if requested
