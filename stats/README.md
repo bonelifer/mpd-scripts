@@ -1,4 +1,5 @@
 # mpd-scripts - stats
+## WIP: May not work currently
 
 * stats.py - Records statistics about the music library and MPD server. Uses python-mpd. Retrieves authentication information from the MPD configuration file (mpd.conf).
 * stats-mpc.py - Records statistics about the music library and MPD server. Uses mpc. Retrieves authentication information from the MPD configuration file (mpd.conf).
