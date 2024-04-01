@@ -1,0 +1,367 @@
+./volume.py:
+#!/usr/bin/env python3
+"""
+volume.py
+
+Description:
+    This script adjusts the volume of an MPD (Music Player Daemon) server based on the command-line argument provided ('up' or 'down') and an optional value.
+    It connects to the MPD server using the configuration specified in 'mpd.conf', authenticates if a password is provided, and then adjusts the volume accordingly using the `mpc` command line interface.
+    Finally, it prints a message indicating the volume change and disconnects from the MPD server.
+
+Usage:
+    python volume.py [up [<amount>] | down [<amount>]]
+
+Arguments:
+    up: Increase the volume. Optionally specify the amount to increase.
+    down: Decrease the volume. Optionally specify the amount to decrease.
+
+Examples:
+    python volume.py up 10
+        Increases the volume of the MPD server by 10 units.
+    python volume.py down 5
+        Decreases the volume of the MPD server by 5 units.
+"""
+
+import os
+import sys
+import argparse
+import subprocess
+
+def read_config():
+    """
+    Function to read MPD configuration from mpd.conf file.
+    
+    Returns:
+    - Dictionary containing MPD configuration.
+    """
+    mpd_conf_paths = [
+        "/etc/mpd.conf",
+        "/etc/mpd/mpd.conf",
+        "/usr/local/etc/mpd.conf",
+        "~/.mpdconf",
+        "~/.config/mpd/mpd.conf"
+    ]
+
+    for path in mpd_conf_paths:
+        full_path = os.path.expanduser(path)
+        if os.path.isfile(full_path):
+            with open(full_path, 'r') as f:
+                config_lines = f.readlines()
+            config_dict = {}
+            for line in config_lines:
+                if '=' in line:
+                    key, value = line.strip().split('=', 1)
+                    config_dict[key.strip()] = value.strip()
+            return config_dict
+
+    print("MPD configuration file (mpd.conf) not found in common locations.")
+    sys.exit(1)
+
+def main():
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description='Adjust MPD volume.')
+    parser.add_argument('direction', choices=['up', 'down'], help='Direction to adjust volume (up or down)')
+    parser.add_argument('amount', nargs='?', type=int, default=5, help='Amount by which to adjust volume')
+    args = parser.parse_args()
+
+    # Read MPD server configuration from mpd.conf
+    mpd_config = read_config()
+    mpd_server = mpd_config.get('bind_to_address', 'localhost')
+    mpd_port = int(mpd_config.get('port', '6600'))
+    mpd_pass = mpd_config.get('password', '')
+
+    # Authenticate
+    if mpd_pass:
+        auth_string = f"-p '{mpd_pass}'"
+    else:
+        auth_string = ""
+
+    # Adjust volume based on command-line argument
+    try:
+        if args.direction == 'up':
+            subprocess.run(f"mpc {auth_string} volume +{args.amount}", shell=True)
+            print(f"Volume increased by {args.amount} units.")
+        elif args.direction == 'down':
+            subprocess.run(f"mpc {auth_string} volume -{args.amount}", shell=True)
+            print(f"Volume decreased by {args.amount} units.")
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == "__main__":
+    main()
+
+
+
+./mpdvoldown.py:
+#!/usr/bin/env python3
+"""
+mpdvoldown.py
+
+Description:
+    This script decreases the volume of an MPD (Music Player Daemon) server by a specified amount (default: 5 units).
+    It connects to the MPD server using the configuration specified in 'mpd.conf', authenticates if a password is provided, and then adjusts the volume accordingly using the `mpc` command line interface.
+    Finally, it prints a message indicating the volume change and disconnects from the MPD server.
+
+Usage:
+    python mpdvoldown.py [amount]
+
+Arguments:
+    amount: Optional. Specifies the amount by which to decrease the volume. Default is 5 units.
+
+Examples:
+    python mpdvoldown.py
+        Decreases the volume of the MPD server by 5 units.
+    python mpdvoldown.py 10
+        Decreases the volume of the MPD server by 10 units.
+"""
+
+import os
+import sys
+import subprocess
+
+def read_config():
+    """
+    Function to read MPD configuration from mpd.conf file.
+    
+    Returns:
+    - Dictionary containing MPD configuration.
+    """
+    mpd_conf_paths = [
+        "/etc/mpd.conf",
+        "/etc/mpd/mpd.conf",
+        "/usr/local/etc/mpd.conf",
+        "~/.mpdconf",
+        "~/.config/mpd/mpd.conf"
+    ]
+
+    for path in mpd_conf_paths:
+        full_path = os.path.expanduser(path)
+        if os.path.isfile(full_path):
+            with open(full_path, 'r') as f:
+                config_lines = f.readlines()
+            config_dict = {}
+            for line in config_lines:
+                if '=' in line:
+                    key, value = line.strip().split('=', 1)
+                    config_dict[key.strip()] = value.strip()
+            return config_dict
+
+    print("MPD configuration file (mpd.conf) not found in common locations.")
+    sys.exit(1)
+
+def main():
+    # Read MPD server configuration from mpd.conf
+    mpd_config = read_config()
+    mpd_server = mpd_config.get('bind_to_address', 'localhost')
+    mpd_port = int(mpd_config.get('port', '6600'))
+    mpd_pass = mpd_config.get('password', '')
+
+    # Authenticate
+    if mpd_pass:
+        auth_string = f"-p '{mpd_pass}'"
+    else:
+        auth_string = ""
+
+    # Determine volume amount
+    if len(sys.argv) > 1:
+        volume_amount = sys.argv[1]
+    else:
+        volume_amount = "5"  # Default volume decrease amount
+
+    # Decrease volume
+    try:
+        subprocess.run(f"mpc {auth_string} volume -{volume_amount}", shell=True)
+        print(f"Volume decreased by {volume_amount} units.")
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == "__main__":
+    main()
+
+
+
+./install.sh:
+!#/usr/bin/bash
+
+check_and_copy_mpd_extended_cfg() {
+    MPD_EXTENDED_CFG_PATH=~/.config/mpd/mpd-extended.cfg
+    MPD_CONFIG_DIR=$(dirname "$MPD_EXTENDED_CFG_PATH")
+
+    if [ ! -f "$MPD_EXTENDED_CFG_PATH" ]; then
+        echo "Creating directory $MPD_CONFIG_DIR"
+        mkdir -p "$MPD_CONFIG_DIR"
+        echo "Copying mpd-extended.cfg to $MPD_EXTENDED_CFG_PATH"
+        cp ./mpd-extended.cfg "$MPD_EXTENDED_CFG_PATH"
+    else
+        echo "mpd-extended.cfg already exists at $MPD_EXTENDED_CFG_PATH"
+    fi
+}
+
+add_mpd_script_section_if_cfg_exists() {
+    MPD_EXTENDED_CFG_PATH=~/.config/mpd/mpd-extended.cfg
+
+    if [ -f "$MPD_EXTENDED_CFG_PATH" ]; then
+        PYTHON3_PATH=$(which python3)
+        if [ -x "$PYTHON3_PATH" ]; then
+            $PYTHON3_PATH ./functions/update-mpd-extended-cfg.py
+            $PYTHON3_PATH ./functions/add-mpd-script-section.py
+        else
+            echo "Error: python3 executable not found."
+        fi
+    else
+        echo "Error: mpd-extended.cfg not found at $MPD_EXTENDED_CFG_PATH"
+    fi
+}
+
+prompt_mpd_extended_user_group() {
+    read -t 10 -p "Set user and group to 'root' (y/n)? " mpd_extended_choice
+    if [ "$mpd_extended_choice" = "y" ]; then
+        mpd_extended_user="root"
+        mpd_extended_group="root"
+    else
+        mpd_extended_user="$USER"
+        mpd_extended_group="$USER"
+    fi
+}
+
+# Define install directory variable
+installdir="/usr/local/sbin"
+
+prompt_mpd_extended_user_group
+check_and_copy_mpd_extended_cfg
+add_mpd_script_section_if_cfg_exists
+
+cp ./mpdvoldown.py ./mpdvolup.py ./volume.py "$installdir"
+chown "$mpd_extended_user:$mpd_extended_group" "$installdir/mpdvoldown.py" "$installdir/mpdvolup.py" "$installdir/volume.py"
+chmod +x "$installdir/mpdvoldown.py" "$installdir/mpdvolup.py" "$installdir/volume.py"
+
+
+
+
+./mpd-extended.cfg:
+[MPD]
+music_directory = /path/to/default/music
+playlist_directory = /path/to/default/playlists
+log_file = /var/log/mpd/mpd.log
+host = localhost
+port = 6600
+password = 
+
+
+
+./README.md:
+# mpd-scripts - volume
+
+* mpdvoldown.py - Decreases sound volume by -5 units. Uses python-mpd. Accepts optional down argument to specify custom volume adjustment.
+* mpdvolup.py  - Increases sound volume by +5 units. Uses python-mpd. Accepts optional up argument to specify custom volume adjustment.
+* volume.py - Adjusts sound volume by -5 or +5 units. Uses python-mpd. Accepts optional down/up arguments to specify custom volume adjustment.
+  
+### Prerequisites
+mpc
+
+***
+#### License: [GPLv3](../../LICENSE)
+
+
+./README.md.backup:
+# mpd-scripts - volume
+
+* mpdvoldown.py - Decreases sound volume by -5 units. Uses python-mpd. Accepts optional down argument to specify custom volume adjustment.
+* mpdvolup.py  - Increases sound volume by +5 units. Uses python-mpd. Accepts optional up argument to specify custom volume adjustment.
+* volume.py - Adjusts sound volume by -5 or +5 units. Uses python-mpd. Accepts optional down/up arguments to specify custom volume adjustment.
+  
+### Prerequisites
+python-mpd
+
+***
+#### License: [GPLv3](../../LICENSE)
+
+
+./mpdvolup.py:
+#!/usr/bin/env python3
+"""
+mpdvolup.py
+
+Description:
+    This script increases the volume of an MPD (Music Player Daemon) server by a specified amount (default: 5 units).
+    It connects to the MPD server using the configuration specified in 'mpd.conf', authenticates if a password is provided, and then adjusts the volume accordingly using the `mpc` command line interface.
+    Finally, it prints a message indicating the volume change and disconnects from the MPD server.
+
+Usage:
+    python mpdvolup.py [amount]
+
+Arguments:
+    amount: Optional. Specifies the amount by which to increase the volume. Default is 5 units.
+
+Examples:
+    python mpdvolup.py
+        Increases the volume of the MPD server by 5 units.
+    python mpdvolup.py 10
+        Increases the volume of the MPD server by 10 units.
+"""
+
+import os
+import sys
+import subprocess
+
+def read_config():
+    """
+    Function to read MPD configuration from mpd.conf file.
+    
+    Returns:
+    - Dictionary containing MPD configuration.
+    """
+    mpd_conf_paths = [
+        "/etc/mpd.conf",
+        "/etc/mpd/mpd.conf",
+        "/usr/local/etc/mpd.conf",
+        "~/.mpdconf",
+        "~/.config/mpd/mpd.conf"
+    ]
+
+    for path in mpd_conf_paths:
+        full_path = os.path.expanduser(path)
+        if os.path.isfile(full_path):
+            with open(full_path, 'r') as f:
+                config_lines = f.readlines()
+            config_dict = {}
+            for line in config_lines:
+                if '=' in line:
+                    key, value = line.strip().split('=', 1)
+                    config_dict[key.strip()] = value.strip()
+            return config_dict
+
+    print("MPD configuration file (mpd.conf) not found in common locations.")
+    sys.exit(1)
+
+def main():
+    # Read MPD server configuration from mpd.conf
+    mpd_config = read_config()
+    mpd_server = mpd_config.get('bind_to_address', 'localhost')
+    mpd_port = int(mpd_config.get('port', '6600'))
+    mpd_pass = mpd_config.get('password', '')
+
+    # Authenticate
+    if mpd_pass:
+        auth_string = f"-p '{mpd_pass}'"
+    else:
+        auth_string = ""
+
+    # Determine volume amount
+    if len(sys.argv) > 1:
+        volume_amount = sys.argv[1]
+    else:
+        volume_amount = "5"  # Default volume increase amount
+
+    # Increase volume
+    try:
+        subprocess.run(f"mpc {auth_string} volume +{volume_amount}", shell=True)
+        print(f"Volume increased by {volume_amount} units.")
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == "__main__":
+    main()
+
+
+

@@ -1,65 +1,69 @@
 #!/usr/bin/env python3
-"""
-mpdvolup.py
+# mpdvolup.py
 
-Description:
-    This script increases the volume of an MPD (Music Player Daemon) server by a specified amount (default: 5 units).
-    It connects to the MPD server using the configuration specified in 'mpd.conf', authenticates if a password is provided, and then adjusts the volume accordingly using the `mpc` command line interface.
-    Finally, it prints a message indicating the volume change and disconnects from the MPD server.
+"""
+Increase MPD volume using mpc command-line tool.
+
+This script allows you to increase the volume of the Music Player Daemon (MPD) using the settings provided 
+in the 'mpd-extended.cfg' configuration file. If the configuration file or its settings are not found, 
+the script falls back to default values.
 
 Usage:
-    python mpdvolup.py [amount]
+    mpdvolup.py [amount]
 
 Arguments:
-    amount: Optional. Specifies the amount by which to increase the volume. Default is 5 units.
+    amount      Amount by which to increase volume
 
 Examples:
-    python mpdvolup.py
-        Increases the volume of the MPD server by 5 units.
-    python mpdvolup.py 10
-        Increases the volume of the MPD server by 10 units.
+    mpdvolup.py 5     # Increase volume by 5 units
+    mpdvolup.py 10    # Increase volume by 10 units
+
+Note:
+    If the 'toggleMaxVolume' setting is enabled in the configuration file, the script ensures that the 
+    volume does not exceed the 'maxVolume' setting when increasing the volume. Otherwise, it respects 
+    the provided volume increase value.
+
+Dependencies:
+    - mpc command-line tool (https://musicpd.org/doc/html/user.html#mpc)
 """
+
 
 import os
 import sys
 import subprocess
+import configparser
 
 def read_config():
     """
-    Function to read MPD configuration from mpd.conf file.
+    Function to read MPD configuration from mpd-extended.cfg file.
     
     Returns:
     - Dictionary containing MPD configuration.
     """
-    mpd_conf_paths = [
-        "/etc/mpd.conf",
-        "/etc/mpd/mpd.conf",
-        "/usr/local/etc/mpd.conf",
-        "~/.mpdconf",
-        "~/.config/mpd/mpd.conf"
-    ]
+    config = configparser.ConfigParser()
+    mpd_extended_cfg_path = os.path.expanduser("~/.config/mpd/mpd-extended.cfg")
+    if not os.path.isfile(mpd_extended_cfg_path):
+        print(f"Error: MPD extended configuration file (mpd-extended.cfg) not found at {mpd_extended_cfg_path}")
+        sys.exit(1)
 
-    for path in mpd_conf_paths:
-        full_path = os.path.expanduser(path)
-        if os.path.isfile(full_path):
-            with open(full_path, 'r') as f:
-                config_lines = f.readlines()
-            config_dict = {}
-            for line in config_lines:
-                if '=' in line:
-                    key, value = line.strip().split('=', 1)
-                    config_dict[key.strip()] = value.strip()
-            return config_dict
-
-    print("MPD configuration file (mpd.conf) not found in common locations.")
-    sys.exit(1)
+    config.read(mpd_extended_cfg_path)
+    mpd_config = {
+        'SERVER': config['MPD-SCRIPTS'].get('server', 'localhost'),
+        'MPD_PORT': int(config['MPD-SCRIPTS'].get('mpd_port', '6600')),
+        'MPDPASS': config['MPD-SCRIPTS'].get('password', ''),
+        'toggleMaxVolume': config['MPD-SCRIPTS'].getboolean('toggleMaxVolume', fallback=False),
+        'maxVolume': int(config['MPD-SCRIPTS'].get('maxVolume', 80))
+    }
+    return mpd_config
 
 def main():
-    # Read MPD server configuration from mpd.conf
+    # Read MPD server configuration from mpd-extended.cfg
     mpd_config = read_config()
-    mpd_server = mpd_config.get('bind_to_address', 'localhost')
-    mpd_port = int(mpd_config.get('port', '6600'))
-    mpd_pass = mpd_config.get('password', '')
+    mpd_server = mpd_config['SERVER']
+    mpd_port = mpd_config['MPD_PORT']
+    mpd_pass = mpd_config['MPDPASS']
+    toggle_max_volume = mpd_config['toggleMaxVolume']
+    max_volume = mpd_config['maxVolume']
 
     # Authenticate
     if mpd_pass:
