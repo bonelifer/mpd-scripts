@@ -1,4 +1,4 @@
-!#/usr/bin/bash
+#!/usr/bin/bash
 
 check_and_copy_mpd_extended_cfg() {
     MPD_EXTENDED_CFG_PATH=~/.config/mpd/mpd-extended.cfg
@@ -35,8 +35,12 @@ prompt_mpd_extended_user_group() {
     read -t 10 -p "Set user and group to 'root' (y/n)? " mpd_extended_choice
     if [ "$mpd_extended_choice" = "y" ]; then
         installdir="/usr/local/sbin"
+        mpd_extended_user="root"
+        mpd_extended_group="root"
     else
         installdir="$HOME/bin"
+        mpd_extended_user="$USER"
+        mpd_extended_group="$USER"
         # Create a 'bin' directory in your home directory if it doesn't exist
         mkdir -p "$installdir"
         # Add the 'bin' directory to your PATH if not already added
@@ -49,16 +53,18 @@ prompt_mpd_extended_user_group() {
     fi
 }
 
-# Use the $installdir variable for the rest of the script
-echo "Install directory: $installdir"
-
-
+# Call the function to prompt the user
 prompt_mpd_extended_user_group
 check_and_copy_mpd_extended_cfg
 add_mpd_script_section_if_cfg_exists
 
+# Use the $installdir variable for the rest of the script
+echo "Install directory: $installdir"
+
+# Define install directory variable
+installdir="/usr/local/sbin"
+
 cp ./mpdvoldown.py ./mpdvolup.py ./volume.py "$installdir"
 chown "$mpd_extended_user:$mpd_extended_group" "$installdir/mpdvoldown.py" "$installdir/mpdvolup.py" "$installdir/volume.py"
 chmod +x "$installdir/mpdvoldown.py" "$installdir/mpdvolup.py" "$installdir/volume.py"
-
 
