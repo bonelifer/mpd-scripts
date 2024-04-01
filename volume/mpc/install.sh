@@ -61,9 +61,7 @@ add_mpd_script_section_if_cfg_exists
 # Use the $installdir variable for the rest of the script
 echo "Install directory: $installdir"
 
-# Define install directory variable
-installdir="/usr/local/sbin"
-
+sudo apt install mpc
 cp ./mpdvoldown.py ./mpdvolup.py ./volume.py "$installdir"
 chown "$mpd_extended_user:$mpd_extended_group" "$installdir/mpdvoldown.py" "$installdir/mpdvolup.py" "$installdir/volume.py"
 chmod +x "$installdir/mpdvoldown.py" "$installdir/mpdvolup.py" "$installdir/volume.py"

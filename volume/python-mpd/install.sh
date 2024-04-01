@@ -53,23 +53,21 @@ prompt_mpd_extended_user_group() {
     fi
 }
 
-# Call the function to prompt the user
-prompt_mpd_extended_user_group
-check_and_copy_mpd_extended_cfg
-add_mpd_script_section_if_cfg_exists
-
-# Use the $installdir variable for the rest of the script
-echo "Install directory: $installdir"
-
 install_python_requirements() {
     PIP3_PATH=$(which pip3)
     $PIP3_PATH install -r requirements.txt
 }
 
+# Call the function to prompt the user
+prompt_mpd_extended_user_group
+check_and_copy_mpd_extended_cfg
+add_mpd_script_section_if_cfg_exists
 install_python_requirements
 
-# Define install directory variable
-installdir="/usr/local/sbin"
+# Use the $installdir variable for the rest of the script
+echo "Install directory: $installdir"
+
+
 
 cp ./mpdvoldown.py ./mpdvolup.py ./volume.py "$installdir"
 chown "$mpd_extended_user:$mpd_extended_group" "$installdir/mpdvoldown.py" "$installdir/mpdvolup.py" "$installdir/volume.py"
