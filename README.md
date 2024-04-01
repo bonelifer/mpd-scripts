@@ -37,14 +37,7 @@ Collection of scripts related to mpd & mpc.
 | **[stats](./stats/)** | Scripts providing statistical information about music files. |
 
 ### Prerequisites
-- mpd
-- mpc
-- python3
-- python-mpd2
-- BASH
-- Perl
-- StreamFinder::Tunein (for Tunein Radio Script)
-- StreamFinder::IHeartRadio (for iHeartRadio Script)
+Listed in each scripts README.md.
 
 
 ### Installation
