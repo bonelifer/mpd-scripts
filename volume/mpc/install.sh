@@ -30,19 +30,28 @@ add_mpd_script_section_if_cfg_exists() {
     fi
 }
 
+# Function to prompt user to set user and group to 'root' or current user
 prompt_mpd_extended_user_group() {
     read -t 10 -p "Set user and group to 'root' (y/n)? " mpd_extended_choice
     if [ "$mpd_extended_choice" = "y" ]; then
-        mpd_extended_user="root"
-        mpd_extended_group="root"
+        installdir="/usr/local/sbin"
     else
-        mpd_extended_user="$USER"
-        mpd_extended_group="$USER"
+        installdir="$HOME/bin"
+        # Create a 'bin' directory in your home directory if it doesn't exist
+        mkdir -p "$installdir"
+        # Add the 'bin' directory to your PATH if not already added
+        if [[ ":$PATH:" != *":$HOME/bin:"* ]]; then
+            echo 'export PATH="$PATH:$HOME/bin"' >> ~/.bashrc
+        fi
+        # Apply changes to the current session
+        source ~/.bashrc
+        echo "Setup complete. 'bin' directory added to PATH."
     fi
 }
 
-# Define install directory variable
-installdir="/usr/local/sbin"
+# Use the $installdir variable for the rest of the script
+echo "Install directory: $installdir"
+
 
 prompt_mpd_extended_user_group
 check_and_copy_mpd_extended_cfg
