@@ -10,5 +10,11 @@
 ### Prerequisites
 mpc
 
+### Installation
+```
+apt install mpc
+```
+If you aren't using a Debian/Ubuntu based system consult your distrobution for package name and install method.
+
 ***
 #### License: [GPLv3](../../LICENSE)

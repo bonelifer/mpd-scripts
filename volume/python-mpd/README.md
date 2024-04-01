@@ -8,7 +8,11 @@
 
   
 ### Prerequisites
-python-mpd
+python-mpd2
 
+### Installation
+```
+pip install python-mpd2
+```
 ***
 #### License: [GPLv3](../../LICENSE)
