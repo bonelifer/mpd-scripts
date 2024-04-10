@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# volume.py
-
 
 """
 Adjust MPD volume using mpc command-line tool.
@@ -28,7 +26,6 @@ Note:
 Dependencies:
     - mpc command-line tool (https://musicpd.org/doc/html/user.html#mpc)
 """
-
 
 import os
 import sys
@@ -62,37 +59,37 @@ def read_config():
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Adjust MPD volume.')
-    parser.add_argument('direction', choices=['up', 'down'], help='Direction to adjust volume (up or down)')
+    parser.add_argument('direction', nargs='?', choices=['up', 'down'], help='Direction to adjust volume (up or down)')
     parser.add_argument('amount', nargs='?', type=int, default=5, help='Amount by which to adjust volume')
     args = parser.parse_args()
 
     # Read MPD server configuration from mpd-extended.cfg
     mpd_config = read_config()
-    mpd_server = mpd_config['SERVER']
-    mpd_port = mpd_config['MPD_PORT']
-    mpd_pass = mpd_config['MPDPASS']
     toggle_max_volume = mpd_config['toggleMaxVolume']
     max_volume = mpd_config['maxVolume']
 
-    # Authenticate
-    if mpd_pass:
-        auth_string = f"-p '{mpd_pass}'"
-    else:
-        auth_string = ""
+    # If no arguments provided, show usage and current volume
+    if not args.direction:
+        try:
+            current_volume = int(subprocess.getoutput("mpc volume").split()[0])
+            print(f"usage: {sys.argv[0]} [-h] {{up,down}} [amount]\nCurrent volume: {current_volume}%")
+        except Exception as e:
+            print(f"Error: {e}")
+        sys.exit(0)
 
     # Adjust volume based on command-line argument
     try:
         if args.direction == 'up':
             if toggle_max_volume:
-                current_volume = int(subprocess.getoutput(f"mpc {auth_string} volume").split()[0])
+                current_volume = int(subprocess.getoutput("mpc volume").split()[0])
                 new_volume = min(current_volume + args.amount, max_volume)
-                subprocess.run(f"mpc {auth_string} volume {new_volume}", shell=True)
+                subprocess.run(f"mpc volume {new_volume}", shell=True)
                 print(f"Volume increased by {new_volume - current_volume} units.")
             else:
-                subprocess.run(f"mpc {auth_string} volume +{args.amount}", shell=True)
+                subprocess.run(f"mpc volume +{args.amount}", shell=True)
                 print(f"Volume increased by {args.amount} units.")
         elif args.direction == 'down':
-            subprocess.run(f"mpc {auth_string} volume -{args.amount}", shell=True)
+            subprocess.run(f"mpc volume -{args.amount}", shell=True)
             print(f"Volume decreased by {args.amount} units.")
     except Exception as e:
         print(f"Error: {e}")

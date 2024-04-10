@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# mpdvoldown.py
 
 """
 Decrease MPD volume using mpc command-line tool.
@@ -50,20 +49,33 @@ def read_config():
     }
     return mpd_config
 
+def get_current_volume():
+    """
+    Function to retrieve the current volume level from MPD using mpc command.
+    
+    Returns:
+    - Current volume level as an integer.
+    """
+    try:
+        output = subprocess.check_output(["mpc", "volume"]).decode().strip()
+        current_volume = int(output.split()[0].strip("%"))
+        return current_volume
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
 def main():
     # Read MPD server configuration from mpd-extended.cfg
     mpd_config = read_config()
-    mpd_server = mpd_config['SERVER']
-    mpd_port = mpd_config['MPD_PORT']
-    mpd_pass = mpd_config['MPDPASS']
     toggle_max_volume = mpd_config['toggleMaxVolume']
     max_volume = mpd_config['maxVolume']
 
-    # Authenticate
-    if mpd_pass:
-        auth_string = f"-p '{mpd_pass}'"
-    else:
-        auth_string = ""
+    # If no arguments provided, show usage and current volume
+    if len(sys.argv) == 1:
+        current_volume = get_current_volume()
+        if current_volume is not None:
+            print(f"usage: {sys.argv[0]} [-h] [amount]\nCurrent volume: {current_volume}%")
+        sys.exit(0)
 
     # Determine volume amount
     if len(sys.argv) > 1:
@@ -71,9 +83,14 @@ def main():
     else:
         volume_amount = "5"  # Default volume decrease amount
 
+    # Retrieve current volume
+    current_volume = get_current_volume()
+    if current_volume is None:
+        sys.exit(1)
+
     # Decrease volume
     try:
-        subprocess.run(f"mpc {auth_string} volume -{volume_amount}", shell=True)
+        subprocess.run(["mpc", "volume", f"-{volume_amount}"])
         print(f"Volume decreased by {volume_amount} units.")
     except Exception as e:
         print(f"Error: {e}")

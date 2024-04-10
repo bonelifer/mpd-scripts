@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 """
 Adjust MPD volume using python-mpd library.
 
@@ -28,7 +27,6 @@ Dependencies:
     - python-mpd library (https://python-mpd.readthedocs.io/en/latest/)
 """
 
-
 import os
 import sys
 import argparse
@@ -37,7 +35,7 @@ import configparser
 
 def read_config():
     """
-    Function to read MPD configuration from mpd.conf file.
+    Function to read MPD configuration from mpd-extended.cfg file.
     
     Returns:
     - Dictionary containing MPD configuration.
@@ -63,14 +61,12 @@ def read_config():
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Adjust MPD volume.')
-    parser.add_argument('direction', choices=['up', 'down'], help='Direction to adjust volume (up or down)')
+    parser.add_argument('direction', nargs='?', choices=['up', 'down'], help='Direction to adjust volume (up or down)')
     parser.add_argument('amount', nargs='?', type=int, default=5, help='Amount by which to adjust volume')
     args = parser.parse_args()
 
     # Read MPD configuration from mpd-extended.cfg
     mpd_config = read_config()
-    toggle_max_volume = mpd_config['toggleMaxVolume']
-    max_volume = mpd_config['maxVolume']
     host = mpd_config['host']
     port = mpd_config['port']
     password = mpd_config['password']
@@ -84,18 +80,17 @@ def main():
         client.password(password)
 
     # Get current volume
-    current_volume = int(client.status().get('volume', 0))
+    current_volume = client.status().get('volume', 'Unknown')
+
+    # If no arguments provided, show usage and current volume
+    if not args.direction:
+        print(f"usage: {sys.argv[0]} [-h] {{up,down}} [amount]\nCurrent volume: {current_volume}")
+        sys.exit(0)
 
     # Adjust volume based on command-line argument
     if args.direction == 'up':
-        if toggle_max_volume:
-            # Check if increasing volume would exceed maxVolume
-            new_volume = min(current_volume + args.amount, max_volume)
-            client.setvol(new_volume)
-            print(f"Volume increased by {new_volume - current_volume} units.")
-        else:
-            client.volume(f'+{args.amount}')  # Increase volume by specified amount
-            print(f"Volume increased by {args.amount} units.")
+        client.volume(f'+{args.amount}')  # Increase volume by specified amount
+        print(f"Volume increased by {args.amount} units.")
     elif args.direction == 'down':
         client.volume(f'-{args.amount}')  # Decrease volume by specified amount
         print(f"Volume decreased by {args.amount} units.")
@@ -106,4 +101,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

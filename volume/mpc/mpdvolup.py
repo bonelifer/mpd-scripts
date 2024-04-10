@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# mpdvolup.py
 
 """
 Increase MPD volume using mpc command-line tool.
@@ -26,7 +25,6 @@ Note:
 Dependencies:
     - mpc command-line tool (https://musicpd.org/doc/html/user.html#mpc)
 """
-
 
 import os
 import sys
@@ -59,28 +57,40 @@ def read_config():
 def main():
     # Read MPD server configuration from mpd-extended.cfg
     mpd_config = read_config()
-    mpd_server = mpd_config['SERVER']
-    mpd_port = mpd_config['MPD_PORT']
-    mpd_pass = mpd_config['MPDPASS']
     toggle_max_volume = mpd_config['toggleMaxVolume']
     max_volume = mpd_config['maxVolume']
 
-    # Authenticate
-    if mpd_pass:
-        auth_string = f"-p '{mpd_pass}'"
-    else:
-        auth_string = ""
+    # If no arguments provided, show usage and current volume
+    if len(sys.argv) == 1:
+        try:
+            output = subprocess.check_output(["mpc", "volume"]).decode().strip()
+            current_volume = int(output.split()[0].strip("%"))
+            print(f"usage: {sys.argv[0]} [-h] [amount]\nCurrent volume: {current_volume}%")
+        except Exception as e:
+            print(f"Error: {e}")
+        sys.exit(0)
 
     # Determine volume amount
     if len(sys.argv) > 1:
-        volume_amount = sys.argv[1]
+        volume_amount = int(sys.argv[1])
     else:
-        volume_amount = "5"  # Default volume increase amount
+        volume_amount = 5  # Default volume increase amount
 
-    # Increase volume
+    # Retrieve current volume
     try:
-        subprocess.run(f"mpc {auth_string} volume +{volume_amount}", shell=True)
-        print(f"Volume increased by {volume_amount} units.")
+        output = subprocess.check_output(["mpc", "volume"]).decode().strip()
+        current_volume = int(output.split()[0].strip("%"))
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
+    # Calculate new volume level
+    new_volume = min(current_volume + volume_amount, max_volume) if toggle_max_volume else current_volume + volume_amount
+
+    # Adjust volume
+    try:
+        subprocess.run(["mpc", "volume", str(new_volume)])
+        print(f"Volume increased by {new_volume - current_volume} units.")
     except Exception as e:
         print(f"Error: {e}")
 

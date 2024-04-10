@@ -17,11 +17,6 @@ Examples:
     mpdvolup.py 5     # Increase volume by 5 units
     mpdvolup.py 10    # Increase volume by 10 units
 
-Note:
-    If the 'toggleMaxVolume' setting is enabled in the configuration file, the script ensures that the 
-    volume does not exceed the 'maxVolume' setting when increasing the volume. Otherwise, it respects 
-    the provided volume increase value.
-
 Dependencies:
     - python-mpd library (https://python-mpd.readthedocs.io/en/latest/)
 """
@@ -72,16 +67,25 @@ def main():
     if mpd_pass:
         client.password(mpd_pass)
 
+    # Parse command-line arguments
+    if len(sys.argv) > 1:
+        amount = int(sys.argv[1])
+    else:
+        # If no arguments are provided, show usage and current volume
+        current_volume = client.status().get('volume', 'Unknown')
+        print(f"Usage: {sys.argv[0]} [amount]\nCurrent volume: {current_volume}")
+        sys.exit(0)
+
     # Increase volume
     try:
         if toggle_max_volume:
             current_volume = int(client.status().get('volume', 0))
-            new_volume = min(current_volume + 5, max_volume)
+            new_volume = min(current_volume + amount, max_volume)
             client.setvol(new_volume)
             print(f"Volume increased by {new_volume - current_volume} units.")
         else:
-            client.volume('+5')  # Increase volume by 5 units
-            print("Volume increased by 5 units.")
+            client.volume(f'+{amount}')  # Increase volume by specified amount
+            print(f"Volume increased by {amount} units.")
     except Exception as e:
         print(f"Error: {e}")
     

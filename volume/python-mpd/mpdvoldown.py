@@ -63,17 +63,22 @@ def main():
     if mpd_pass:
         client.password(mpd_pass)
 
-    # Handle command-line arguments
+    # Parse command-line arguments
     if len(sys.argv) > 1:
         amount = int(sys.argv[1])
-        try:
-            client.volume(f'-{amount}')  # Decrease volume by specified amount
-            print(f"Volume decreased by {amount} units.")
-        except Exception as e:
-            print(f"Error: {e}")
     else:
-        print("Please specify the amount by which to decrease the volume.")
+        # If no arguments are provided, show usage and current volume
+        current_volume = client.status().get('volume', 'Unknown')
+        print(f"Usage: {sys.argv[0]} [amount]\nCurrent volume: {current_volume}")
+        sys.exit(0)
 
+    # Decrease volume
+    try:
+        client.volume(f'-{amount}')  # Decrease volume by specified amount
+        print(f"Volume decreased by {amount} units.")
+    except Exception as e:
+        print(f"Error: {e}")
+    
     # Disconnect from MPD server
     client.close()
     client.disconnect()
