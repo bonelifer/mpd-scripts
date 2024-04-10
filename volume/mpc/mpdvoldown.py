@@ -1,71 +1,81 @@
 #!/usr/bin/env python3
-"""
-mpdvoldown.py
 
-Description:
-    This script decreases the volume of an MPD (Music Player Daemon) server by a specified amount (default: 5 units).
-    It connects to the MPD server using the configuration specified in 'mpd.conf', authenticates if a password is provided, and then adjusts the volume accordingly using the `mpc` command line interface.
-    Finally, it prints a message indicating the volume change and disconnects from the MPD server.
+"""
+Decrease MPD volume using mpc command-line tool.
+
+This script allows you to decrease the volume of the Music Player Daemon (MPD) using the settings provided 
+in the 'mpd-extended.cfg' configuration file. If the configuration file or its settings are not found, 
+the script falls back to default values.
 
 Usage:
-    python mpdvoldown.py [amount]
+    mpdvoldown.py [amount]
 
 Arguments:
-    amount: Optional. Specifies the amount by which to decrease the volume. Default is 5 units.
+    amount      Amount by which to decrease volume
 
 Examples:
-    python mpdvoldown.py
-        Decreases the volume of the MPD server by 5 units.
-    python mpdvoldown.py 10
-        Decreases the volume of the MPD server by 10 units.
+    mpdvoldown.py 5     # Decrease volume by 5 units
+    mpdvoldown.py 10    # Decrease volume by 10 units
+
+Dependencies:
+    - mpc command-line tool (https://musicpd.org/doc/html/user.html#mpc)
 """
 
 import os
 import sys
 import subprocess
+import configparser
 
 def read_config():
     """
-    Function to read MPD configuration from mpd.conf file.
+    Function to read MPD configuration from mpd-extended.cfg file.
     
     Returns:
     - Dictionary containing MPD configuration.
     """
-    mpd_conf_paths = [
-        "/etc/mpd.conf",
-        "/etc/mpd/mpd.conf",
-        "/usr/local/etc/mpd.conf",
-        "~/.mpdconf",
-        "~/.config/mpd/mpd.conf"
-    ]
+    config = configparser.ConfigParser()
+    mpd_extended_cfg_path = os.path.expanduser("~/.config/mpd/mpd-extended.cfg")
+    if not os.path.isfile(mpd_extended_cfg_path):
+        print(f"Error: MPD extended configuration file (mpd-extended.cfg) not found at {mpd_extended_cfg_path}")
+        sys.exit(1)
 
-    for path in mpd_conf_paths:
-        full_path = os.path.expanduser(path)
-        if os.path.isfile(full_path):
-            with open(full_path, 'r') as f:
-                config_lines = f.readlines()
-            config_dict = {}
-            for line in config_lines:
-                if '=' in line:
-                    key, value = line.strip().split('=', 1)
-                    config_dict[key.strip()] = value.strip()
-            return config_dict
+    config.read(mpd_extended_cfg_path)
+    mpd_config = {
+        'SERVER': config['MPD-SCRIPTS'].get('server', 'localhost'),
+        'MPD_PORT': int(config['MPD-SCRIPTS'].get('mpd_port', '6600')),
+        'MPDPASS': config['MPD-SCRIPTS'].get('password', ''),
+        'toggleMaxVolume': config['MPD-SCRIPTS'].getboolean('toggleMaxVolume', fallback=False),
+        'maxVolume': int(config['MPD-SCRIPTS'].get('maxVolume', 80))
+    }
+    return mpd_config
 
-    print("MPD configuration file (mpd.conf) not found in common locations.")
-    sys.exit(1)
+def get_current_volume():
+    """
+    Function to retrieve the current volume level from MPD using mpc command.
+    
+    Returns:
+    - Current volume level as an integer.
+    """
+    try:
+        output = subprocess.check_output(["mpc", "volume"]).decode().strip()
+        current_volume = int(output.split()[0].strip("%"))
+        return current_volume
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
 
 def main():
-    # Read MPD server configuration from mpd.conf
+    # Read MPD server configuration from mpd-extended.cfg
     mpd_config = read_config()
-    mpd_server = mpd_config.get('bind_to_address', 'localhost')
-    mpd_port = int(mpd_config.get('port', '6600'))
-    mpd_pass = mpd_config.get('password', '')
+    toggle_max_volume = mpd_config['toggleMaxVolume']
+    max_volume = mpd_config['maxVolume']
 
-    # Authenticate
-    if mpd_pass:
-        auth_string = f"-p '{mpd_pass}'"
-    else:
-        auth_string = ""
+    # If no arguments provided, show usage and current volume
+    if len(sys.argv) == 1:
+        current_volume = get_current_volume()
+        if current_volume is not None:
+            print(f"usage: {sys.argv[0]} [-h] [amount]\nCurrent volume: {current_volume}%")
+        sys.exit(0)
 
     # Determine volume amount
     if len(sys.argv) > 1:
@@ -73,9 +83,14 @@ def main():
     else:
         volume_amount = "5"  # Default volume decrease amount
 
+    # Retrieve current volume
+    current_volume = get_current_volume()
+    if current_volume is None:
+        sys.exit(1)
+
     # Decrease volume
     try:
-        subprocess.run(f"mpc {auth_string} volume -{volume_amount}", shell=True)
+        subprocess.run(["mpc", "volume", f"-{volume_amount}"])
         print(f"Volume decreased by {volume_amount} units.")
     except Exception as e:
         print(f"Error: {e}")

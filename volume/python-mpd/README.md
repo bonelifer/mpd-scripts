@@ -1,11 +1,18 @@
 # mpd-scripts - volume
 
-* mpdvoldown.py - Decreases sound volume by -5 units. Uses python-mpd. Accepts optional down argument to specify custom volume adjustment.
-* mpdvolup.py  - Increases sound volume by +5 units. Uses python-mpd. Accepts optional up argument to specify custom volume adjustment.
-* volume.py - Adjusts sound volume by -5 or +5 units. Uses python-mpd. Accepts optional down/up arguments to specify custom volume adjustment.
+| Script Name    | Description                                                                   |
+|----------------|-------------------------------------------------------------------------------|
+| [volume.py](./volume.py)    | Adjust MPD volume using python-mpd library.                                    |
+| [mpdvolup.py](./mpdvolup.py)| Increase MPD volume using python-mpd library.                                  |
+| [mpdvoldown.py](./mpdvoldown.py)| Decrease MPD volume using python-mpd library.  
+
   
 ### Prerequisites
-python-mpd
+python-mpd2
 
+### Installation
+```
+pip install python-mpd2
+```
 ***
 #### License: [GPLv3](../../LICENSE)

@@ -1,64 +1,59 @@
 #!/usr/bin/env python3
-"""
-mpdvoldown.py
 
-Description:
-    This script decreases the volume of an MPD (Music Player Daemon) server by a specified amount.
-    It connects to the MPD server using the configuration specified in 'mpd.conf', authenticates if a password is provided, 
-    and then decreases the volume by the specified amount.
-    Finally, it prints a message indicating the volume change and disconnects from the MPD server.
+"""
+Decrease MPD volume using python-mpd library.
+
+This script allows you to decrease the volume of the Music Player Daemon (MPD) using the settings provided 
+in the 'mpd-extended.cfg' configuration file. If the configuration file or its settings are not found, 
+the script falls back to default values.
 
 Usage:
-    python mpdvoldown.py [amount]
+    mpdvoldown.py [amount]
 
 Arguments:
-    amount: The amount by which to decrease the volume. Must be a positive integer.
+    amount      Amount by which to decrease volume
 
-Example:
-    python mpdvoldown.py 10
-        Decreases the volume of the MPD server by 10 units.
+Examples:
+    mpdvoldown.py 5     # Decrease volume by 5 units
+    mpdvoldown.py 10    # Decrease volume by 10 units
+
+Dependencies:
+    - python-mpd library (https://python-mpd.readthedocs.io/en/latest/)
 """
 
+
+import configparser
 import os
 import sys
 from mpd import MPDClient
 
 def read_config():
     """
-    Function to read MPD configuration from mpd.conf file.
+    Function to read MPD configuration from mpd-extended.cfg file.
     
     Returns:
     - Dictionary containing MPD configuration.
     """
-    mpd_conf_paths = [
-        "/etc/mpd.conf",
-        "/etc/mpd/mpd.conf",
-        "/usr/local/etc/mpd.conf",
-        "~/.mpdconf",
-        "~/.config/mpd/mpd.conf"
-    ]
+    config = configparser.ConfigParser()
+    mpd_extended_cfg_path = os.path.expanduser("~/.config/mpd/mpd-extended.cfg")
+    if not os.path.isfile(mpd_extended_cfg_path):
+        print(f"Error: MPD extended configuration file (mpd-extended.cfg) not found at {mpd_extended_cfg_path}")
+        sys.exit(1)
 
-    for path in mpd_conf_paths:
-        full_path = os.path.expanduser(path)
-        if os.path.isfile(full_path):
-            with open(full_path, 'r') as f:
-                config_lines = f.readlines()
-            config_dict = {}
-            for line in config_lines:
-                if '=' in line:
-                    key, value = line.strip().split('=', 1)
-                    config_dict[key.strip()] = value.strip()
-            return config_dict
-
-    print("MPD configuration file (mpd.conf) not found in common locations.")
-    sys.exit(1)
+    config.read(mpd_extended_cfg_path)
+    mpd_config = {
+        'SERVER': config['MPD-SCRIPTS'].get('server', 'localhost'),
+        'MPD_PORT': int(config['MPD-SCRIPTS'].get('mpd_port', '6600')),
+        'MPDPASS': config['MPD-SCRIPTS'].get('password', '')
+    }
+    return mpd_config
 
 def main():
-    # Read MPD server configuration from mpd.conf
+    # Read MPD server configuration from mpd-extended.cfg
     mpd_config = read_config()
-    mpd_server = mpd_config.get('bind_to_address', 'localhost')
-    mpd_port = int(mpd_config.get('port', '6600'))
-    mpd_pass = mpd_config.get('password', '')
+    mpd_server = mpd_config['SERVER']
+    mpd_port = mpd_config['MPD_PORT']
+    mpd_pass = mpd_config['MPDPASS']
 
     # Connect to MPD server
     client = MPDClient()
@@ -68,17 +63,22 @@ def main():
     if mpd_pass:
         client.password(mpd_pass)
 
-    # Handle command-line arguments
+    # Parse command-line arguments
     if len(sys.argv) > 1:
         amount = int(sys.argv[1])
-        try:
-            client.volume(f'-{amount}')  # Decrease volume by specified amount
-            print(f"Volume decreased by {amount} units.")
-        except Exception as e:
-            print(f"Error: {e}")
     else:
-        print("Please specify the amount by which to decrease the volume.")
+        # If no arguments are provided, show usage and current volume
+        current_volume = client.status().get('volume', 'Unknown')
+        print(f"Usage: {sys.argv[0]} [amount]\nCurrent volume: {current_volume}")
+        sys.exit(0)
 
+    # Decrease volume
+    try:
+        client.volume(f'-{amount}')  # Decrease volume by specified amount
+        print(f"Volume decreased by {amount} units.")
+    except Exception as e:
+        print(f"Error: {e}")
+    
     # Disconnect from MPD server
     client.close()
     client.disconnect()
