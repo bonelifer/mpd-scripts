@@ -16,6 +16,7 @@
 
 [![GitHub](https://badgen.net/badge/icon/github?icon=github&label)](https://github.com)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
+![Static Badge](https://img.shields.io/badge/Some_made_with-ChatGPT-1f425f)
 [![made-with-bash](https://img.shields.io/badge/Made%20with-Bash-1f425f.svg)](https://www.gnu.org/software/bash/)
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/bonelifer/mpd-scripts/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 [![code with love by bonelifer](https://img.shields.io/badge/%3C%2F%3E%20with%20%E2%99%A5%20by-bonelifer-ff1414.svg?style=flat-square)](https://github.com/bonelifer)
