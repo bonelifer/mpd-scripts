@@ -31,6 +31,5 @@ This Python script fetches the playlist URLs of SomaFM channels with the highest
 - `README.md`: This README file providing instructions and information about the script.
 - `channels/`: Folder containing the generated M3U playlist files for each SomaFM channel.
 
-## License
-
-This project is licensed under the [MIT License](LICENSE).
+***
+#### License: [GPLv3](../LICENSE)
