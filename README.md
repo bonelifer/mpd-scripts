@@ -37,6 +37,7 @@ Collection of scripts related to mpd & mpc.
 | **[volume](./volume/)** | Scripts allowing you to control the volume. |
 | **[stats](./stats/)** | Scripts providing statistical information about music files. |
 | **[mpd-queue-shuffle](./mpd-queue-shuffle/)** | This script generates a random playlist from a local music directory and saves it as an M3U playlist file in the specified playlist directory.  |
+| **[somafm](./somafm/)** | This script fetches the playlist URLs of SomaFM channels with the highest quality in MP3 format and creates separate playlists for each channel in extended M3U format with the channel name. |
 
 ### Prerequisites
 Listed in each scripts README.md.
