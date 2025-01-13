@@ -1,4 +1,3 @@
-```
 # SomaFM Playlist Fetcher
 
 This Python script fetches the playlist URLs of SomaFM channels with the highest quality in MP3 format and creates separate playlists for each channel in extended M3U format with the channel name included.
@@ -35,4 +34,3 @@ This Python script fetches the playlist URLs of SomaFM channels with the highest
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-```
