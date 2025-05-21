@@ -38,6 +38,7 @@ Collection of scripts related to mpd & mpc.
 | **[stats](./stats/)** | Scripts providing statistical information about music files. |
 | **[mpd-queue-shuffle](./mpd-queue-shuffle/)** | This script generates a random playlist from a local music directory and saves it as an M3U playlist file in the specified playlist directory.  |
 | **[somafm](./somafm/)** | This script fetches the playlist URLs of SomaFM channels with the highest quality in MP3 format and creates separate playlists for each channel in extended M3U format with the channel name. |
+| **[mpd-find-dup](./mpd-find-dup/)** | Contains two scripts for deduplicating MPD queues: `mpd-remove-duplicates-queue.sh` interactively deletes duplicates from the current MPD playlist in-place, while `mpd-deduplicate-save-and-reload.sh` saves the current queue as a playlist, removes duplicates, then reloads the cleaned playlist. |
 
 ### Prerequisites
 Listed in each scripts README.md.
