@@ -4,6 +4,35 @@
 - Will notify user if mpd is currently stopped. 
 - Will show the artist, title, albumart with (paused) appended at the end when mpd is paused.  
 - On compilations, shows the track's real artist instead of the album artist (e.g. "Various Artists").
+- Each notification replaces the previous one instead of stacking, so repeated updates (e.g. from the watch script below) don't pile up.
+
+## Requirements
+
+- `mpc`
+- `notify-send` (`libnotify-bin`)
+
+## Installation
+
+1. Run [`../setup-path.sh`](../setup-path.sh) first if `~/bin` isn't already on your `PATH`.
+2. Run the installer:
+
+   ```bash
+   ./install.sh
+   ```
+
+   This copies `mpd-notifier.sh`, `mpd-notifier-watch.sh`, `mpd-notifier.conf`, and `unknown.jpg` to `~/bin`, and adds an autostart entry (`~/.config/autostart/mpd-notifier.desktop`) that runs the watch script at login.
+
+## Usage
+
+`mpd-notifier.sh` sends a single notification for the currently playing track and exits — call it directly if you want to trigger a notification manually or from your own hook.
+
+To get a notification automatically whenever the track changes (or play/pause/stop state changes), run [`mpd-notifier-watch.sh`](./mpd-notifier-watch.sh) instead, either via the installer's autostart entry or manually in the background:
+
+```bash
+./mpd-notifier-watch.sh &
+```
+
+It blocks on `mpc idle player` between events (no polling), and calls `mpd-notifier.sh` once per event.
 
 ## Configuration
 
