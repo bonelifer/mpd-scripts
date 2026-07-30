@@ -70,4 +70,8 @@ If any of these tools are missing, the script will attempt to install them autom
    - The script will automatically check for and install the following utilities if they are not already installed:
      - `mpc`, `awk`, `shuf`, `ripgrep`, `parallel`.
 
-#### License: [GPLv3](../LICENSE)
+## License
+
+This project is licensed under the **GNU General Public License v3.0**.
+
+See [LICENSE](../LICENSE) for more information.

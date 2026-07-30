@@ -4,5 +4,8 @@
 - Will notify user if mpd is currently stopped. 
 - Will show the artist, title, albumart with (paused) appended at the end when mpd is paused.  
 
-***
-#### License: [GPLv3](../LICENSE)
+## License
+
+This project is licensed under the **GNU General Public License v3.0**.
+
+See [LICENSE](../LICENSE) for more information.

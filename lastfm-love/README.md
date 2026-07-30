@@ -10,5 +10,8 @@ API_SECRET
 username  
 password_hash (with an md5 hash of your password)  
 
-***
-#### License: [GPLv3](../LICENSE)
+## License
+
+This project is licensed under the **GNU General Public License v3.0**.
+
+See [LICENSE](../LICENSE) for more information.
