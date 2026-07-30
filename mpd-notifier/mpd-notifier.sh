@@ -1,9 +1,12 @@
 #!/bin/bash
 
-# Displays and retrieves album cover art for the currently playing track in MPD using
-# the mpc command-line tool. Provides a fallback image when the album art is absent.
+# Sends a desktop notification (via notify-send) for the currently playing
+# MPD track, showing title, artist, and album, using the mpc command-line
+# tool. On compilations, shows the track's real artist rather than the
+# album's artist (e.g. "Various Artists"). Falls back to a generic image
+# when no cover art is found for the track.
 
-# Cobled together from other now playing scripts.
+# Cobbled together from other now playing scripts.
 # Image found on Google Images
 
 # Config lives in ~/.config/mpd-notifier/mpd-notifier.conf, seeded from the
@@ -62,6 +65,8 @@ if [ $? -ne 1 ]; then
         (( i++ ))
     done <<< "$output"
 
+    # notify-send parses the body as Pango markup, so a literal "&" (e.g. in
+    # "Rock & Roll") must be escaped to "&amp;" or the notification won't render.
     array[1]=$(echo "${array[1]}" | sed 's/\&/\&amp\;/')
     array[2]=$(echo "${array[2]}" | sed 's/\&/\&amp\;/')
     array[3]=$(echo "${array[3]}" | sed 's/\&/\&amp\;/')
