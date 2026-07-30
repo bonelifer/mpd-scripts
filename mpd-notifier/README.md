@@ -34,6 +34,17 @@ To get a notification automatically whenever the track changes (or play/pause/st
 
 It blocks on `mpc idle player` between events (no polling), and calls `mpd-notifier.sh` once per event. Seeking within the current track also triggers MPD's `player` event, but the watch script tracks the current file and play state and skips re-notifying unless one of those actually changed.
 
+### Using mpdcron instead of the watch script
+
+If you already run [mpdcron](https://github.com/alip/mpdcron) (`sudo apt install mpdcron`), it can trigger `mpd-notifier.sh` itself instead of running `mpd-notifier-watch.sh`. Point its `player` hook at the script, e.g. in `~/.mpdcron/hooks/player`:
+
+```bash
+#!/bin/bash
+exec /path/to/mpd-notifier.sh
+```
+
+(make it executable, and list `player` in the `events` line of `~/.mpdcron/mpdcron.conf`). `mpd-notifier.sh` detects mpdcron's environment variables (`MPD_STATUS_STATE`, `MPD_SONG_TAG_TITLE`, etc.) automatically and reads track/status info from those directly instead of querying `mpc` itself. Since mpdcron's `player` event also fires on seeks, and each hook run is a fresh process with no memory of the last one, a `file|state` signature is persisted to `cache_dir/.last_signature` to skip re-notifying on seeks, the same as the watch script does in memory.
+
 ## Configuration
 
 Settings live in `~/.config/mpd-notifier/mpd-notifier.conf`, seeded automatically from [`mpd-notifier.conf`](./mpd-notifier.conf) the first time you run the script. Edit the copy in `~/.config/mpd-notifier/`, not the template.

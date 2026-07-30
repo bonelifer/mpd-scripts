@@ -81,36 +81,11 @@ if [ ! -f "$fallback_image" ]; then
     cp "$(dirname "$0")/unknown.jpg" "$cache_dir"
 fi
 
-# Get all the info needed to create the notify-send message: title, artist,
-# album artist, album, cover image. Artist and album artist are fetched
-# separately so compilations (where they differ) can show the real track
-# artist instead of the album's "Various Artists" album artist.
-output=$(mpc -f "%title%\n%artist%\n%albumartist%\n%album%\n%file%" current)
-
-# Get MPD status
-if [ -n "${MPD_HOST}" ]; then
-    status=$(mpc -h "${MPD_HOST}" -p 6600 | grep playing | cut -c2-8)
-    status2=$(mpc -h "${MPD_HOST}" -p 6600 | grep pause | cut -c2-7)
-else
-    status=$(mpc | grep playing | cut -c2-8)
-    status2=$(mpc | grep pause | cut -c2-7)
-fi
-
-if [ "$status" == "playing" ]; then
-    status=playing
-elif [[ "$status2" == "paused" ]]; then
-    status=paused
-else
-    status=stopped
-fi
-
-if [ $? -ne 1 ]; then
-    i=1
-    while read -r line; do
-        array[$i]="$line"
-        (( i++ ))
-    done <<< "$output"
-
+# Escapes '&' for Pango markup, picks display_artist (real artist vs album
+# artist, for compilations), and resolves the cover-art image path. Assumes
+# array[1..5] (title/artist/albumartist/album/file) and $status are already
+# set by whichever path populated them below.
+finish_song_info() {
     # notify-send parses the body as Pango markup, so a literal "&" (e.g. in
     # "Rock & Roll") must be escaped to "&amp;" or the notification won't render.
     array[1]=$(echo "${array[1]}" | sed 's/\&/\&amp\;/')
@@ -136,6 +111,76 @@ if [ $? -ne 1 ]; then
             cache_image="$fallback_image"
         fi
     fi
+}
+
+if [ -n "${MPD_STATUS_STATE+x}" ]; then
+    # Running as an mpdcron "player" hook: mpdcron already queried mpd and
+    # exports the result as env vars, so use those directly instead of
+    # querying mpc ourselves. MPD_STATUS_STATE is always exported regardless
+    # of song content (unlike song tags, which are absent for untagged
+    # tracks or when nothing is loaded), making it a reliable signal that
+    # we're running under mpdcron rather than standalone.
+    case "$MPD_STATUS_STATE" in
+        play)  status=playing ;;
+        pause) status=paused ;;
+        *)     status=stopped ;;
+    esac
+
+    array[1]="${MPD_SONG_TAG_TITLE}"
+    array[2]="${MPD_SONG_TAG_ARTIST}"
+    array[3]="${MPD_SONG_TAG_ALBUM_ARTIST}"
+    array[4]="${MPD_SONG_TAG_ALBUM}"
+    array[5]="${MPD_SONG_URI}"
+    finish_song_info
+
+    # mpdcron's "player" hook fires on seeks too, same as MPD's own idle
+    # protocol, but unlike the watch loop's in-memory tracking, each hook
+    # invocation is a fresh process with no memory of the last one. Persist
+    # a "file|state" signature and skip notifying again if only the seek
+    # position changed.
+    signature_file="$cache_dir/.last_signature"
+    current_signature="${array[5]}|${status}"
+    last_signature=""
+    if [ -f "$signature_file" ]; then
+        last_signature="$(cat "$signature_file")"
+    fi
+    if [ "$current_signature" == "$last_signature" ]; then
+        exit 0
+    fi
+    echo "$current_signature" > "$signature_file"
+else
+    # Get all the info needed to create the notify-send message: title, artist,
+    # album artist, album, cover image. Artist and album artist are fetched
+    # separately so compilations (where they differ) can show the real track
+    # artist instead of the album's "Various Artists" album artist.
+    output=$(mpc -f "%title%\n%artist%\n%albumartist%\n%album%\n%file%" current)
+
+    # Get MPD status
+    if [ -n "${MPD_HOST}" ]; then
+        status=$(mpc -h "${MPD_HOST}" -p 6600 | grep playing | cut -c2-8)
+        status2=$(mpc -h "${MPD_HOST}" -p 6600 | grep pause | cut -c2-7)
+    else
+        status=$(mpc | grep playing | cut -c2-8)
+        status2=$(mpc | grep pause | cut -c2-7)
+    fi
+
+    if [ "$status" == "playing" ]; then
+        status=playing
+    elif [[ "$status2" == "paused" ]]; then
+        status=paused
+    else
+        status=stopped
+    fi
+
+    if [ $? -ne 1 ]; then
+        i=1
+        while read -r line; do
+            array[$i]="$line"
+            (( i++ ))
+        done <<< "$output"
+
+        finish_song_info
+    fi
 fi
 
 # Runs the mpc command for whichever notification action button was clicked.
@@ -149,9 +194,14 @@ handle_notification_action() {
 
 # True when MPD's "consume" mode is on, meaning each track is dropped from
 # the queue once it's played -- in that case there's no previous track left
-# to go back to, so the Previous button shouldn't be offered.
+# to go back to, so the Previous button shouldn't be offered. Under
+# mpdcron, this is already known from MPD_STATUS_CONSUME; otherwise ask mpc.
 consume_enabled() {
-    "${MPC_CMD[@]}" 2>/dev/null | grep -q 'consume: *on'
+    if [ -n "${MPD_STATUS_STATE+x}" ]; then
+        [ "${MPD_STATUS_CONSUME}" == "1" ]
+    else
+        "${MPC_CMD[@]}" 2>/dev/null | grep -q 'consume: *on'
+    fi
 }
 
 # Sends the notification via $NOTIFY_CMD (notify-send, or dunstify with
