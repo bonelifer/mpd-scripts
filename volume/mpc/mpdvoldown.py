@@ -58,7 +58,7 @@ def get_current_volume():
     """
     try:
         output = subprocess.check_output(["mpc", "volume"]).decode().strip()
-        current_volume = int(output.split()[0].strip("%"))
+        current_volume = int(output.split()[1].strip("%"))
         return current_volume
     except Exception as e:
         print(f"Error: {e}")

@@ -64,7 +64,7 @@ def main():
     if len(sys.argv) == 1:
         try:
             output = subprocess.check_output(["mpc", "volume"]).decode().strip()
-            current_volume = int(output.split()[0].strip("%"))
+            current_volume = int(output.split()[1].strip("%"))
             print(f"usage: {sys.argv[0]} [-h] [amount]\nCurrent volume: {current_volume}%")
         except Exception as e:
             print(f"Error: {e}")
@@ -79,7 +79,7 @@ def main():
     # Retrieve current volume
     try:
         output = subprocess.check_output(["mpc", "volume"]).decode().strip()
-        current_volume = int(output.split()[0].strip("%"))
+        current_volume = int(output.split()[1].strip("%"))
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
