@@ -6,12 +6,19 @@
 # Cobled together from other now playing scripts.
 # Image found on Google Images
 
-# BEGIN CONFIG
-dir="/media/william/Data2/BACKUP/MP3/"
-MPD_HOST="192.168.1.80" # Set your MPD host address here
-notify_duration="5000"
-cache_dir="/media/william/DataOrig/MPD/.notify-cache/"
-## END CONFIG
+# Config lives in ~/.config/mpd-notifier/mpd-notifier.conf, seeded from the
+# template shipped alongside this script on first run; see that file for
+# what each setting does.
+config_dir="$HOME/.config/mpd-notifier"
+config_file="$config_dir/mpd-notifier.conf"
+
+if [ ! -f "$config_file" ]; then
+    mkdir -p "$config_dir"
+    cp "$(dirname "$0")/mpd-notifier.conf" "$config_file"
+fi
+
+# shellcheck source=mpd-notifier.conf
+source "$config_file"
 
 fallback_image="$cache_dir/unknown.jpg"
 
