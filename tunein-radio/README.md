@@ -41,5 +41,7 @@ By default the playlist/image filenames are derived from the station's title as 
 
 ### License
 
-This project is licensed under the **GNU General Public License v3.0**. For more information, see [LICENSE](../LICENSE).
+This project is licensed under the **GNU General Public License v3.0**.
+
+See [LICENSE](../LICENSE) for more information.
 
