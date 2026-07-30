@@ -1,0 +1,54 @@
+name: Bug Report
+description: Report a problem with one of the mpd-scripts scripts
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: script
+    attributes:
+      label: Which script?
+      options:
+        - lastfm-love (loved.py / unloved.py)
+        - mpd-notifier
+        - tunein-radio (tunein.pl)
+        - iheart-radio (iheart.pl)
+        - volume (mpc)
+        - volume (python-mpd)
+        - mpd-queue-shuffle
+        - somafm
+        - mpd-find-dup
+        - mpd_rewind_daemon
+        - setup-path.sh
+        - Other / not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Relevant tool/module version
+      description: Whatever applies, e.g. `mpc --version`, `perl -v`, `python3 --version`, or a Perl/Python module version.
+      placeholder: "mpc 0.34"
+    validations:
+      required: false
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Exact command you ran, and any relevant config (redact hostnames, passwords, API keys, etc.).
+      placeholder: |
+        ./volume.py up 5
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log output / traceback
+      description: Paste the full terminal output. This will be formatted as code automatically.
+      render: shell
+    validations:
+      required: false

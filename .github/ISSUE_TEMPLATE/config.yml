@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions, feature requests, and general discussion
+    url: https://github.com/bonelifer/mpd-scripts/discussions
+    about: For anything that isn't a bug report, please use Discussions instead.
