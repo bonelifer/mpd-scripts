@@ -64,25 +64,6 @@ cd mpd_rewind_daemon
 
 See [`mpd_rewind_daemon/README.md`](./mpd_rewind_daemon/) for details.
 
-## Support
-Reach out to the maintainer at one of the following places:
-
-- [GitHub Discussions](https://github.com/bonelifer/mpd-scripts/discussions)
-- <a href="https://github.com/bonelifer/mpd-scripts/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
-- <a href="https://github.com/bonelifer/mpd-scripts/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feature%3A+">Request a Feature</a>
-
-## Project assistance
-If you want to say **thank you** or/and support active development of mpd-scripts:
-
-- Add a [GitHub Star](https://github.com/bonelifer/mpd-scripts) to the project.
-- See the [open issues](https://github.com/bonelifer/mpd-scripts/issues) for a list of proposed features (and known issues).
-
-## Authors & contributors
-
-The original setup of this repository is by [William Jacoby](https://github.com/bonelifer).
-
-For a full list of all authors and contributors, see [the contributors page](https://github.com/bonelifer/mpd-scripts/contributors).
-
 ## Contributing
 
 Contributions are welcome!
@@ -93,6 +74,7 @@ Contributions are welcome!
 
 ## Acknowledgments
 
+- The original setup of this repository is by [William Jacoby](https://github.com/bonelifer). For a full list of all authors and contributors, see [the contributors page](https://github.com/bonelifer/mpd-scripts/contributors).
 - Documentation updates assisted by [Claude](https://www.anthropic.com/claude).
 
 ## License
