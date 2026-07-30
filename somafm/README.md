@@ -20,13 +20,15 @@ This Python script fetches the playlist URLs of SomaFM channels with the highest
 4. Run the script:
 
    ```
-   python soma_fm_playlist_fetcher.py
+   python soma_fm_playlist_fetcher.py -d
    ```
+
+   `--download` (or `-d`) is required to actually fetch anything; running the script with no arguments (or without `-d`) just prints usage and exits.
 
    Each channel's icon is downloaded at 120px by default; pass `--size` (or `-s`) to choose 256px or 512px instead:
 
    ```
-   python soma_fm_playlist_fetcher.py -s 512
+   python soma_fm_playlist_fetcher.py -d -s 512
    ```
 
 5. The script will create a folder named `playlists` in the current directory and save individual M3U playlists and icon images for each SomaFM channel in that folder.

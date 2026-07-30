@@ -130,9 +130,15 @@ def create_playlist_file(channel_name, channel_data, folder, icon_size):
 
 def main():
     parser = argparse.ArgumentParser(description='Fetch SomaFM channel playlists and icons.')
+    parser.add_argument('-d', '--download', action='store_true',
+                         help='Fetch channels and write playlists/icons (required; nothing else does this)')
     parser.add_argument('-s', '--size', type=int, choices=sorted(ICON_SIZES), default=120,
                          help='Channel icon size in pixels to download (default: 120)')
     args = parser.parse_args()
+
+    if not args.download:
+        parser.print_help()
+        return
 
     folder = "playlists"
     if not os.path.exists(folder):
