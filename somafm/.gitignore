@@ -1,3 +1,4 @@
-*.m3u
+playlists/
+__pycache__/
 *.md.backup
 *.backup
