@@ -10,6 +10,7 @@
 
 - `mpc`
 - `notify-send` (`libnotify-bin`)
+- `dunst` (optional — only needed for `use_dunstify`)
 
 ## Installation
 
