@@ -23,6 +23,11 @@ fi
 # shellcheck source=mpd-notifier.conf
 source "$config_file"
 
+MPC_CMD=(mpc)
+if [ -n "${MPD_HOST}" ]; then
+    MPC_CMD=(mpc -h "${MPD_HOST}" -p 6600)
+fi
+
 # With use_dunstify="true", use dunst's `dunstify` instead of notify-send.
 # dunstify is a known-good, reliably-featured notify-send alternative (worth
 # it on systems like Ubuntu 22.04, whose stock notify-send predates
@@ -135,25 +140,29 @@ fi
 
 # Runs the mpc command for whichever notification action button was clicked.
 handle_notification_action() {
-    local mpc_cmd=(mpc)
-    if [ -n "${MPD_HOST}" ]; then
-        mpc_cmd=(mpc -h "${MPD_HOST}" -p 6600)
-    fi
     case "$1" in
-        next)      "${mpc_cmd[@]}" next >/dev/null 2>&1 ;;
-        prev)      "${mpc_cmd[@]}" prev >/dev/null 2>&1 ;;
-        playpause) "${mpc_cmd[@]}" toggle >/dev/null 2>&1 ;;
+        next)      "${MPC_CMD[@]}" next >/dev/null 2>&1 ;;
+        prev)      "${MPC_CMD[@]}" prev >/dev/null 2>&1 ;;
+        playpause) "${MPC_CMD[@]}" toggle >/dev/null 2>&1 ;;
     esac
+}
+
+# True when MPD's "consume" mode is on, meaning each track is dropped from
+# the queue once it's played -- in that case there's no previous track left
+# to go back to, so the Previous button shouldn't be offered.
+consume_enabled() {
+    "${MPC_CMD[@]}" 2>/dev/null | grep -q 'consume: *on'
 }
 
 # Sends the notification via $NOTIFY_CMD (notify-send, or dunstify with
 # use_dunstify="true"). With enable_actions="true" (and only if $NOTIFY_CMD
-# actually supports actions), Previous/Play-or-Pause/Next buttons are added
-# (the middle one is labeled for whichever action it will actually perform:
-# "Play" while paused, "Pause" otherwise); actions imply waiting for the user
-# to click one, so that call is backgrounded and its result dispatched to mpc
-# once they do (or it's otherwise ignored if the notification just times out
-# or gets replaced).
+# actually supports actions), Play-or-Pause/Next buttons are added, plus
+# Previous unless consume mode is on (see consume_enabled above). The
+# play/pause button is labeled for whichever action it will actually
+# perform: "Play" while paused, "Pause" otherwise. Actions imply waiting for
+# the user to click one, so that call is backgrounded and its result
+# dispatched to mpc once they do (or it's otherwise ignored if the
+# notification just times out or gets replaced).
 send_notification() {
     local summary="$1" body="$2" image="$3"
     local args=("${NOTIFY_REPLACE_ARGS[@]}" -t "$notify_duration" -i "$image")
@@ -163,8 +172,12 @@ send_notification() {
         if [ "$status" == "paused" ]; then
             playpause_label="Play"
         fi
+        local action_args=(-A "playpause${ACTION_SEP}${playpause_label}" -A "next${ACTION_SEP}Next")
+        if ! consume_enabled; then
+            action_args=(-A "prev${ACTION_SEP}Previous" "${action_args[@]}")
+        fi
         (
-            action=$("$NOTIFY_CMD" "${args[@]}" -A "prev${ACTION_SEP}Previous" -A "playpause${ACTION_SEP}${playpause_label}" -A "next${ACTION_SEP}Next" "$summary" "$body")
+            action=$("$NOTIFY_CMD" "${args[@]}" "${action_args[@]}" "$summary" "$body")
             handle_notification_action "$action"
         ) &
     else
