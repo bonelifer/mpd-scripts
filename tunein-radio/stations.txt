@@ -1,0 +1,29 @@
+# tunein.pl station list
+#
+# One tunein.com station URL per line. Blank lines and lines starting
+# with '#' are ignored. Playlist and image filenames are derived
+# automatically from each station's title. To pin the output filename
+# instead, append ",custom-name":
+#
+#   https://tunein.com/radio/some-station-s12345/,My Station Name
+
+https://tunein.com/radio/KUAR-891-s35843/
+https://tunein.com/radio/KUAF-913-s35839/
+https://tunein.com/radio/KUAF-2-913-s97277/
+https://tunein.com/radio/KUAF-3-913-s97278/
+https://tunein.com/radio/KUHS-LP-Hot-Springs-1025-s252058/
+https://tunein.com/radio/Power-92-Jams-923-s33199/
+https://tunein.com/radio/KVRE-929-s26151/
+https://tunein.com/radio/The-Point-941-s33572/
+https://tunein.com/radio/KSSN-96-957-s35494/
+https://tunein.com/radio/US-97-975-s34897/
+https://tunein.com/radio/B985-s35941/
+https://tunein.com/radio/1003-The-Edge-s34781/
+https://tunein.com/radio/Rock-1015-s33220/
+https://tunein.com/radio/KJDS-1019-s26744/
+https://tunein.com/radio/1029-KARN-News-Radio-s36053/
+https://tunein.com/radio/1037-The-Buzz-s31328/
+https://tunein.com/radio/1051-The-Wolf-Little-Rock-s34059/
+https://tunein.com/radio/KLAZ-1059-s33665/
+https://tunein.com/radio/Alice-1077-s33655/
+https://tunein.com/radio/CER2-Radio-690-s32531/
