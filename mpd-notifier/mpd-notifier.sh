@@ -16,14 +16,25 @@ for cmd in mpc notify-send; do
     fi
 done
 
+# Cache `notify-send --help` since both capability checks below read it.
+NOTIFY_SEND_HELP="$(notify-send --help 2>/dev/null)"
+
 # Fixed ID passed to notify-send so each update replaces the previous
 # notification instead of stacking a new one (e.g. when run repeatedly from
 # mpd-notifier-watch.sh). Not every notify-send provider supports
 # -r/--replace-id (e.g. the notify-send.sh reimplementation doesn't), so
 # only use it if this one advertises the option.
 NOTIFY_REPLACE_ARGS=()
-if notify-send --help 2>/dev/null | grep -q -- '--replace-id'; then
+if echo "$NOTIFY_SEND_HELP" | grep -q -- '--replace-id'; then
     NOTIFY_REPLACE_ARGS=(-r 91325)
+fi
+
+# Action buttons (see enable_actions below) also aren't universally
+# supported (e.g. some minimal notify-send builds only implement
+# urgency/expire-time/icon/category/hint); only offer them if advertised.
+NOTIFY_ACTIONS_SUPPORTED=0
+if echo "$NOTIFY_SEND_HELP" | grep -q -- '--action'; then
+    NOTIFY_ACTIONS_SUPPORTED=1
 fi
 
 # Config lives in ~/.config/mpd-notifier/mpd-notifier.conf, seeded from the
@@ -122,17 +133,18 @@ handle_notification_action() {
     esac
 }
 
-# Sends the notification. With enable_actions="true", Previous/Play-or-Pause/
-# Next buttons are added (the middle one is labeled for whichever action it
-# will actually perform: "Play" while paused, "Pause" otherwise); -A/--action
-# implies --wait, so that call is backgrounded and its result dispatched to
-# mpc once the user clicks a button (or it's otherwise ignored if the
-# notification just times out or gets replaced).
+# Sends the notification. With enable_actions="true" (and only if this
+# notify-send actually supports -A/--action), Previous/Play-or-Pause/Next
+# buttons are added (the middle one is labeled for whichever action it will
+# actually perform: "Play" while paused, "Pause" otherwise); -A implies
+# --wait, so that call is backgrounded and its result dispatched to mpc once
+# the user clicks a button (or it's otherwise ignored if the notification
+# just times out or gets replaced).
 send_notification() {
     local summary="$1" body="$2" image="$3"
     local args=("${NOTIFY_REPLACE_ARGS[@]}" -t "$notify_duration" -i "$image")
 
-    if [ "${enable_actions}" == "true" ]; then
+    if [ "${enable_actions}" == "true" ] && [ "$NOTIFY_ACTIONS_SUPPORTED" -eq 1 ]; then
         local playpause_label="Pause"
         if [ "$status" == "paused" ]; then
             playpause_label="Play"
