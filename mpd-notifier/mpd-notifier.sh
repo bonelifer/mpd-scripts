@@ -18,8 +18,13 @@ done
 
 # Fixed ID passed to notify-send so each update replaces the previous
 # notification instead of stacking a new one (e.g. when run repeatedly from
-# mpd-notifier-watch.sh).
-NOTIFY_REPLACE_ID=91325
+# mpd-notifier-watch.sh). Not every notify-send provider supports
+# -r/--replace-id (e.g. the notify-send.sh reimplementation doesn't), so
+# only use it if this one advertises the option.
+NOTIFY_REPLACE_ARGS=()
+if notify-send --help 2>/dev/null | grep -q -- '--replace-id'; then
+    NOTIFY_REPLACE_ARGS=(-r 91325)
+fi
 
 # Config lives in ~/.config/mpd-notifier/mpd-notifier.conf, seeded from the
 # template shipped alongside this script on first run; see that file for
@@ -107,18 +112,18 @@ fi
 # Construct notify-send command based on image availability
 if [ -f "$cache_image" ]; then
     if [ "$status" == "playing" ]; then
-        notify-send -r "$NOTIFY_REPLACE_ID" "${array[1]}" "${display_artist}\n${array[4]}" -t "$notify_duration" -i "$cache_image"
+        notify-send "${NOTIFY_REPLACE_ARGS[@]}" "${array[1]}" "${display_artist}\n${array[4]}" -t "$notify_duration" -i "$cache_image"
     elif [ "$status" == "paused" ]; then
-        notify-send -r "$NOTIFY_REPLACE_ID" "${array[1]}" "${display_artist}\n${array[4]} ($status)" -t "$notify_duration" -i "$cache_image"
+        notify-send "${NOTIFY_REPLACE_ARGS[@]}" "${array[1]}" "${display_artist}\n${array[4]} ($status)" -t "$notify_duration" -i "$cache_image"
     else
-        notify-send -r "$NOTIFY_REPLACE_ID" -i "$cache_image" -t "$notify_duration" "MPD client $status"
+        notify-send "${NOTIFY_REPLACE_ARGS[@]}" -i "$cache_image" -t "$notify_duration" "MPD client $status"
     fi
 else
     if [ "$status" == "playing" ]; then
-        notify-send -r "$NOTIFY_REPLACE_ID" "${array[1]}" "${display_artist}\n${array[4]}" -t "$notify_duration" -i "$fallback_image"
+        notify-send "${NOTIFY_REPLACE_ARGS[@]}" "${array[1]}" "${display_artist}\n${array[4]}" -t "$notify_duration" -i "$fallback_image"
     elif [ "$status" == "paused" ]; then
-        notify-send -r "$NOTIFY_REPLACE_ID" "${array[1]}" "${display_artist}\n${array[4]} ($status)" -t "$notify_duration" -i "$fallback_image"
+        notify-send "${NOTIFY_REPLACE_ARGS[@]}" "${array[1]}" "${display_artist}\n${array[4]} ($status)" -t "$notify_duration" -i "$fallback_image"
     else
-        notify-send -r "$NOTIFY_REPLACE_ID" -i "${fallback_image}" -t "$notify_duration" "MPD client $status"
+        notify-send "${NOTIFY_REPLACE_ARGS[@]}" -i "${fallback_image}" -t "$notify_duration" "MPD client $status"
     fi
 fi
