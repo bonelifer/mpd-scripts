@@ -122,17 +122,23 @@ handle_notification_action() {
     esac
 }
 
-# Sends the notification. With enable_actions="true", Previous/Play-Pause/Next
-# buttons are added; -A/--action implies --wait, so that call is backgrounded
-# and its result dispatched to mpc once the user clicks a button (or it's
-# otherwise ignored if the notification just times out or gets replaced).
+# Sends the notification. With enable_actions="true", Previous/Play-or-Pause/
+# Next buttons are added (the middle one is labeled for whichever action it
+# will actually perform: "Play" while paused, "Pause" otherwise); -A/--action
+# implies --wait, so that call is backgrounded and its result dispatched to
+# mpc once the user clicks a button (or it's otherwise ignored if the
+# notification just times out or gets replaced).
 send_notification() {
     local summary="$1" body="$2" image="$3"
     local args=("${NOTIFY_REPLACE_ARGS[@]}" -t "$notify_duration" -i "$image")
 
     if [ "${enable_actions}" == "true" ]; then
+        local playpause_label="Pause"
+        if [ "$status" == "paused" ]; then
+            playpause_label="Play"
+        fi
         (
-            action=$(notify-send "${args[@]}" -A "prev=Previous" -A "playpause=Play/Pause" -A "next=Next" "$summary" "$body")
+            action=$(notify-send "${args[@]}" -A "prev=Previous" -A "playpause=${playpause_label}" -A "next=Next" "$summary" "$body")
             handle_notification_action "$action"
         ) &
     else
