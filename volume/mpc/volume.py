@@ -71,7 +71,7 @@ def main():
     # If no arguments provided, show usage and current volume
     if not args.direction:
         try:
-            current_volume = int(subprocess.getoutput("mpc volume").split()[0])
+            current_volume = int(subprocess.getoutput("mpc volume").split()[1].strip("%"))
             print(f"usage: {sys.argv[0]} [-h] {{up,down}} [amount]\nCurrent volume: {current_volume}%")
         except Exception as e:
             print(f"Error: {e}")
@@ -81,7 +81,7 @@ def main():
     try:
         if args.direction == 'up':
             if toggle_max_volume:
-                current_volume = int(subprocess.getoutput("mpc volume").split()[0])
+                current_volume = int(subprocess.getoutput("mpc volume").split()[1].strip("%"))
                 new_volume = min(current_volume + args.amount, max_volume)
                 subprocess.run(f"mpc volume {new_volume}", shell=True)
                 print(f"Volume increased by {new_volume - current_volume} units.")
