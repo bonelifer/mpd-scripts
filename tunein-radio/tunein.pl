@@ -3,7 +3,9 @@
 # Fetches TuneIn radio station URLs and generates M3U playlists
 # with associated station information including titles, stream URLs,
 # and optional station images. Utilizes StreamFinder::Tunein Perl
-# module for data retrieval and saves data in an 'archive' directory.
+# module for data retrieval and saves data in a 'playlists' directory.
+# Station URLs are read from stations.txt (see --stations) so the list
+# can be edited without touching this script.
 # Requires LWP::Simple module for image downloading.
 
 # To install required Perl modules:
@@ -16,53 +18,94 @@
 
 use strict;
 use warnings;
+use FindBin qw($RealBin);
+use Getopt::Long;
 use StreamFinder::Tunein;  # Fetch TuneIn station details
 use LWP::Simple;          # For downloading station images
 
-# Array of station URLs and their corresponding playlist names
-my @stations = (
-    { url => 'https://tunein.com/radio/KUAR-891-s35843/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/KUAF-913-s35839/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/KUAF-2-913-s97277/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/KUAF-3-913-s97278/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/KUHS-LP-Hot-Springs-1025-s252058/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/Power-92-Jams-923-s33199/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/KVRE-929-s26151/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/The-Point-941-s33572/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/KSSN-96-957-s35494/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/US-97-975-s34897/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/B985-s35941/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/1003-The-Edge-s34781/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/Rock-1015-s33220/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/KJDS-1019-s26744/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/1029-KARN-News-Radio-s36053/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/1037-The-Buzz-s31328/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/1051-The-Wolf-Little-Rock-s34059/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/KLAZ-1059-s33665/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/Alice-1077-s33655/', playlist_name => '' },
-    { url => 'https://tunein.com/radio/CER2-Radio-690-s32531/', playlist_name => '' },
-    # Add more stations as needed
-);
+# tunein.com can intermittently fail to resolve a valid station, so a
+# lookup that fails once may succeed on a retry.
+use constant RETRY_DELAY_SECONDS => 3;
 
-# Create archive directory if it doesn't exist
-my $archive_dir = 'archive';
-unless (-e $archive_dir && -d $archive_dir) {
-    mkdir $archive_dir or die "Unable to create directory: $!";
+# With --skip-existing, stations already completed in a prior run are left
+# untouched instead of being re-fetched, so the script can be re-run as many
+# times as needed to pick up any stations that failed previously.
+# --retries overrides how many attempts each station gets (default: 3).
+# --stations points at the station list file (default: stations.txt next to this script).
+my $skipExisting = 0;
+my $maxAttempts = 3;
+my $stationsFile = "$RealBin/stations.txt";
+GetOptions(
+    'skip-existing|s' => \$skipExisting,
+    'retries|r=i'     => \$maxAttempts,
+    'stations|f=s'    => \$stationsFile,
+) or die "Usage: $0 [--skip-existing|-s] [--retries|-r N] [--stations|-f FILE]\n";
+die "--retries must be a positive integer\n" unless $maxAttempts > 0;
+
+# Create playlists directory if it doesn't exist
+my $playlistDir = 'playlists';
+unless (-e $playlistDir && -d $playlistDir) {
+    mkdir $playlistDir or die "Unable to create directory: $!";
 }
 
-# Iterate through each station and fetch station images and generate M3U playlists
-foreach my $station (@stations) {
-    my $station_obj = StreamFinder::Tunein->new($station->{url});
+my $completedDir = "$playlistDir/.completed";  # Marker files recording finished stations
+unless (-e $completedDir && -d $completedDir) {
+    mkdir $completedDir or die "Unable to create directory: $!";
+}
 
-    next unless ($station_obj);  # Skip invalid URLs or stations without streams
+open my $stations_fh, '<', $stationsFile or die "Cannot open stations file $stationsFile: $!\n";
+my @stations;
+while (my $line = <$stations_fh>) {
+    $line =~ s/^\s+|\s+$//g;  # Trim whitespace
+    next if $line eq '' || $line =~ /^#/;  # Skip blank lines and comments
+
+    # Optional "URL,custom-name" — custom-name overrides the derived-from-title
+    # filename below; leave it blank (or omit the comma) to keep that behavior.
+    my ($url, $customName) = split /\s*,\s*/, $line, 2;
+    push @stations, [$url, $customName];
+}
+close $stations_fh;
+
+die "No station URLs found in $stationsFile\n" unless @stations;
+
+# Iterate through each station and fetch station images and generate M3U playlists
+foreach my $stationEntry (@stations) {
+    my ($stationURL, $customName) = @$stationEntry;
+
+    # Stable per-station identifier (last URL path segment) used only for the
+    # completion marker below; the full URL is still what's passed to the module.
+    (my $urlNoSlash = $stationURL) =~ s{/+$}{};
+    my ($stationID) = $urlNoSlash =~ m{([^/]+)$};
+    my $markerFile = "$completedDir/$stationID.done";
+
+    if ($skipExisting && -e $markerFile) {
+        print "Skipping $stationURL (already completed in a previous run)\n";
+        next;
+    }
+
+    my $station_obj;
+    for my $attempt (1 .. $maxAttempts) {
+        $station_obj = StreamFinder::Tunein->new($stationURL);
+        last if $station_obj;
+
+        if ($attempt < $maxAttempts) {
+            warn "Attempt $attempt/$maxAttempts failed for $stationURL, retrying in @{[RETRY_DELAY_SECONDS]}s...\n";
+            sleep RETRY_DELAY_SECONDS;
+        }
+    }
+
+    unless ($station_obj) {
+        warn "Invalid URL or no streams found for $stationURL after $maxAttempts attempts\n";
+        next;
+    }
 
     # Fetch station details
-    my $playlist_name = $station->{playlist_name} || $station_obj->getTitle() || 'Unknown Playlist';
+    my $playlist_name = (defined $customName && $customName ne '') ? $customName : ($station_obj->getTitle() || 'Unknown Playlist');
     my $station_image_url = $station_obj->getImageURL();
     my $stream_urls = $station_obj->get();
 
     # Write station information to the station's M3U playlist file
-    open(my $station_playlist_fh, '>', "$archive_dir/$playlist_name.m3u") or die "Cannot open station playlist file: $!";
+    open(my $station_playlist_fh, '>', "$playlistDir/$playlist_name.m3u") or die "Cannot open station playlist file: $!";
 
     # Write station information to the extended M3U playlist
     print $station_playlist_fh "#EXTINF:-1, $playlist_name\n";
@@ -87,12 +130,16 @@ foreach my $station (@stations) {
             # Determine the image extension
             my ($image_ext) = $station_image_url =~ m/\.([^.]+)$/;
 
-            # Save station image to the archive directory
-            open(my $image_fh, '>', "$archive_dir/$playlist_name.$image_ext") or die "Unable to create image file: $!";
+            # Save station image to the playlists directory
+            open(my $image_fh, '>', "$playlistDir/$playlist_name.$image_ext") or die "Unable to create image file: $!";
             binmode $image_fh;
             print $image_fh $image_data;
             close $image_fh;
         }
     }
-}
 
+    open my $marker_fh, '>', $markerFile or warn "Cannot create marker file $markerFile: $!\n";
+    close $marker_fh if $marker_fh;
+
+    print "Playlist created for $playlistDir/$playlist_name.m3u\n";
+}
