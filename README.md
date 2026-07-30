@@ -46,6 +46,8 @@ Listed in each scripts README.md.
 
 
 ### Installation
+Run [`./setup-path.sh`](./setup-path.sh) once to check whether a personal bin directory is already on your `PATH`, and, if not, create `~/bin` and add it for you.
+
 Most scripts in this repository are standalone and only need to be copied into a directory on your `$PATH` (e.g. `~/bin` or `~/.local/bin`) and marked executable:
 
 ```bash
