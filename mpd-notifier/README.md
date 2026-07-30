@@ -42,7 +42,8 @@ Settings live in `~/.config/mpd-notifier/mpd-notifier.conf`, seeded automaticall
 - `MPD_HOST`: leave empty to treat MPD as local and read cover art from `dir`; set to a hostname/IP to query a remote MPD instead (cover art lookup is skipped in that case).
 - `notify_duration`: how long the notification stays on screen, in milliseconds.
 - `cache_dir`: where the fallback image and copied cover art are cached.
-- `enable_actions`: set to `"true"` to add Previous/Play-Pause/Next buttons to the notification. Off by default since it requires a notify-send that supports `-A`/`--action` (e.g. `libnotify-bin`) — not every provider does.
+- `enable_actions`: set to `"true"` to add Previous/Play-Pause/Next buttons to the notification. Off by default since it requires a notify-send that supports `-A`/`--action` (e.g. `libnotify-bin`) — not every provider does. When it isn't supported, this is detected automatically and the buttons are silently skipped.
+- `use_dunstify`: set to `"true"` to send notifications via [dunst](https://github.com/dunst-project/dunst)'s `dunstify` instead of `notify-send` (install with e.g. `sudo apt install dunst`). Worth enabling if your system's stock notify-send is missing `-r`/`--replace-id` or `-A`/`--action` support — notably Ubuntu 22.04's `libnotify-bin`, which ships one version behind the release that added them. Default: `"false"`.
 
 ## License
 

@@ -1,41 +1,13 @@
 #!/bin/bash
 
-# Sends a desktop notification (via notify-send) for the currently playing
-# MPD track, showing title, artist, and album, using the mpc command-line
-# tool. On compilations, shows the track's real artist rather than the
-# album's artist (e.g. "Various Artists"). Falls back to a generic image
-# when no cover art is found for the track.
+# Sends a desktop notification (via notify-send, or dunstify with
+# use_dunstify="true") for the currently playing MPD track, showing title,
+# artist, and album, using the mpc command-line tool. On compilations, shows
+# the track's real artist rather than the album's artist (e.g. "Various
+# Artists"). Falls back to a generic image when no cover art is found.
 
 # Cobbled together from other now playing scripts.
 # Image found on Google Images
-
-for cmd in mpc notify-send; do
-    if ! command -v "$cmd" &>/dev/null; then
-        echo "Error: '$cmd' is required but not installed." >&2
-        exit 1
-    fi
-done
-
-# Cache `notify-send --help` since both capability checks below read it.
-NOTIFY_SEND_HELP="$(notify-send --help 2>/dev/null)"
-
-# Fixed ID passed to notify-send so each update replaces the previous
-# notification instead of stacking a new one (e.g. when run repeatedly from
-# mpd-notifier-watch.sh). Not every notify-send provider supports
-# -r/--replace-id (e.g. the notify-send.sh reimplementation doesn't), so
-# only use it if this one advertises the option.
-NOTIFY_REPLACE_ARGS=()
-if echo "$NOTIFY_SEND_HELP" | grep -q -- '--replace-id'; then
-    NOTIFY_REPLACE_ARGS=(-r 91325)
-fi
-
-# Action buttons (see enable_actions below) also aren't universally
-# supported (e.g. some minimal notify-send builds only implement
-# urgency/expire-time/icon/category/hint); only offer them if advertised.
-NOTIFY_ACTIONS_SUPPORTED=0
-if echo "$NOTIFY_SEND_HELP" | grep -q -- '--action'; then
-    NOTIFY_ACTIONS_SUPPORTED=1
-fi
 
 # Config lives in ~/.config/mpd-notifier/mpd-notifier.conf, seeded from the
 # template shipped alongside this script on first run; see that file for
@@ -50,6 +22,47 @@ fi
 
 # shellcheck source=mpd-notifier.conf
 source "$config_file"
+
+# With use_dunstify="true", use dunst's `dunstify` instead of notify-send.
+# dunstify is a known-good, reliably-featured notify-send alternative (worth
+# it on systems like Ubuntu 22.04, whose stock notify-send predates
+# -r/--replace-id and -A/--action support), but its actions use a different
+# argument format ("action,Label" instead of "action=Label"), so it's treated
+# as its own mode rather than auto-detected the same way as notify-send.
+NOTIFY_CMD="notify-send"
+ACTION_SEP="="
+if [ "${use_dunstify}" == "true" ]; then
+    NOTIFY_CMD="dunstify"
+    ACTION_SEP=","
+fi
+
+for cmd in mpc "$NOTIFY_CMD"; do
+    if ! command -v "$cmd" &>/dev/null; then
+        echo "Error: '$cmd' is required but not installed." >&2
+        exit 1
+    fi
+done
+
+if [ "$NOTIFY_CMD" == "dunstify" ]; then
+    # dunstify reliably supports both, regardless of exact --help wording.
+    NOTIFY_REPLACE_ARGS=(-r 91325)
+    NOTIFY_ACTIONS_SUPPORTED=1
+else
+    # Not every notify-send provider supports -r/--replace-id or
+    # -A/--action (e.g. the notify-send.sh reimplementation, or Ubuntu
+    # 22.04's stock libnotify-bin), so only use them if advertised.
+    NOTIFY_SEND_HELP="$("$NOTIFY_CMD" --help 2>/dev/null)"
+
+    NOTIFY_REPLACE_ARGS=()
+    if echo "$NOTIFY_SEND_HELP" | grep -q -- '--replace-id'; then
+        NOTIFY_REPLACE_ARGS=(-r 91325)
+    fi
+
+    NOTIFY_ACTIONS_SUPPORTED=0
+    if echo "$NOTIFY_SEND_HELP" | grep -q -- '--action'; then
+        NOTIFY_ACTIONS_SUPPORTED=1
+    fi
+fi
 
 fallback_image="$cache_dir/unknown.jpg"
 
@@ -133,13 +146,14 @@ handle_notification_action() {
     esac
 }
 
-# Sends the notification. With enable_actions="true" (and only if this
-# notify-send actually supports -A/--action), Previous/Play-or-Pause/Next
-# buttons are added (the middle one is labeled for whichever action it will
-# actually perform: "Play" while paused, "Pause" otherwise); -A implies
-# --wait, so that call is backgrounded and its result dispatched to mpc once
-# the user clicks a button (or it's otherwise ignored if the notification
-# just times out or gets replaced).
+# Sends the notification via $NOTIFY_CMD (notify-send, or dunstify with
+# use_dunstify="true"). With enable_actions="true" (and only if $NOTIFY_CMD
+# actually supports actions), Previous/Play-or-Pause/Next buttons are added
+# (the middle one is labeled for whichever action it will actually perform:
+# "Play" while paused, "Pause" otherwise); actions imply waiting for the user
+# to click one, so that call is backgrounded and its result dispatched to mpc
+# once they do (or it's otherwise ignored if the notification just times out
+# or gets replaced).
 send_notification() {
     local summary="$1" body="$2" image="$3"
     local args=("${NOTIFY_REPLACE_ARGS[@]}" -t "$notify_duration" -i "$image")
@@ -150,15 +164,15 @@ send_notification() {
             playpause_label="Play"
         fi
         (
-            action=$(notify-send "${args[@]}" -A "prev=Previous" -A "playpause=${playpause_label}" -A "next=Next" "$summary" "$body")
+            action=$("$NOTIFY_CMD" "${args[@]}" -A "prev${ACTION_SEP}Previous" -A "playpause${ACTION_SEP}${playpause_label}" -A "next${ACTION_SEP}Next" "$summary" "$body")
             handle_notification_action "$action"
         ) &
     else
-        notify-send "${args[@]}" "$summary" "$body"
+        "$NOTIFY_CMD" "${args[@]}" "$summary" "$body"
     fi
 }
 
-# Construct notify-send command based on image availability
+# Construct notify-send/dunstify command based on image availability
 if [ -f "$cache_image" ]; then
     image="$cache_image"
 else
