@@ -1,6 +1,6 @@
 # Contributing
 
-When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
+When contributing to this repository, please first discuss the change you wish to make via [GitHub Discussions](https://github.com/bonelifer/mpd-scripts/discussions) (or an issue, if it's a bug) with the owners of this repository before making a change.
 
 ## Development environment setup
 
@@ -14,7 +14,8 @@ To set up a development environment, please follow these steps:
 
 ## Issues and feature requests
 
-You've found a bug in the source code, a mistake in the documentation or maybe you'd like a new feature?Take a look at [GitHub Discussions](https://github.com/bonelifer/mpd-scripts/discussions) to see if it's already being discussed.  You can help us by [submitting an issue on GitHub](https://github.com/bonelifer/mpd-scripts/issues). Before you create an issue, make sure to search the issue archive -- your issue may have already been addressed!
+- **Found a bug?** [Open an issue](https://github.com/bonelifer/mpd-scripts/issues). Before you create one, search the issue archive -- your bug may have already been reported!
+- **Everything else** (questions, feature requests, ideas, general discussion): use [GitHub Discussions](https://github.com/bonelifer/mpd-scripts/discussions) instead of opening an issue.
 
 Please try to create bug reports that are:
 
