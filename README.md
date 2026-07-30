@@ -16,6 +16,7 @@
 
 [![GitHub](https://badgen.net/badge/icon/github?icon=github&label)](https://github.com)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
+[![made-with-claude](https://img.shields.io/badge/Made%20with-Claude-1f425f.svg)](https://www.anthropic.com/claude)
 ![Static Badge](https://img.shields.io/badge/Some_made_with-ChatGPT-1f425f)
 [![made-with-bash](https://img.shields.io/badge/Made%20with-Bash-1f425f.svg)](https://www.gnu.org/software/bash/)
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/bonelifer/mpd-scripts/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
@@ -45,7 +46,23 @@ Listed in each scripts README.md.
 
 
 ### Installation
-Add the desired scripts to a directory in your path.
+Most scripts in this repository are standalone and only need to be copied into a directory on your `$PATH` (e.g. `~/bin` or `~/.local/bin`) and marked executable:
+
+```bash
+cp <script-dir>/<script-name> ~/bin/
+chmod +x ~/bin/<script-name>
+```
+
+Check each script's own README for language-specific dependencies (Python, Perl, `mpc`/`python-mpd2`, etc.) before running it.
+
+`mpd_rewind_daemon` ships its own installer instead:
+
+```bash
+cd mpd_rewind_daemon
+./install.sh
+```
+
+See [`mpd_rewind_daemon/README.md`](./mpd_rewind_daemon/) for details.
 
 ## Support
 Reach out to the maintainer at one of the following places:
@@ -60,20 +77,27 @@ If you want to say **thank you** or/and support active development of mpd-script
 - Add a [GitHub Star](https://github.com/bonelifer/mpd-scripts) to the project.
 - See the [open issues](https://github.com/bonelifer/mpd-scripts/issues) for a list of proposed features (and known issues).
 
-## Contributing
-First off, thanks for taking the time to contribute! Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make will benefit everybody else and are **greatly appreciated**.
-
-Please read [our contribution guidelines](docs/CONTRIBUTING.md), and thank you for being involved!
-
 ## Authors & contributors
 
 The original setup of this repository is by [William Jacoby](https://github.com/bonelifer).
 
 For a full list of all authors and contributors, see [the contributors page](https://github.com/bonelifer/mpd-scripts/contributors).
 
+## Contributing
+
+Contributions are welcome!
+
+- **Bug reports**: [Open an issue](https://github.com/bonelifer/mpd-scripts/issues).
+- **Everything else** (questions, feature requests, ideas, general discussion): [Use Discussions](https://github.com/bonelifer/mpd-scripts/discussions).
+- Pull requests are welcome for bug fixes or discussed features.
+
+## Acknowledgments
+
+- Documentation updates assisted by [Claude](https://www.anthropic.com/claude).
+
 ## License
 
-This project is licensed under the **GNU General Public License v3**.
+This project is licensed under the **GNU General Public License v3.0**.
 
 See [LICENSE](LICENSE) for more information.
 
