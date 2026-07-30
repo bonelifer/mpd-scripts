@@ -1,0 +1,21 @@
+# iheart.pl station list
+#
+# One iheart.com station URL per line. Blank lines and lines starting
+# with '#' are ignored. Playlist and image filenames are derived
+# automatically from each station's title, so nothing else is needed
+# here. To pin the output filename instead, append ",custom-name":
+#
+#   https://www.iheart.com/live/some-station/,My Station Name
+
+https://www.iheart.com/live/alice-1077-5416/
+https://www.iheart.com/live/kssn-96-country-105/
+https://www.iheart.com/live/hot-1019-3442/
+https://www.iheart.com/live/1051-the-wolf-little-rock-93/
+https://www.iheart.com/live/magic-1079-3446/
+https://www.iheart.com/live/k-mag-991-109/
+https://www.iheart.com/live/933-the-eagle-3450/
+https://www.iheart.com/live/1003-the-edge-89/
+https://www.iheart.com/live/hot-949-101/
+https://www.iheart.com/live/b98-117/
+https://www.iheart.com/live/big-dog-959-113/
+https://www.iheart.com/live/news-talk-1320-kwhn-4250/
