@@ -23,12 +23,12 @@ sudo cpanm StreamFinder::IHeartRadio
 
 Ensure you have the StreamFinder::IHeartRadio Perl module installed to utilize this script effectively.
 
-Run the script with appropriate arguments or configuration to fetch station URLs, generate M3U playlists, and gather associated station information.
+`--download` (or `-d`) is required to actually fetch anything; running the script with no arguments (or without `-d`) just prints usage and exits.
 
 iheart.com intermittently serves a page without the embedded stream data it needs, so a station may fail even though it's valid. Each station is retried automatically up to 3 times before being skipped; override this with `--retries=N` (or `-r N`). Pass `--skip-existing` (or `-s`) to also let you re-run the script multiple times without redoing stations that already succeeded in a previous run:
 
 ```
-perl iheart.pl -s -r 5
+perl iheart.pl -d -s -r 5
 ```
 
 Completed stations are tracked as marker files under `playlists/.completed/`; delete that directory (or an individual marker) to force a station to be re-fetched.
