@@ -25,8 +25,11 @@ if [ ! -f "$fallback_image" ]; then
     cp "$(dirname "$0")/unknown.jpg" "$cache_dir"
 fi
 
-# Get all the info needed to create the notify-send message: album artist, album, title, cover image.
-output=$(mpc -f "%title%\n%albumartist%\n%album%\n%file%" current)
+# Get all the info needed to create the notify-send message: title, artist,
+# album artist, album, cover image. Artist and album artist are fetched
+# separately so compilations (where they differ) can show the real track
+# artist instead of the album's "Various Artists" album artist.
+output=$(mpc -f "%title%\n%artist%\n%albumartist%\n%album%\n%file%" current)
 
 # Get MPD status
 if [ -n "${MPD_HOST}" ]; then
@@ -55,9 +58,18 @@ if [ $? -ne 1 ]; then
     array[1]=$(echo "${array[1]}" | sed 's/\&/\&amp\;/')
     array[2]=$(echo "${array[2]}" | sed 's/\&/\&amp\;/')
     array[3]=$(echo "${array[3]}" | sed 's/\&/\&amp\;/')
+    array[4]=$(echo "${array[4]}" | sed 's/\&/\&amp\;/')
+
+    # On compilations, artist (per-track) differs from album artist (e.g.
+    # "Various Artists"); prefer the real artist for the notification.
+    if [ -n "${array[2]}" ] && [ "${array[2]}" != "${array[3]}" ]; then
+        display_artist="${array[2]}"
+    else
+        display_artist="${array[3]}"
+    fi
 
     if [ -z "${MPD_HOST}" ]; then
-        local_image="$(dirname "$dir${array[4]}")/cover.jpg"
+        local_image="$(dirname "$dir${array[5]}")/cover.jpg"
         cache_image="$cache_dir/cover.jpg"
         # Check if cover.jpg exists locally, if not, use the fallback image directly
         if [ -f "$local_image" ]; then
@@ -71,17 +83,17 @@ fi
 # Construct notify-send command based on image availability
 if [ -f "$cache_image" ]; then
     if [ "$status" == "playing" ]; then
-        notify-send "${array[1]}" "${array[2]}\n${array[3]}" -t "$notify_duration" -i "$cache_image"
+        notify-send "${array[1]}" "${display_artist}\n${array[4]}" -t "$notify_duration" -i "$cache_image"
     elif [ "$status" == "paused" ]; then
-        notify-send "${array[1]}" "${array[2]}\n${array[3]} ($status)" -t "$notify_duration" -i "$cache_image"
+        notify-send "${array[1]}" "${display_artist}\n${array[4]} ($status)" -t "$notify_duration" -i "$cache_image"
     else
         notify-send -i "$cache_image" -t "$notify_duration" "MPD client $status"
     fi
 else
     if [ "$status" == "playing" ]; then
-        notify-send "${array[1]}" "${array[2]}\n${array[3]}" -t "$notify_duration" -i "$fallback_image"
+        notify-send "${array[1]}" "${display_artist}\n${array[4]}" -t "$notify_duration" -i "$fallback_image"
     elif [ "$status" == "paused" ]; then
-        notify-send "${array[1]}" "${array[2]}\n${array[3]} ($status)" -t "$notify_duration" -i "$fallback_image"
+        notify-send "${array[1]}" "${display_artist}\n${array[4]} ($status)" -t "$notify_duration" -i "$fallback_image"
     else
         notify-send -i "${fallback_image}" -t "$notify_duration" "MPD client $status"
     fi
