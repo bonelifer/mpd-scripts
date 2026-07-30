@@ -27,20 +27,38 @@ use LWP::Simple;          # For downloading station images
 # lookup that fails once may succeed on a retry.
 use constant RETRY_DELAY_SECONDS => 3;
 
+my $USAGE = <<"EOF";
+Usage: $0 -d [--skip-existing|-s] [--retries|-r N] [--stations|-f FILE]
+
+  -d, --download        Fetch stations and write playlists/images (required; nothing else does this)
+  -s, --skip-existing    Skip stations already completed in a prior run
+  -r, --retries N        Attempts per station before giving up (default: 3)
+  -f, --stations FILE    Station list file (default: stations.txt next to this script)
+EOF
+
 # With --skip-existing, stations already completed in a prior run are left
 # untouched instead of being re-fetched, so the script can be re-run as many
 # times as needed to pick up any stations that failed previously.
 # --retries overrides how many attempts each station gets (default: 3).
 # --stations points at the station list file (default: stations.txt next to this script).
+# --download is required to actually run; with no arguments (or without
+# --download), the script just prints usage and exits.
 my $skipExisting = 0;
 my $maxAttempts = 3;
 my $stationsFile = "$RealBin/stations.txt";
+my $download = 0;
 GetOptions(
     'skip-existing|s' => \$skipExisting,
     'retries|r=i'     => \$maxAttempts,
     'stations|f=s'    => \$stationsFile,
-) or die "Usage: $0 [--skip-existing|-s] [--retries|-r N] [--stations|-f FILE]\n";
+    'download|d'      => \$download,
+) or die $USAGE;
 die "--retries must be a positive integer\n" unless $maxAttempts > 0;
+
+unless ($download) {
+    print $USAGE;
+    exit 0;
+}
 
 # Create playlists directory if it doesn't exist
 my $playlistDir = 'playlists';
