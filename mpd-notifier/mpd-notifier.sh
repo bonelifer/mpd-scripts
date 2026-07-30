@@ -109,21 +109,48 @@ if [ $? -ne 1 ]; then
     fi
 fi
 
+# Runs the mpc command for whichever notification action button was clicked.
+handle_notification_action() {
+    local mpc_cmd=(mpc)
+    if [ -n "${MPD_HOST}" ]; then
+        mpc_cmd=(mpc -h "${MPD_HOST}" -p 6600)
+    fi
+    case "$1" in
+        next)      "${mpc_cmd[@]}" next >/dev/null 2>&1 ;;
+        prev)      "${mpc_cmd[@]}" prev >/dev/null 2>&1 ;;
+        playpause) "${mpc_cmd[@]}" toggle >/dev/null 2>&1 ;;
+    esac
+}
+
+# Sends the notification. With enable_actions="true", Previous/Play-Pause/Next
+# buttons are added; -A/--action implies --wait, so that call is backgrounded
+# and its result dispatched to mpc once the user clicks a button (or it's
+# otherwise ignored if the notification just times out or gets replaced).
+send_notification() {
+    local summary="$1" body="$2" image="$3"
+    local args=("${NOTIFY_REPLACE_ARGS[@]}" -t "$notify_duration" -i "$image")
+
+    if [ "${enable_actions}" == "true" ]; then
+        (
+            action=$(notify-send "${args[@]}" -A "prev=Previous" -A "playpause=Play/Pause" -A "next=Next" "$summary" "$body")
+            handle_notification_action "$action"
+        ) &
+    else
+        notify-send "${args[@]}" "$summary" "$body"
+    fi
+}
+
 # Construct notify-send command based on image availability
 if [ -f "$cache_image" ]; then
-    if [ "$status" == "playing" ]; then
-        notify-send "${NOTIFY_REPLACE_ARGS[@]}" "${array[1]}" "${display_artist}\n${array[4]}" -t "$notify_duration" -i "$cache_image"
-    elif [ "$status" == "paused" ]; then
-        notify-send "${NOTIFY_REPLACE_ARGS[@]}" "${array[1]}" "${display_artist}\n${array[4]} ($status)" -t "$notify_duration" -i "$cache_image"
-    else
-        notify-send "${NOTIFY_REPLACE_ARGS[@]}" -i "$cache_image" -t "$notify_duration" "MPD client $status"
-    fi
+    image="$cache_image"
 else
-    if [ "$status" == "playing" ]; then
-        notify-send "${NOTIFY_REPLACE_ARGS[@]}" "${array[1]}" "${display_artist}\n${array[4]}" -t "$notify_duration" -i "$fallback_image"
-    elif [ "$status" == "paused" ]; then
-        notify-send "${NOTIFY_REPLACE_ARGS[@]}" "${array[1]}" "${display_artist}\n${array[4]} ($status)" -t "$notify_duration" -i "$fallback_image"
-    else
-        notify-send "${NOTIFY_REPLACE_ARGS[@]}" -i "${fallback_image}" -t "$notify_duration" "MPD client $status"
-    fi
+    image="$fallback_image"
+fi
+
+if [ "$status" == "playing" ]; then
+    send_notification "${array[1]}" "${display_artist}\n${array[4]}" "$image"
+elif [ "$status" == "paused" ]; then
+    send_notification "${array[1]}" "${display_artist}\n${array[4]} ($status)" "$image"
+else
+    send_notification "MPD client $status" "" "$image"
 fi

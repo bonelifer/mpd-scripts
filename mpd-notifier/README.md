@@ -32,7 +32,7 @@ To get a notification automatically whenever the track changes (or play/pause/st
 ./mpd-notifier-watch.sh &
 ```
 
-It blocks on `mpc idle player` between events (no polling), and calls `mpd-notifier.sh` once per event.
+It blocks on `mpc idle player` between events (no polling), and calls `mpd-notifier.sh` once per event. Seeking within the current track also triggers MPD's `player` event, but the watch script tracks the current file and play state and skips re-notifying unless one of those actually changed.
 
 ## Configuration
 
@@ -42,6 +42,7 @@ Settings live in `~/.config/mpd-notifier/mpd-notifier.conf`, seeded automaticall
 - `MPD_HOST`: leave empty to treat MPD as local and read cover art from `dir`; set to a hostname/IP to query a remote MPD instead (cover art lookup is skipped in that case).
 - `notify_duration`: how long the notification stays on screen, in milliseconds.
 - `cache_dir`: where the fallback image and copied cover art are cached.
+- `enable_actions`: set to `"true"` to add Previous/Play-Pause/Next buttons to the notification. Off by default since it requires a notify-send that supports `-A`/`--action` (e.g. `libnotify-bin`) — not every provider does.
 
 ## License
 
