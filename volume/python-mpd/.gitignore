@@ -1,0 +1,2 @@
+# Ignore a locally-created live config; only mpd-extended.cfg.example is tracked
+mpd-extended.cfg

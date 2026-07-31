@@ -10,17 +10,17 @@
 # Image found on Google Images
 
 # Config lives in ~/.config/mpd-notifier/mpd-notifier.conf, seeded from the
-# template shipped alongside this script on first run; see that file for
-# what each setting does.
+# mpd-notifier.conf.example template shipped alongside this script on first
+# run; see that file for what each setting does.
 config_dir="$HOME/.config/mpd-notifier"
 config_file="$config_dir/mpd-notifier.conf"
 
 if [ ! -f "$config_file" ]; then
     mkdir -p "$config_dir"
-    cp "$(dirname "$0")/mpd-notifier.conf" "$config_file"
+    cp "$(dirname "$0")/mpd-notifier.conf.example" "$config_file"
 fi
 
-# shellcheck source=mpd-notifier.conf
+# shellcheck source=mpd-notifier.conf.example
 source "$config_file"
 
 MPC_CMD=(mpc)

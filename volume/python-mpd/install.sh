@@ -22,7 +22,7 @@ check_and_copy_mpd_extended_cfg() {
         echo "Creating directory $MPD_CONFIG_DIR"
         mkdir -p "$MPD_CONFIG_DIR"  # Create the directory if it does not exist
         echo "Copying mpd-extended.cfg to $MPD_EXTENDED_CFG_PATH"
-        cp ./mpd-extended.cfg "$MPD_EXTENDED_CFG_PATH"  # Copy the file to the target path
+        cp ./mpd-extended.cfg.example "$MPD_EXTENDED_CFG_PATH"  # Copy the file to the target path
     else
         echo "mpd-extended.cfg already exists at $MPD_EXTENDED_CFG_PATH"
     fi

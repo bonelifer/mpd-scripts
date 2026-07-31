@@ -21,7 +21,7 @@
    ./install.sh
    ```
 
-   This copies `mpd-notifier.sh`, `mpd-notifier-watch.sh`, `mpd-notifier.conf`, and `unknown.jpg` to `~/bin`, and adds an autostart entry (`~/.config/autostart/mpd-notifier.desktop`) that runs the watch script at login.
+   This copies `mpd-notifier.sh`, `mpd-notifier-watch.sh`, `mpd-notifier.conf.example`, and `unknown.jpg` to `~/bin`, and adds an autostart entry (`~/.config/autostart/mpd-notifier.desktop`) that runs the watch script at login.
 
 ## Usage
 
@@ -48,7 +48,7 @@ exec /path/to/mpd-notifier.sh
 
 ## Configuration
 
-Settings live in `~/.config/mpd-notifier/mpd-notifier.conf`, seeded automatically from [`mpd-notifier.conf`](./mpd-notifier.conf) the first time you run the script. Edit the copy in `~/.config/mpd-notifier/`, not the template.
+Settings live in `~/.config/mpd-notifier/mpd-notifier.conf`, seeded automatically from [`mpd-notifier.conf.example`](./mpd-notifier.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-notifier/`, not the template.
 
 - `dir`: local music library path, used to look up `cover.jpg` next to the playing track (only used when `MPD_HOST` is empty).
 - `MPD_HOST`: leave empty to treat MPD as local and read cover art from `dir`; set to a hostname/IP to query a remote MPD instead (cover art lookup is skipped in that case).
