@@ -1,0 +1,2 @@
+# Ignore a locally-created live config; only mpdsimilar.conf.example is tracked
+mpdsimilar.conf
