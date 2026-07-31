@@ -26,14 +26,14 @@ This script scans the current MPD queue and removes duplicate entries based on f
 #### Usage
 
 ```bash
-./mpd-remove-duplicates-queue.sh
+./mpd-remove-duplicates-queue.sh [-h|--help]
 ````
 
 #### What It Does
 
 1. Scans the MPD queue for the first duplicate file.
 2. Deletes the first occurrence of the duplicate.
-3. Repeats until no duplicates remain.
+3. Repeats until no duplicates remain (including an empty queue, which is reported as "no duplicates" rather than looping).
 
 #### Example Output
 
@@ -53,16 +53,17 @@ This script saves the current MPD queue to a `.m3u` playlist file, removes dupli
 
 #### Configuration
 
-Edit the following variable at the top of the script to match your environment:
+Settings live in `~/.config/mpd-find-dup/mpd-deduplicate-save-and-reload.conf`, seeded automatically from [`mpd-deduplicate-save-and-reload.conf.example`](./mpd-deduplicate-save-and-reload.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-find-dup/`, not the template.
 
-```bash
-PLAYLIST_DIR="/path/to/your/mpd/playlists/"
-```
+- `PLAYLIST_DIR`: directory where `mpc` saves/loads playlists. **Must match MPD's own `playlist_directory`** — `mpc save`/`load`/`rm` operate through MPD's own config, independent of this value, which is only used to edit the saved playlist file directly during the dedup step. If the two don't match, that step silently edits a different file than the one MPD actually reloads.
+- `PLAYLIST_NAME`: name of the playlist to save/reload (without the `.m3u` extension). Default `current_playlist`.
+
+The script won't run until `PLAYLIST_DIR` has been changed from its placeholder value.
 
 #### Usage
 
 ```bash
-./mpd-deduplicate-save-and-reload.sh
+./mpd-deduplicate-save-and-reload.sh [-h|--help]
 ```
 
 #### What It Does

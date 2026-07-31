@@ -1,0 +1,15 @@
+# mpd-deduplicate-save-and-reload.conf
+#
+# Copied to ~/.config/mpd-find-dup/mpd-deduplicate-save-and-reload.conf on
+# first run if that file doesn't already exist. Edit the copy there, not
+# this template.
+
+# Directory where mpc saves/loads playlists. Must match MPD's own
+# playlist_directory -- mpc save/load/rm operate through MPD's own config,
+# independent of this value, which is only used to edit the saved playlist
+# file directly during the dedup step. If the two don't match, that step
+# edits a different file than the one MPD actually reloads.
+PLAYLIST_DIR="/path/to/your/mpd/playlists/"
+
+# Name of the playlist to save/reload (without the .m3u extension).
+PLAYLIST_NAME="current_playlist"
