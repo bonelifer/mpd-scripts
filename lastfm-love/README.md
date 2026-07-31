@@ -12,7 +12,7 @@ Prefers the track's own artist over the album artist, so compilation albums (whe
 
 ## Configuration
 
-On first run, both scripts create `~/.config/lastfm-love/lastfm-love.conf` (from the [template](./lastfm-love.conf) shipped alongside them) and exit with instructions to fill it in. Edit the copy in `~/.config/lastfm-love/`, not the template.
+On first run, both scripts create `~/.config/lastfm-love/lastfm-love.conf` (from the [template](./lastfm-love.conf.example) shipped alongside them) and exit with instructions to fill it in. Edit the copy in `~/.config/lastfm-love/`, not the template.
 
 - `api_key` / `api_secret`: obtain from https://www.last.fm/api/account/create
 - `username`: your Last.fm username

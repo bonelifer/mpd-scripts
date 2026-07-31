@@ -3,7 +3,7 @@
 """
 Shared Last.fm authentication and current-track lookup for loved.py/unloved.py.
 
-Handles config loading (seeded from lastfm-love.conf on first run),
+Handles config loading (seeded from lastfm-love.conf.example on first run),
 the pylast web-auth session flow, and querying MPD via mpc for the
 currently playing track.
 """
@@ -32,7 +32,7 @@ def load_config():
     """
     if not os.path.exists(CONFIG_FILE):
         os.makedirs(CONFIG_DIR, mode=0o700, exist_ok=True)
-        template = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lastfm-love.conf")
+        template = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lastfm-love.conf.example")
         with open(template) as src, open(CONFIG_FILE, "w") as dst:
             dst.write(src.read())
         os.chmod(CONFIG_FILE, 0o600)  # Contains credentials

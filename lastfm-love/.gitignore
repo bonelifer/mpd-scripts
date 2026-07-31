@@ -1,1 +1,4 @@
 __pycache__/
+
+# Ignore a locally-created live config; only lastfm-love.conf.example is tracked
+lastfm-love.conf
