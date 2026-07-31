@@ -1,0 +1,2 @@
+# Ignore a locally-created live config; only rm-duplicates-playlist.conf.example is tracked
+rm-duplicates-playlist.conf
