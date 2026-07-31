@@ -1,0 +1,11 @@
+# rm-duplicates-playlist.conf
+#
+# Copied to ~/.config/rm-duplicates-playlist/rm-duplicates-playlist.conf on
+# first run if that file doesn't already exist. Edit the copy there, not
+# this template.
+
+# Directory where MPD playlists are stored. Must match MPD's own
+# playlist_directory -- mpc save/load/rm operate through MPD's own config,
+# independent of this value, which is only used to read/write playlist
+# files directly. No trailing slash.
+PLAYLIST_DIR="/path/to/your/mpd/playlists"
