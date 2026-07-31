@@ -6,8 +6,8 @@ MPD Rewind Daemon is a background service that automatically rewinds the current
 
 * Automatically rewinds playback after resuming from pause
 * Helpful for music, podcasts, and **audiobooks**, ensuring you don’t miss context
-* Configurable rewind time (default: 5 seconds)
-* Runs silently in the background as a user autostart application
+* Configurable rewind time (default: 5 seconds) and MPD host/port/password
+* Runs silently in the background as a user autostart application, or as a systemd `--user` service
 * Logs to `~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log`
 * Safe shutdown and PID tracking
 * Automatically reconnects (with retry/backoff) if MPD isn't up yet or restarts, instead of exiting
@@ -17,14 +17,13 @@ MPD Rewind Daemon is a background service that automatically rewinds the current
 
 * Python 3
 * [`python-mpd2`](https://pypi.org/project/python-mpd2/)
-* MPD running on `localhost:6600`
+* MPD running and reachable (defaults to `localhost:6600`; see Configuration)
 
 ## Installation
 
-To install and configure the MPD Rewind Daemon:
+To install and configure the MPD Rewind Daemon, clone or download this repository, then pick **one** of the following (don't run both):
 
-1. Clone or download this repository.
-2. Run the installer script:
+### Option A: XDG autostart (default)
 
 ```bash
 ./install.sh
@@ -37,15 +36,22 @@ This script performs the following actions:
 * Ensures `~/bin` and `~/.local/bin` are in your `PATH`
 * Creates an autostart entry in `~/.config/autostart/mpd-rewind.desktop`
 
-The daemon creates its own state directory (`~/.local/state/mpd_rewind_daemon/`) for its log and PID files the first time it runs — no `sudo` needed anywhere in installation.
+After installation, restart your shell or run `source ~/.bashrc`. The daemon will automatically start on your next login.
 
-After installation, restart your shell or run:
+### Option B: systemd `--user` service
 
 ```bash
-source ~/.bashrc
+./install-systemd.sh
 ```
 
-The daemon will automatically start on your next login.
+This is an alternative to the XDG autostart entry, using [`mpd-rewind-daemon.service`](./mpd-rewind-daemon.service) instead: it installs and enables a `systemd --user` unit, which gives you auto-restart on crash and logs viewable via `journalctl` instead of the daemon's own log file. It runs the daemon with `--verbose` (foreground mode) under the hood, since that's what `Type=simple` expects.
+
+```bash
+systemctl --user status mpd-rewind-daemon.service
+journalctl --user -u mpd-rewind-daemon.service -f
+```
+
+Either way, the daemon creates its own state directory (`~/.local/state/mpd_rewind_daemon/`) and config directory (`~/.config/mpd_rewind_daemon/`) the first time it runs — no `sudo` needed anywhere in installation.
 
 ## Usage
 
@@ -55,25 +61,31 @@ You can manually run the daemon (for debugging) using:
 python3 ~/bin/mpd_rewind_daemon.py --verbose
 ```
 
-To stop the daemon:
+To stop the daemon (Option A / XDG autostart install):
 
 ```bash
 ~/bin/mpd_rewind_daemon.py --stop
 ```
 
-This reads the PID file and sends a graceful shutdown signal. (`pkill -f mpd_rewind_daemon.py` also works, but won't clean up the PID file itself — the daemon's own signal handler does that.)
+This reads the PID file and sends a graceful shutdown signal. (`pkill -f mpd_rewind_daemon.py` also works, but won't clean up the PID file itself — the daemon's own signal handler does that.) If you installed via `install-systemd.sh` (Option B) instead, use `systemctl --user stop mpd-rewind-daemon.service` — that install runs the daemon in `--verbose`/foreground mode, so there's no PID file to manage.
 
 ## Configuration
 
-These values are set within the script:
+Settings live in `~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf`, seeded automatically from [`mpd_rewind_daemon.conf.example`](./mpd_rewind_daemon.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd_rewind_daemon/`, not the template.
 
-| Setting          | Description                              | Default                                                    |
-| ---------------- | ---------------------------------------- | ----------------------------------------------------------|
-| `SEEK_BACK_TIME` | How many seconds to rewind when resuming | `5.0` seconds                                              |
-| `PID_FILE`       | Where to store the daemon's PID          | `~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.pid`   |
-| `LOG_FILE`       | Log output file path                     | `~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log`   |
+| Setting          | Description                                          | Default     |
+| ---------------- | ----------------------------------------------------- | ----------- |
+| `seek_back_time` | How many seconds to rewind when resuming              | `5.0`       |
+| `mpd_host`       | MPD server hostname/IP                                | `localhost` |
+| `mpd_port`       | MPD server port                                       | `6600`      |
+| `mpd_password`   | MPD password, if required (leave blank if none)       | *(blank)*   |
 
-To change these values, you can edit `mpd_rewind_daemon.py` directly.
+Two more paths aren't in the config file, since changing them is a less common need — edit `mpd_rewind_daemon.py` directly if you want to:
+
+| Setting    | Description                     | Default                                                  |
+| ---------- | -------------------------------- | --------------------------------------------------------|
+| `PID_FILE` | Where to store the daemon's PID | `~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.pid` |
+| `LOG_FILE` | Log output file path            | `~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log` |
 
 ## Logging
 
@@ -88,18 +100,32 @@ With `--verbose`, logs go to the console instead (not to the log file), and the 
 ## Troubleshooting
 
 * **Permission denied for the state directory**: the daemon creates `~/.local/state/mpd_rewind_daemon/` itself on first run; this would only fail if `~/.local/state` somehow isn't writable by your user.
-* **Daemon not autostarting**: Check the contents of `~/.config/autostart/mpd-rewind.desktop` and make sure the path is correct.
-* **MPD not detected**: the daemon retries the connection (backing off between attempts) rather than giving up, so it's safe to start before MPD is up; check `--verbose` output if it never connects.
+* **Daemon not autostarting (Option A)**: Check the contents of `~/.config/autostart/mpd-rewind.desktop` and make sure the path is correct.
+* **Service not starting (Option B)**: `systemctl --user status mpd-rewind-daemon.service` and `journalctl --user -u mpd-rewind-daemon.service` will show why.
+* **MPD not detected**: the daemon retries the connection (backing off between attempts) rather than giving up, so it's safe to start before MPD is up; double-check `mpd_host`/`mpd_port`/`mpd_password` in the config file, and check `--verbose`/journald output if it never connects.
 
 ## Uninstallation
 
-To uninstall:
+If you installed via Option A (XDG autostart):
 
 ```bash
 ~/bin/mpd_rewind_daemon.py --stop
 rm ~/bin/mpd_rewind_daemon.py
 rm ~/.config/autostart/mpd-rewind.desktop
-rm -rf ~/.local/state/mpd_rewind_daemon
+```
+
+If you installed via Option B (systemd `--user`):
+
+```bash
+systemctl --user disable --now mpd-rewind-daemon.service
+rm ~/.config/systemd/user/mpd-rewind-daemon.service
+rm ~/bin/mpd_rewind_daemon.py
+```
+
+Either way, also remove its state and config:
+
+```bash
+rm -rf ~/.local/state/mpd_rewind_daemon ~/.config/mpd_rewind_daemon
 ```
 
 Also remove any `PATH` entries from `~/.bashrc` if you no longer use `~/bin` or `~/.local/bin`.

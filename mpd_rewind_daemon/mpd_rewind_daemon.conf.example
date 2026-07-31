@@ -1,0 +1,15 @@
+# mpd_rewind_daemon configuration
+#
+# Copied to ~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf on first run
+# if that file doesn't already exist. Edit the copy there, not this template.
+
+[mpd_rewind_daemon]
+# How many seconds to rewind when playback resumes from pause.
+seek_back_time = 5.0
+
+# MPD connection details.
+mpd_host = localhost
+mpd_port = 6600
+
+# Leave blank unless your MPD requires a password.
+mpd_password =

@@ -1,0 +1,5 @@
+# Ignore a locally-created live config; only mpd_rewind_daemon.conf.example is tracked
+mpd_rewind_daemon.conf
+
+# Ignore Python bytecode files
+__pycache__/

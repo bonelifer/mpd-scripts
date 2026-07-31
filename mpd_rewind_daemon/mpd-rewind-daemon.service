@@ -1,0 +1,15 @@
+[Unit]
+Description=MPD Rewind Daemon
+After=network.target sound.target
+
+[Service]
+# --verbose runs in the foreground with console logging instead of forking
+# and writing its own log/PID files, which is what systemd expects for
+# Type=simple; journald captures the console output.
+Type=simple
+ExecStart=%h/bin/mpd_rewind_daemon.py --verbose
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

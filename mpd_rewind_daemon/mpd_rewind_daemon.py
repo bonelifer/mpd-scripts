@@ -7,7 +7,9 @@ When playback resumes from a paused state, it rewinds the track by a set amount 
 The daemon supports logging and verbose output for debugging purposes.
 
 Configuration:
-- SEEK_BACK_TIME: Time (in seconds) to rewind after playback resumes (default: 5 seconds).
+- seek_back_time, mpd_host, mpd_port, mpd_password: see
+  ~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf (seeded from
+  mpd_rewind_daemon.conf.example on first run).
 - PID_FILE: Location to store the daemon process ID (PID) (default: "~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.pid").
 - LOG_FILE: Location for the daemon log file (default: "~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log").
 - Permissions check for the state directory.
@@ -20,14 +22,43 @@ import time
 import signal
 import argparse
 import logging
+import configparser
 from mpd import MPDClient
 from mpd import ConnectionError as MPDConnectionError
 
 # Configuration Constants
-SEEK_BACK_TIME = 5.0  # Time to rewind in seconds
 STATE_DIR = os.path.join(os.path.expanduser("~"), ".local", "state", "mpd_rewind_daemon")
 PID_FILE = os.path.join(STATE_DIR, "mpd_rewind_daemon.pid")  # Path for PID file
 LOG_FILE = os.path.join(STATE_DIR, "mpd_rewind_daemon.log")  # Path for log file
+
+CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "mpd_rewind_daemon")
+CONFIG_FILE = os.path.join(CONFIG_DIR, "mpd_rewind_daemon.conf")
+
+def load_config():
+    """
+    Loads settings from ~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf,
+    seeding it from the mpd_rewind_daemon.conf.example template shipped
+    alongside this script on first run.
+
+    Returns:
+        configparser.SectionProxy: the "mpd_rewind_daemon" section.
+    """
+    if not os.path.exists(CONFIG_FILE):
+        os.makedirs(CONFIG_DIR, mode=0o700, exist_ok=True)
+        template = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mpd_rewind_daemon.conf.example")
+        with open(template) as src, open(CONFIG_FILE, "w") as dst:
+            dst.write(src.read())
+        os.chmod(CONFIG_FILE, 0o600)  # May contain an MPD password
+
+    config = configparser.ConfigParser()
+    config.read(CONFIG_FILE)
+    return config["mpd_rewind_daemon"]
+
+_config = load_config()
+SEEK_BACK_TIME = _config.getfloat("seek_back_time", fallback=5.0)  # Time to rewind in seconds
+MPD_HOST = _config.get("mpd_host", fallback="localhost")
+MPD_PORT = _config.getint("mpd_port", fallback=6600)
+MPD_PASSWORD = _config.get("mpd_password", fallback="")
 
 def check_permissions():
     """
@@ -93,7 +124,8 @@ class MPDRewindDaemon:
         Connects to the MPD server.
 
         This method creates a new MPDClient, closes the previous connection (if any),
-        and attempts to connect to the MPD server on localhost:6600. Raises
+        and attempts to connect to the MPD server at MPD_HOST:MPD_PORT (and
+        authenticates if MPD_PASSWORD is set). Raises
         MPDConnectionError/OSError on failure; callers should use
         connect_with_retry() instead of calling this directly unless they
         want to handle a failed connection themselves.
@@ -110,8 +142,10 @@ class MPDRewindDaemon:
         self.client.timeout = 10  # Timeout for MPD client connection
         self.client.idletimeout = None  # Disable idle timeout
 
-        self.client.connect("localhost", 6600)
-        self.log("Connected to MPD.")
+        self.client.connect(MPD_HOST, MPD_PORT)
+        if MPD_PASSWORD:
+            self.client.password(MPD_PASSWORD)
+        self.log(f"Connected to MPD at {MPD_HOST}:{MPD_PORT}.")
 
     def connect_with_retry(self):
         """
