@@ -1,0 +1,20 @@
+# rm-artists-playlist.conf
+#
+# Copied to ~/.config/rm-artists-playlist/rm-artists-playlist.conf on first
+# run if that file doesn't already exist. Edit the copy there, not this
+# template.
+
+# Directory where MPD playlists are stored. Must match MPD's own
+# playlist_directory -- mpc save/load/rm operate through MPD's own config,
+# independent of this value, which is only used to read/write playlist
+# files directly. No trailing slash.
+PLAYLIST_DIR="/path/to/your/mpd/playlists"
+
+# Plain text file listing one artist name per line, to remove from a
+# playlist or the current queue. Matching is an unanchored,
+# case-insensitive substring match against each playlist entry's full file
+# path (a saved .m3u is just a flat list of paths, with no separate
+# artist/album/title fields) -- use full, specific artist names, since a
+# short or common name (e.g. "Air") could match unrelated paths that
+# merely contain that substring. Blank lines in this file are ignored.
+ARTIST_FILE="/path/to/your/artists_to_remove.txt"
