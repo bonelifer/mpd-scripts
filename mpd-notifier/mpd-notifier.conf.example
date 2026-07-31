@@ -3,7 +3,7 @@
 # Copied to ~/.config/mpd-notifier/mpd-notifier.conf on first run if that
 # file doesn't already exist. Edit the copy there, not this template.
 
-# Local music library path, used to look up cover.jpg next to the playing
+# Local music library path, used to look up cover art next to the playing
 # track. Only used when MPD_HOST is empty (see below).
 dir="$HOME/Music/"
 
@@ -28,3 +28,20 @@ enable_actions="false"
 # (e.g. Ubuntu 22.04's libnotify-bin, which is one version behind that);
 # install dunst first (e.g. `sudo apt install dunst`). Default: "false".
 use_dunstify="false"
+
+# When no cover/folder/artwork/front image is found in the track's
+# directory, try to extract album art embedded in the track's own tags via
+# ffmpeg instead of going straight to the fallback image. Requires ffmpeg
+# (e.g. `sudo apt install ffmpeg`). Set to "true" to enable. Default: "false".
+embed_art_fallback="false"
+
+# Show a grayscale version of the cover art while paused, as a visual cue in
+# addition to the "(paused)" text. Requires ImageMagick's `convert` (e.g.
+# `sudo apt install imagemagick`). Set to "true" to enable. Default: "false".
+grayscale_when_paused="false"
+
+# Tag notifications with a category ("mpd"/"mpd-paused"/"mpd-stopped") via
+# -c/--category, letting a notification daemon filter or style them by
+# playback state. Only applied if the notify-send/dunstify in use advertises
+# support. Set to "true" to enable. Default: "false".
+notify_categories="false"

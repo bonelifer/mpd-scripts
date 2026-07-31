@@ -1,16 +1,19 @@
 # mpd-scripts - mpd-notifier
 - Uses mpd, mpc, bash and notify-send to provide desktop notifications with ARTST, TITLE, and ALBUMART.
-- Takes into account, albums where the album art cover.jpg file might be missing and provides a generic eight-note image.
+- Looks for a cover/folder/artwork/front image in the track's directory (not just a literal cover.jpg), optionally falls back to art embedded in the track's own tags (`embed_art_fallback`), and finally falls back to a generic eight-note image if neither is found.
 - Will notify user if mpd is currently stopped. 
-- Will show the artist, title, albumart with (paused) appended at the end when mpd is paused.  
+- Will show the artist, title, albumart with (paused) appended at the end when mpd is paused, and optionally shows the cover art in grayscale while paused (`grayscale_when_paused`).
 - On compilations, shows the track's real artist instead of the album artist (e.g. "Various Artists").
 - Each notification replaces the previous one instead of stacking, so repeated updates (e.g. from the watch script below) don't pile up.
+- Can tag notifications with a category (`notify_categories`) so a notification daemon can filter or style them by playback state.
 
 ## Requirements
 
 - `mpc`
 - `notify-send` (`libnotify-bin`)
 - `dunst` (optional — only needed for `use_dunstify`)
+- `ffmpeg` (optional — only needed for `embed_art_fallback`)
+- `imagemagick` (optional — only needed for `grayscale_when_paused`)
 
 ## Installation
 
@@ -56,6 +59,25 @@ Settings live in `~/.config/mpd-notifier/mpd-notifier.conf`, seeded automaticall
 - `cache_dir`: where the fallback image and copied cover art are cached.
 - `enable_actions`: set to `"true"` to add Play-Pause/Next buttons to the notification, plus Previous unless MPD's `consume` mode is on (in which case there's no previous track left in the queue to go back to). Off by default since it requires a notify-send that supports `-A`/`--action` (e.g. `libnotify-bin`) — not every provider does. When it isn't supported, this is detected automatically and the buttons are silently skipped. Note that whether actions actually render as clickable buttons also depends on your notification *daemon* (e.g. dunst, not just the `notify-send`/`dunstify` client) actually being the active one handling notifications.
 - `use_dunstify`: set to `"true"` to send notifications via [dunst](https://github.com/dunst-project/dunst)'s `dunstify` instead of `notify-send` (install with e.g. `sudo apt install dunst`). Worth enabling if your system's stock notify-send is missing `-r`/`--replace-id` or `-A`/`--action` support — notably Ubuntu 22.04's `libnotify-bin`, which ships one version behind the release that added them. Default: `"false"`.
+- `embed_art_fallback`: set to `"true"` to try extracting album art embedded in the track's own tags via `ffmpeg` (`sudo apt install ffmpeg`) when no cover/folder/artwork/front image file is found in the track's directory. Default: `"false"`.
+- `grayscale_when_paused`: set to `"true"` to show a grayscale version of the cover art while paused, as a visual cue in addition to the "(paused)" text. Requires ImageMagick's `convert` (`sudo apt install imagemagick`). Default: `"false"`.
+- `notify_categories`: set to `"true"` to tag notifications with a category (`mpd`/`mpd-paused`/`mpd-stopped`) via `-c`/`--category`, letting a notification daemon filter or style them by playback state. Only applied if the notify-send/dunstify in use advertises support (detected automatically). Default: `"false"`.
+
+  Example dunst rules (`~/.config/dunst/dunstrc`) using all three categories:
+
+  ```ini
+  [mpd]
+      category = "mpd"
+
+  [mpd-paused]
+      category = "mpd-paused"
+      background = "#333333"
+      timeout = 0
+
+  [mpd-stopped]
+      category = "mpd-stopped"
+      timeout = 3000
+  ```
 
 ## License
 
