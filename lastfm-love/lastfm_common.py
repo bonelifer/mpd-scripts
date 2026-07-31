@@ -24,20 +24,32 @@ SESSION_KEY_FILE = os.path.join(CONFIG_DIR, "session_key")
 
 def load_config():
     """
-    Loads Last.fm credentials from ~/.config/lastfm-love/lastfm-love.conf,
-    seeding it from the template shipped alongside this module on first run.
+    Loads Last.fm credentials from ~/.config/lastfm-love/lastfm-love.conf.
+
+    If that doesn't exist yet, it's seeded from a lastfm-love.conf sitting
+    next to this module if one exists (e.g. an already-filled-in config
+    from before it was moved under ~/.config), otherwise from the blank
+    lastfm-love.conf.example template.
 
     Returns:
         configparser.SectionProxy: the "lastfm-love" section.
     """
     if not os.path.exists(CONFIG_FILE):
         os.makedirs(CONFIG_DIR, mode=0o700, exist_ok=True)
-        template = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lastfm-love.conf.example")
-        with open(template) as src, open(CONFIG_FILE, "w") as dst:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        local_conf = os.path.join(script_dir, "lastfm-love.conf")
+        template = os.path.join(script_dir, "lastfm-love.conf.example")
+        source = local_conf if os.path.exists(local_conf) else template
+
+        with open(source) as src, open(CONFIG_FILE, "w") as dst:
             dst.write(src.read())
         os.chmod(CONFIG_FILE, 0o600)  # Contains credentials
-        print(f"Created {CONFIG_FILE} -- edit it with your Last.fm API key/secret and account details, then run this again.")
-        sys.exit(1)
+
+        if source == template:
+            print(f"Created {CONFIG_FILE} -- edit it with your Last.fm API key/secret and account details, then run this again.")
+            sys.exit(1)
+        else:
+            print(f"Copied existing {local_conf} to {CONFIG_FILE}.")
 
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE)
