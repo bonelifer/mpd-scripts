@@ -4,7 +4,12 @@
 # use_dunstify="true") for the currently playing MPD track, showing title,
 # artist, and album, using the mpc command-line tool. On compilations, shows
 # the track's real artist rather than the album's artist (e.g. "Various
-# Artists"). Falls back to a generic image when no cover art is found.
+# Artists"). Looks for a cover/folder/artwork/front image in the track's
+# directory, optionally falls back to art embedded in the file itself (see
+# embed_art_fallback), and falls back further to a generic image when none
+# is found. See mpd-notifier.conf.example for optional features: embedded
+# art extraction, grayscale cover art while paused, and notification
+# categories.
 
 # Cobbled together from other now playing scripts.
 # Image found on Google Images
@@ -49,12 +54,13 @@ for cmd in mpc "$NOTIFY_CMD"; do
 done
 
 if [ "$NOTIFY_CMD" == "dunstify" ]; then
-    # dunstify reliably supports both, regardless of exact --help wording.
+    # dunstify reliably supports all of these, regardless of exact --help wording.
     NOTIFY_REPLACE_ARGS=(-r 91325)
     NOTIFY_ACTIONS_SUPPORTED=1
+    NOTIFY_CATEGORY_SUPPORTED=1
 else
-    # Not every notify-send provider supports -r/--replace-id or
-    # -A/--action (e.g. the notify-send.sh reimplementation, or Ubuntu
+    # Not every notify-send provider supports -r/--replace-id, -A/--action,
+    # or -c/--category (e.g. the notify-send.sh reimplementation, or Ubuntu
     # 22.04's stock libnotify-bin), so only use them if advertised.
     NOTIFY_SEND_HELP="$("$NOTIFY_CMD" --help 2>/dev/null)"
 
@@ -66,6 +72,11 @@ else
     NOTIFY_ACTIONS_SUPPORTED=0
     if echo "$NOTIFY_SEND_HELP" | grep -q -- '--action'; then
         NOTIFY_ACTIONS_SUPPORTED=1
+    fi
+
+    NOTIFY_CATEGORY_SUPPORTED=0
+    if echo "$NOTIFY_SEND_HELP" | grep -q -- '--category'; then
+        NOTIFY_CATEGORY_SUPPORTED=1
     fi
 fi
 
@@ -102,11 +113,32 @@ finish_song_info() {
     fi
 
     if [ -z "${MPD_HOST}" ]; then
-        local_image="$(dirname "$dir${array[5]}")/cover.jpg"
+        track_path="$dir${array[5]}"
+        track_dir="$(dirname "$track_path")"
         cache_image="$cache_dir/cover.jpg"
-        # Check if cover.jpg exists locally, if not, use the fallback image directly
-        if [ -f "$local_image" ]; then
+
+        # Look for a cover image file in the track's directory -- any
+        # filename containing "cover", "folder", "artwork", or "front"
+        # (case-insensitive), not just a literal cover.jpg. Uses -iname
+        # (basename-only matching) rather than -iregex, which matches the
+        # whole path -- an artist/album directory containing one of these
+        # words (e.g. "Front Line Assembly") would otherwise make every
+        # .jpg/.jpeg in that directory match.
+        local_image=""
+        if [ -d "$track_dir" ]; then
+            local_image="$(find "$track_dir" -maxdepth 1 -type f \
+                \( -iname '*cover*.jpg' -o -iname '*cover*.jpeg' \
+                   -o -iname '*folder*.jpg' -o -iname '*folder*.jpeg' \
+                   -o -iname '*artwork*.jpg' -o -iname '*artwork*.jpeg' \
+                   -o -iname '*front*.jpg' -o -iname '*front*.jpeg' \) \
+                2>/dev/null | sort | head -n1)"
+        fi
+
+        if [ -n "$local_image" ] && [ -f "$local_image" ]; then
             cp "$local_image" "$cache_image"
+        elif [ "${embed_art_fallback}" == "true" ] && command -v ffmpeg &>/dev/null \
+             && ffmpeg -loglevel quiet -y -i "$track_path" "$cache_image" </dev/null 2>/dev/null; then
+            : # No cover file found, but ffmpeg pulled embedded art out of the track itself.
         else
             cache_image="$fallback_image"
         fi
@@ -217,6 +249,18 @@ send_notification() {
     local summary="$1" body="$2" image="$3"
     local args=("${NOTIFY_REPLACE_ARGS[@]}" -t "$notify_duration" -i "$image")
 
+    # With notify_categories="true" (and only if $NOTIFY_CMD advertises
+    # support), tag the notification "mpd"/"mpd-paused"/"mpd-stopped" so a
+    # notification daemon can filter or style it per playback state.
+    if [ "${notify_categories}" == "true" ] && [ "$NOTIFY_CATEGORY_SUPPORTED" -eq 1 ]; then
+        local category="mpd"
+        case "$status" in
+            paused)  category="mpd-paused" ;;
+            stopped) category="mpd-stopped" ;;
+        esac
+        args+=(-c "$category")
+    fi
+
     if [ "${enable_actions}" == "true" ] && [ "$NOTIFY_ACTIONS_SUPPORTED" -eq 1 ]; then
         local playpause_label="Pause"
         if [ "$status" == "paused" ]; then
@@ -240,6 +284,18 @@ if [ -f "$cache_image" ]; then
     image="$cache_image"
 else
     image="$fallback_image"
+fi
+
+# With grayscale_when_paused="true", show a grayscale cover while paused, as
+# a visual cue distinct from the "(paused)" text. Always written to a
+# separate scratch file rather than converted in place, since $image may be
+# $fallback_image -- a persistent cached file that must stay in color for
+# the next "playing" notification.
+if [ "$status" == "paused" ] && [ "${grayscale_when_paused}" == "true" ] && command -v convert &>/dev/null; then
+    paused_image="$cache_dir/paused-cover.jpg"
+    if convert "$image" -colorspace Gray "$paused_image" 2>/dev/null; then
+        image="$paused_image"
+    fi
 fi
 
 if [ "$status" == "playing" ]; then
