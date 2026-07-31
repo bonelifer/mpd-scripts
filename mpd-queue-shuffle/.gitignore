@@ -1,0 +1,2 @@
+# Ignore a locally-created live config; only mpd-queue-shuffle.conf.example is tracked
+mpd-queue-shuffle.conf
