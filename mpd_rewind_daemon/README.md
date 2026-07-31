@@ -6,7 +6,8 @@ MPD Rewind Daemon is a background service that automatically rewinds the current
 
 * Automatically rewinds playback after resuming from pause
 * Helpful for music, podcasts, and **audiobooks**, ensuring you don’t miss context
-* Configurable rewind time (default: 5 seconds) and MPD host/port/password
+* Rewind amount scales with how long you were paused (configurable tiers), so a quick pause barely rewinds while a long one rewinds further
+* Configurable MPD host/port/password
 * Runs silently in the background as a user autostart application, or as a systemd `--user` service
 * Logs to `~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log`
 * Safe shutdown and PID tracking
@@ -73,12 +74,14 @@ This reads the PID file and sends a graceful shutdown signal. (`pkill -f mpd_rew
 
 Settings live in `~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf`, seeded automatically from [`mpd_rewind_daemon.conf.example`](./mpd_rewind_daemon.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd_rewind_daemon/`, not the template.
 
-| Setting          | Description                                          | Default     |
-| ---------------- | ----------------------------------------------------- | ----------- |
-| `seek_back_time` | How many seconds to rewind when resuming              | `5.0`       |
-| `mpd_host`       | MPD server hostname/IP                                | `localhost` |
-| `mpd_port`       | MPD server port                                       | `6600`      |
-| `mpd_password`   | MPD password, if required (leave blank if none)       | *(blank)*   |
+| Setting        | Description                                       | Default                 |
+| -------------- | --------------------------------------------------- | ----------------------- |
+| `rewind_tiers` | How far to rewind based on how long you were paused | `5:5,15:15,30:30,60:60` |
+| `mpd_host`     | MPD server hostname/IP                              | `localhost`              |
+| `mpd_port`     | MPD server port                                     | `6600`                   |
+| `mpd_password` | MPD password, if required (leave blank if none)     | *(blank)*                |
+
+`rewind_tiers` is a comma-separated list of `paused_seconds:rewind_seconds` pairs. The longest threshold that's `<=` the actual pause duration wins, so with the default tiers, pausing for 20s rewinds 15s. Pausing for less than the smallest threshold (5s by default) doesn't rewind at all. Add, remove, or change tiers freely — e.g. `10:3,60:10,300:20` for a gentler curve.
 
 Two more paths aren't in the config file, since changing them is a less common need — edit `mpd_rewind_daemon.py` directly if you want to:
 

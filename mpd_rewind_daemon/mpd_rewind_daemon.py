@@ -7,7 +7,7 @@ When playback resumes from a paused state, it rewinds the track by a set amount 
 The daemon supports logging and verbose output for debugging purposes.
 
 Configuration:
-- seek_back_time, mpd_host, mpd_port, mpd_password: see
+- rewind_tiers, mpd_host, mpd_port, mpd_password: see
   ~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf (seeded from
   mpd_rewind_daemon.conf.example on first run).
 - PID_FILE: Location to store the daemon process ID (PID) (default: "~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.pid").
@@ -54,8 +54,39 @@ def load_config():
     config.read(CONFIG_FILE)
     return config["mpd_rewind_daemon"]
 
+DEFAULT_REWIND_TIERS = [(5.0, 5.0), (15.0, 15.0), (30.0, 30.0), (60.0, 60.0)]
+
+def parse_rewind_tiers(raw):
+    """
+    Parses a "paused_seconds:rewind_seconds,..." string (e.g. from the
+    rewind_tiers config setting) into a list of (threshold, rewind) float
+    pairs, sorted ascending by threshold.
+
+    Args:
+        raw (str): The raw config value.
+
+    Returns:
+        list[tuple[float, float]]: Parsed tiers, or DEFAULT_REWIND_TIERS if
+        raw is empty or malformed.
+    """
+    tiers = []
+    for pair in raw.split(","):
+        pair = pair.strip()
+        if not pair:
+            continue
+        try:
+            threshold_str, rewind_str = pair.split(":")
+            tiers.append((float(threshold_str), float(rewind_str)))
+        except ValueError:
+            print(f"Warning: ignoring malformed rewind_tiers entry {pair!r}.")
+
+    if not tiers:
+        return DEFAULT_REWIND_TIERS
+    tiers.sort(key=lambda tier: tier[0])
+    return tiers
+
 _config = load_config()
-SEEK_BACK_TIME = _config.getfloat("seek_back_time", fallback=5.0)  # Time to rewind in seconds
+REWIND_TIERS = parse_rewind_tiers(_config.get("rewind_tiers", fallback=""))
 MPD_HOST = _config.get("mpd_host", fallback="localhost")
 MPD_PORT = _config.getint("mpd_port", fallback=6600)
 MPD_PASSWORD = _config.get("mpd_password", fallback="")
@@ -81,11 +112,11 @@ class MPDRewindDaemon:
     MPD Rewind Daemon that listens for MPD pause events and rewinds playback when resumed.
 
     Attributes:
-        seek_time (float): Time to rewind (set to SEEK_BACK_TIME).
         verbose (bool): Flag to enable verbose logging.
         running (bool): Flag to control the running state of the daemon.
         client (MPDClient): MPD client for communication with the MPD server.
         last_state (str): Tracks the last state of the MPD player ("play" or "pause").
+        pause_started_at (float | None): time.time() when the last pause began.
     """
 
     def __init__(self, verbose=False):
@@ -95,11 +126,11 @@ class MPDRewindDaemon:
         Args:
             verbose (bool): Whether to run in verbose mode (default: False).
         """
-        self.seek_time = SEEK_BACK_TIME  # Set the rewind time
         self.verbose = verbose  # Set the verbose mode flag
         self.running = True  # Daemon is initially running
         self.client = None  # MPD client instance will be created later
         self.last_state = None  # Tracks last player state (play or pause)
+        self.pause_started_at = None  # When the current/last pause began
 
         # Set logging configuration based on verbose mode
         log_level = logging.DEBUG if verbose else logging.INFO
@@ -183,24 +214,54 @@ class MPDRewindDaemon:
 
         sys.exit(0)
 
-    def rewind_and_resume(self):
+    def get_rewind_amount(self, pause_duration):
+        """
+        Looks up how many seconds to rewind based on how long playback was
+        paused, using REWIND_TIERS (sorted ascending by threshold). Returns
+        the rewind amount for the largest threshold that's <= pause_duration,
+        or 0 if the pause was shorter than the smallest threshold.
+
+        Args:
+            pause_duration (float): How many seconds playback was paused for.
+
+        Returns:
+            float: Seconds to rewind (0 if no tier applies).
+        """
+        amount = 0.0
+        for threshold, rewind in REWIND_TIERS:
+            if pause_duration >= threshold:
+                amount = rewind
+            else:
+                break
+        return amount
+
+    def rewind_and_resume(self, pause_duration):
         """
         Pauses, rewinds, and resumes playback to ensure proper rewind.
 
         This method pauses the current track, seeks to a rewind position, and resumes playback.
+        The rewind amount scales with how long playback was paused (see get_rewind_amount).
+
+        Args:
+            pause_duration (float): How many seconds playback was paused for.
         """
+        seek_back_time = self.get_rewind_amount(pause_duration)
+        if seek_back_time <= 0:
+            self.log(f"Paused for {pause_duration:.2f}s; too brief to rewind.")
+            return
+
         try:
             status = self.client.status()  # Fetch current MPD status
             if status.get("state") == "play":
                 position = float(status.get("elapsed", 0))  # Get current playback position
-                seek_time = max(position - self.seek_time, 0)  # Calculate new seek position
+                seek_time = max(position - seek_back_time, 0)  # Calculate new seek position
 
                 self.log(f"Pausing playback to rewind...")
                 self.client.pause(1)  # Pause playback
-                
+
                 time.sleep(0.2)  # Small delay to ensure state change
 
-                self.log(f"Rewinding {self.seek_time:.2f}s. Seeking to {seek_time:.2f}s...")
+                self.log(f"Paused for {pause_duration:.2f}s; rewinding {seek_back_time:.2f}s. Seeking to {seek_time:.2f}s...")
                 self.client.seekcur(seek_time)  # Seek to the new position
 
                 self.log("Resuming playback after rewind.")
@@ -230,10 +291,13 @@ class MPDRewindDaemon:
                 # Check for state transitions
                 if current_state == "pause" and self.last_state == "play":
                     self.log("Detected MPD pause event.")
+                    self.pause_started_at = time.time()
 
                 elif current_state == "play" and self.last_state == "pause":
-                    self.log("Detected playback resume event. Applying rewind.")
-                    self.rewind_and_resume()  # Apply rewind on resume
+                    pause_duration = (time.time() - self.pause_started_at) if self.pause_started_at else 0.0
+                    self.log(f"Detected playback resume event after {pause_duration:.2f}s pause. Applying rewind.")
+                    self.rewind_and_resume(pause_duration)  # Apply rewind on resume
+                    self.pause_started_at = None
 
                 self.last_state = current_state  # Update last known state
 
