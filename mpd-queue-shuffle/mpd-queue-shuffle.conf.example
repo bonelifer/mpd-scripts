@@ -1,0 +1,16 @@
+# mpd-queue-shuffle configuration
+#
+# Copied to ~/.config/mpd-queue-shuffle/mpd-queue-shuffle.conf on first run
+# if that file doesn't already exist. Edit the copy there, not this template.
+
+# Local music directory containing MP3 files (must match MPD's own
+# music_directory so the generated playlist's paths resolve correctly).
+MUSIC_DIR="/path/to/your/music/directory/"
+
+# Directory where mpc saves/loads playlists (MPD's playlist_directory).
+PLAYLIST_DIR="/path/to/your/mpc/playlists/directory/"
+
+# Default number of tracks in the generated playlist, and its name,
+# when -c/-p aren't passed on the command line.
+DEFAULT_TARGET_TRACK_COUNT=16000
+DEFAULT_PLAYLIST_NAME="random_playlist"
