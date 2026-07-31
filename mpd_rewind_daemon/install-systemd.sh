@@ -2,17 +2,18 @@
 
 # MPD Rewind Daemon systemd --user service installer
 #
-# Alternative to install.sh's XDG autostart .desktop entry: installs and
-# enables mpd_rewind_daemon.py as a systemd --user service instead, giving
-# auto-restart on crash and journald logging. Run ../setup-path.sh first if
-# ~/bin isn't already on your PATH. Don't run both installers -- pick one.
+# Alternative to install-xdg-autostart.sh's XDG autostart .desktop entry:
+# installs and enables mpd_rewind_daemon.py as a systemd --user service
+# instead, giving auto-restart on crash and journald logging. Run
+# ../setup-path.sh first if ~/bin isn't already on your PATH. Don't run
+# both installers -- pick one.
 
 set -e  # Exit on error
 
 INSTALL_DIR="$HOME/bin"
 SCRIPT_NAME="mpd_rewind_daemon.py"
 UNIT_NAME="mpd-rewind-daemon.service"
-UNIT_DIR="$HOME/.config/systemd/user"
+UNIT_DIR="$HOME/.config/systemd/user"  # Per-user systemd unit search path
 
 echo "Installing MPD Rewind Daemon (systemd --user service)..."
 
@@ -29,6 +30,8 @@ mkdir -p "$UNIT_DIR"
 echo "Installing systemd unit to $UNIT_DIR/$UNIT_NAME..."
 cp "$UNIT_NAME" "$UNIT_DIR/$UNIT_NAME"
 
+# Re-scan unit files for the new one, then start it now and mark it to
+# start automatically on every future login.
 systemctl --user daemon-reload
 systemctl --user enable --now "$UNIT_NAME"
 
