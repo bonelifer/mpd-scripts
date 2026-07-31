@@ -28,7 +28,7 @@
 
 ## Usage
 
-`mpd-notifier.sh` sends a single notification for the currently playing track and exits — call it directly if you want to trigger a notification manually or from your own hook.
+`mpd-notifier.sh` sends a single notification for the currently playing track and exits — call it directly if you want to trigger a notification manually, or from your own script/cron job (see [Using mpdcron instead of the watch script](#using-mpdcron-instead-of-the-watch-script) below for a ready-made example of hooking it into an external trigger).
 
 To get a notification automatically whenever the track changes (or play/pause/stop state changes), run [`mpd-notifier-watch.sh`](./mpd-notifier-watch.sh) instead, either via the installer's autostart entry or manually in the background:
 
@@ -63,7 +63,7 @@ Settings live in `~/.config/mpd-notifier/mpd-notifier.conf`, seeded automaticall
 - `grayscale_when_paused`: set to `"true"` to show a grayscale version of the cover art while paused, as a visual cue in addition to the "(paused)" text. Requires ImageMagick's `convert` (`sudo apt install imagemagick`). Default: `"false"`.
 - `notify_categories`: set to `"true"` to tag notifications with a category (`mpd`/`mpd-paused`/`mpd-stopped`) via `-c`/`--category`, letting a notification daemon filter or style them by playback state. Only applied if the notify-send/dunstify in use advertises support (detected automatically). Default: `"false"`.
 
-  Example dunst rules (`~/.config/dunst/dunstrc`) using all three categories:
+  Example [dunst rules](https://dunst-project.org/documentation/#rules) (`~/.config/dunst/dunstrc`) using all three categories:
 
   ```ini
   [mpd]
