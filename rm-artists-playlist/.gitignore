@@ -1,0 +1,2 @@
+# Ignore a locally-created live config; only rm-artists-playlist.conf.example is tracked
+rm-artists-playlist.conf

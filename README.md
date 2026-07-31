@@ -42,6 +42,7 @@ Collection of scripts related to mpd & mpc.
 | **[mpd_rewind_daemon](./mpd_rewind_daemon/)** | A background daemon for MPD that automatically rewinds playback by a few seconds when resuming from pause, improving the experience for music, mixes, podcasts, and audiobooks. |
 | **[mpdsimilar](./mpdsimilar/)** | Fetches similar artist tracks from Last.fm for the currently playing track or every track in the queue, and adds a sample of them to the MPD queue. |
 | **[rm-duplicates-playlist](./rm-duplicates-playlist/)** | Removes duplicate entries from a saved MPD playlist or the current queue, or lists available playlists, combining what the two `mpd-find-dup` scripts each do separately into one tool. |
+| **[rm-artists-playlist](./rm-artists-playlist/)** | Removes songs by a list of artists from a saved MPD playlist or the current queue, or lists available playlists. |
 
 ### Prerequisites
 Listed in each scripts README.md.
