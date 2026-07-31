@@ -1,0 +1,30 @@
+# mpdsimilar.conf — configuration for mpdsimilar.sh
+#
+# Copied to ~/.config/mpdsimilar/mpdsimilar.conf on first run if that file
+# doesn't already exist. Edit the copy there, not this template.
+
+# Obtain your own API key from https://www.last.fm/api/account/create
+lastfm_api_key="your_lastfm_api_key_here"
+lastfm_api_url="https://ws.audioscrobbler.com/2.0"
+
+# Number of similar artists to fetch per Last.fm query.
+similar_limit=20
+
+# Maximum tracks sampled per similar artist.
+per_artist_limit=5
+
+# Total tracks added when using -c/--current.
+current_total_limit=20
+
+# Total tracks added per queue entry when using -a/--all.
+per_track_limit=10
+
+# Hard cap on MPD playlist size (MPD default: 16 368).
+# Can be overridden per-run with -l/--length.
+max_playlist_size=16368
+
+# Seconds to sleep between Last.fm API calls.
+api_rate_limit_delay=0.5
+
+# Seconds before a Last.fm request times out.
+curl_max_time=10
