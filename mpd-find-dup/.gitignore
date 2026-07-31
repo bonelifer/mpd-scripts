@@ -1,0 +1,2 @@
+# Ignore a locally-created live config; only mpd-deduplicate-save-and-reload.conf.example is tracked
+mpd-deduplicate-save-and-reload.conf

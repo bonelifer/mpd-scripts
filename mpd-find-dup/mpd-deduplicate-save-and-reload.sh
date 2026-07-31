@@ -3,20 +3,66 @@
 # Script: MPD Duplicate Removal (Save Current Queue to Playlist)
 # Purpose: This script saves the current MPD queue to a playlist, removes duplicates, and reloads the cleaned playlist.
 #
-# Variables:
-# - PLAYLIST_DIR: Directory where the playlists are stored.
-# - PLAYLIST_NAME: Name of the playlist to save (without .m3u extension).
-#
 # Usage:
-# 1. Set the PLAYLIST_DIR and PLAYLIST_NAME variables.
-# 2. Ensure MPD and MPC are installed and configured.
-# 3. Run the script.
+#   mpd-deduplicate-save-and-reload.sh [-h|--help]
+#
+# Configuration:
+#   PLAYLIST_DIR and PLAYLIST_NAME live in
+#   ~/.config/mpd-find-dup/mpd-deduplicate-save-and-reload.conf, seeded from
+#   mpd-deduplicate-save-and-reload.conf.example on first run.
+#
+#   PLAYLIST_DIR must match MPD's own configured playlist_directory: mpc
+#   save/load/rm operate through MPD's own config, independent of this
+#   script's PLAYLIST_DIR, which is only used to edit the saved playlist file
+#   directly during the dedup step. If the two don't match, that step edits
+#   a different file than the one MPD actually reloads.
 
-# Hardcoded playlist directory
-PLAYLIST_DIR="/path/to/your/mpd/playlists/"
+set -e
 
-# Name of the playlist to save (change this to your desired name)
-PLAYLIST_NAME="current_playlist"
+display_help() {
+    cat <<HELP
+Usage: $(basename "$0") [OPTIONS]
+
+Saves the current MPD queue to a playlist, removes duplicate entries from
+that playlist file (preserving order), then clears the queue and reloads
+the cleaned playlist.
+
+Options:
+  -h, --help  Show this help message.
+HELP
+    exit 0
+}
+
+case "${1:-}" in
+    -h|--help) display_help ;;
+    "") ;;
+    *)
+        echo "Unknown option: $1" >&2
+        display_help
+        ;;
+esac
+
+# Config lives in ~/.config/mpd-find-dup/mpd-deduplicate-save-and-reload.conf,
+# seeded from the mpd-deduplicate-save-and-reload.conf.example template
+# shipped alongside this script on first run.
+CONFIG_DIR="$HOME/.config/mpd-find-dup"
+CONFIG_FILE="$CONFIG_DIR/mpd-deduplicate-save-and-reload.conf"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    mkdir -p "$CONFIG_DIR"
+    cp "$(dirname "$0")/mpd-deduplicate-save-and-reload.conf.example" "$CONFIG_FILE"
+    echo "Created $CONFIG_FILE -- edit it with your playlist directory, then run this again."
+    exit 1
+fi
+
+# shellcheck source=mpd-deduplicate-save-and-reload.conf.example
+source "$CONFIG_FILE"
+
+if [[ "$PLAYLIST_DIR" == "/path/to/your/mpd/playlists/" ]]; then
+    echo "Error: $CONFIG_FILE still has a placeholder PLAYLIST_DIR value. Edit it first."
+    exit 1
+fi
+
 PLAYLIST_FILE="${PLAYLIST_DIR}/${PLAYLIST_NAME}.m3u"
 
 # Function: save_current_queue_to_playlist
