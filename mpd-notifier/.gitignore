@@ -5,3 +5,6 @@
 logs/
 cache/
 
+# Ignore a locally-created live config; only mpd-notifier.conf.example is tracked
+mpd-notifier.conf
+

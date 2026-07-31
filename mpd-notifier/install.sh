@@ -2,8 +2,8 @@
 
 # mpd-notifier Installer
 #
-# Copies mpd-notifier.sh, mpd-notifier-watch.sh, mpd-notifier.conf, and
-# unknown.jpg to ~/bin, then adds an autostart entry that runs the watch
+# Copies mpd-notifier.sh, mpd-notifier-watch.sh, mpd-notifier.conf.example,
+# and unknown.jpg to ~/bin, then adds an autostart entry that runs the watch
 # loop (which fires mpd-notifier.sh on every MPD player-state change) at
 # login. Run ../setup-path.sh first if ~/bin isn't already on your PATH.
 
@@ -17,7 +17,7 @@ echo "Installing mpd-notifier..."
 mkdir -p "$INSTALL_DIR"
 
 echo "Copying files to $INSTALL_DIR..."
-cp mpd-notifier.sh mpd-notifier-watch.sh mpd-notifier.conf unknown.jpg "$INSTALL_DIR/"
+cp mpd-notifier.sh mpd-notifier-watch.sh mpd-notifier.conf.example unknown.jpg "$INSTALL_DIR/"
 chmod +x "$INSTALL_DIR/mpd-notifier.sh" "$INSTALL_DIR/mpd-notifier-watch.sh"
 
 mkdir -p "$HOME/.config/autostart"
