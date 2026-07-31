@@ -1,56 +1,25 @@
-#!/usr/bin/env python
-
-import pylast
-import os
+#!/usr/bin/env python3
 
 """
-This script utilizes Last.fm's API via pylast to retrieve currently playing track information 
-from MPC (Music Player Command Line) and 'ulove' it (remove the love) from your Last.fm account.
+Unloves the currently playing MPD track on Last.fm, via pylast.
 """
 
-# You have to have your own unique two values for API_KEY and API_SECRET
-# Obtain yours from https://www.last.fm/api/account/create for Last.fm
-API_KEY = "XXXreplacethisXXX"  # this is a sample key
-API_SECRET = "XXXreplacethisXXX"
+import sys
 
-# In order to perform a write operation you need to authenticate yourself
-username = "yourusername"
-password_hash = pylast.md5("yourMD5edpasswordhash")
+from lastfm_common import get_current_track, get_network
 
-SESSION_KEY_FILE = os.path.join(os.path.expanduser("~"), ".session_key")
-network = pylast.LastFMNetwork(API_KEY, API_SECRET)
-if not os.path.exists(SESSION_KEY_FILE):
-    skg = pylast.SessionKeyGenerator(network)
-    url = skg.get_web_auth_url()
 
-    print(f"Please authorize this script to access your account: {url}\n")
-    import time
-    import webbrowser
+def main():
+    artist, title = get_current_track()
+    if not artist or not title:
+        print("Nothing is currently playing.", file=sys.stderr)
+        sys.exit(1)
 
-    webbrowser.open(url)
+    network = get_network()
+    track = network.get_track(artist, title)
+    track.unlove()
+    print(f"Unloved '{title}' by '{artist}'.")
 
-    while True:
-        try:
-            session_key = skg.get_web_auth_session_key(url)
-            with open(SESSION_KEY_FILE, "w") as f:
-                f.write(session_key)
-            break
-        except pylast.WSError:
-            time.sleep(1)
-else:
-    session_key = open(SESSION_KEY_FILE).read()
 
-network.session_key = session_key
-
-artist = os.popen("/usr/bin/mpc -f %albumartist%").read()
-artist = artist.split('\n')[0]
-
-title = os.popen("/usr/bin/mpc -f %title%").read()
-title = title.split('\n')[0]
-
-# Now you can use that object everywhere
-track = network.get_track(artist, title)
-track.ulove()
-
-# Type help(pylast.LastFMNetwork) or help(pylast) in a Python interpreter
-# to get more help about anything and see examples of how it works
+if __name__ == "__main__":
+    main()
