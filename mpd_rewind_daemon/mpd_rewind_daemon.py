@@ -8,9 +8,9 @@ The daemon supports logging and verbose output for debugging purposes.
 
 Configuration:
 - SEEK_BACK_TIME: Time (in seconds) to rewind after playback resumes (default: 5 seconds).
-- PID_FILE: Location to store the daemon process ID (PID) (default: "/tmp/mpd_rewind_daemon.pid").
-- LOG_FILE: Location for the daemon log file (default: "/var/log/mpd_rewind_daemon.log").
-- Permissions check for log and PID files.
+- PID_FILE: Location to store the daemon process ID (PID) (default: "~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.pid").
+- LOG_FILE: Location for the daemon log file (default: "~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log").
+- Permissions check for the state directory.
 - Enhanced error logging for daemon mode.
 """
 
@@ -20,26 +20,29 @@ import time
 import signal
 import argparse
 import logging
-from mpd import MPDClient, ConnectionError
+from mpd import MPDClient
+from mpd import ConnectionError as MPDConnectionError
 
 # Configuration Constants
 SEEK_BACK_TIME = 5.0  # Time to rewind in seconds
-PID_FILE = "/tmp/mpd_rewind_daemon.pid"  # Path for PID file
-LOG_FILE = "/var/log/mpd_rewind_daemon.log"  # Path for log file
+STATE_DIR = os.path.join(os.path.expanduser("~"), ".local", "state", "mpd_rewind_daemon")
+PID_FILE = os.path.join(STATE_DIR, "mpd_rewind_daemon.pid")  # Path for PID file
+LOG_FILE = os.path.join(STATE_DIR, "mpd_rewind_daemon.log")  # Path for log file
 
 def check_permissions():
     """
-    Ensure the necessary permissions for PID and log files.
-
-    This function checks if the daemon has write access to the required directories
-    and files (PID file and log file). If permissions are insufficient, the script exits.
+    Ensure the state directory (which holds the PID and log files) exists
+    and is writable, creating it -- and any missing parent directories --
+    if needed. If permissions are insufficient, the script exits.
     """
-    if not os.access("/tmp", os.W_OK):
-        print("Permission denied: Cannot write to /tmp.")
+    try:
+        os.makedirs(STATE_DIR, exist_ok=True)
+    except OSError as e:
+        print(f"Permission denied: Cannot create {STATE_DIR}: {e}")
         sys.exit(1)
 
-    if not os.access(LOG_FILE, os.W_OK) and not os.path.exists(LOG_FILE):
-        print(f"Permission denied: Cannot write to {LOG_FILE}. Ensure proper permissions.")
+    if not os.access(STATE_DIR, os.W_OK):
+        print(f"Permission denied: Cannot write to {STATE_DIR}.")
         sys.exit(1)
 
 class MPDRewindDaemon:
@@ -90,7 +93,10 @@ class MPDRewindDaemon:
         Connects to the MPD server.
 
         This method creates a new MPDClient, closes the previous connection (if any),
-        and attempts to connect to the MPD server on localhost:6600.
+        and attempts to connect to the MPD server on localhost:6600. Raises
+        MPDConnectionError/OSError on failure; callers should use
+        connect_with_retry() instead of calling this directly unless they
+        want to handle a failed connection themselves.
         """
         if self.client:
             try:
@@ -98,19 +104,28 @@ class MPDRewindDaemon:
                 self.client.disconnect()  # Disconnect the client
             except Exception as e:
                 self.log(f"Error disconnecting client: {e}")
-        
+
         # Create a new MPD client and set timeouts
         self.client = MPDClient()
         self.client.timeout = 10  # Timeout for MPD client connection
         self.client.idletimeout = None  # Disable idle timeout
 
-        try:
-            # Attempt to connect to the MPD server
-            self.client.connect("localhost", 6600)
-            self.log("Connected to MPD.")
-        except ConnectionError:
-            self.log("Failed to connect to MPD. Is it running?")
-            sys.exit(1)
+        self.client.connect("localhost", 6600)
+        self.log("Connected to MPD.")
+
+    def connect_with_retry(self):
+        """
+        Keeps attempting to connect (e.g. MPD not started yet, or restarting)
+        until successful or the daemon is told to stop, logging and backing
+        off between attempts instead of giving up after one failed attempt.
+        """
+        while self.running:
+            try:
+                self.connect()
+                return
+            except (MPDConnectionError, OSError) as e:
+                self.log(f"Failed to connect to MPD ({e}). Retrying in 5s...")
+                time.sleep(5)
 
     def handle_signal(self, signum, frame):
         """
@@ -122,8 +137,11 @@ class MPDRewindDaemon:
         self.log("Stopping MPD rewind daemon...")
         self.running = False  # Stop the daemon
         if self.client:
-            self.client.close()
-            self.client.disconnect()
+            try:
+                self.client.close()
+                self.client.disconnect()
+            except Exception as e:
+                self.log(f"Error disconnecting client during shutdown: {e}")
 
         if os.path.exists(PID_FILE):
             os.remove(PID_FILE)  # Remove the PID file
@@ -163,10 +181,10 @@ class MPDRewindDaemon:
         This method runs in a loop and checks for changes in the player state. It triggers
         a rewind when playback resumes from a paused state.
         """
-        self.connect()  # Connect to the MPD server
         signal.signal(signal.SIGTERM, self.handle_signal)  # Handle termination signal
         signal.signal(signal.SIGINT, self.handle_signal)  # Handle interrupt signal
 
+        self.connect_with_retry()  # Connect to the MPD server, retrying until it's up
         self.log("MPD Rewind Daemon started. Listening for pause/unpause events...")
 
         while self.running:
@@ -185,10 +203,9 @@ class MPDRewindDaemon:
 
                 self.last_state = current_state  # Update last known state
 
-            except ConnectionError:
+            except (MPDConnectionError, OSError):
                 self.log("Lost connection to MPD, attempting to reconnect...")
-                time.sleep(2)  # Wait before reconnecting
-                self.connect()  # Attempt to reconnect
+                self.connect_with_retry()  # Keep retrying until reconnected
             except Exception as e:
                 self.log(f"Error during MPD state monitoring: {e}")
                 time.sleep(2)  # Wait before retrying on error
@@ -250,6 +267,15 @@ def stop_daemon():
     # If the process is running, send SIGTERM to stop it
     os.kill(pid, signal.SIGTERM)
     print("Daemon stopped.")
+
+def run_interactive():
+    """
+    Runs the daemon in the foreground with verbose console logging, instead
+    of forking to the background and writing a PID file. Useful for
+    debugging (see --verbose).
+    """
+    daemon = MPDRewindDaemon(verbose=True)  # Initialize the daemon
+    daemon.listen()  # Start listening for MPD events
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MPD Rewind Daemon")

@@ -8,7 +8,7 @@ INSTALL_DIR="$HOME/bin"
 SCRIPT_NAME="mpd_rewind_daemon.py"
 SCRIPT_PATH="$INSTALL_DIR/$SCRIPT_NAME"
 USER_HOME=$(eval echo ~$USER)  # Dynamically get the user's home directory
-AUTOSTART_ENTRY="/usr/bin/python3 $SCRIPT_PATH"  # Autostart entry for the daemon
+AUTOSTART_ENTRY="$SCRIPT_PATH"  # Autostart entry for the daemon (already executable with its own shebang)
 DESKTOP_FILE="$HOME/.config/autostart/mpd-rewind.desktop"
 USERNAME=$(whoami)
 
@@ -55,11 +55,6 @@ if ! grep -q "Exec=$AUTOSTART_ENTRY" "$DESKTOP_FILE" 2>/dev/null; then
 else
     echo "MPD Rewind Daemon is already in autostart."
 fi
-
-# Set permissions for the log file
-echo "Creating Log file and setting permissions..."
-sudo touch /var/log/mpd_rewind_daemon.log
-sudo chmod 666 /var/log/mpd_rewind_daemon.log
 
 echo "Installation complete! Please restart your shell or run:"
 echo "  source ~/.bashrc"

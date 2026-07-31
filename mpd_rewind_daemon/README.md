@@ -8,9 +8,10 @@ MPD Rewind Daemon is a background service that automatically rewinds the current
 * Helpful for music, podcasts, and **audiobooks**, ensuring you don’t miss context
 * Configurable rewind time (default: 5 seconds)
 * Runs silently in the background as a user autostart application
-* Logs to `/var/log/mpd_rewind_daemon.log`
+* Logs to `~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log`
 * Safe shutdown and PID tracking
-* Installer script for quick setup
+* Automatically reconnects (with retry/backoff) if MPD isn't up yet or restarts, instead of exiting
+* Installer script for quick setup — entirely user-space, no `sudo` required
 
 ## Requirements
 
@@ -35,7 +36,8 @@ This script performs the following actions:
 * Copies `mpd_rewind_daemon.py` to `~/bin/`
 * Ensures `~/bin` and `~/.local/bin` are in your `PATH`
 * Creates an autostart entry in `~/.config/autostart/mpd-rewind.desktop`
-* Creates a log file at `/var/log/mpd_rewind_daemon.log` with appropriate permissions
+
+The daemon creates its own state directory (`~/.local/state/mpd_rewind_daemon/`) for its log and PID files the first time it runs — no `sudo` needed anywhere in installation.
 
 After installation, restart your shell or run:
 
@@ -53,48 +55,51 @@ You can manually run the daemon (for debugging) using:
 python3 ~/bin/mpd_rewind_daemon.py --verbose
 ```
 
-To stop the daemon manually:
+To stop the daemon:
 
 ```bash
-pkill -f mpd_rewind_daemon.py
+~/bin/mpd_rewind_daemon.py --stop
 ```
+
+This reads the PID file and sends a graceful shutdown signal. (`pkill -f mpd_rewind_daemon.py` also works, but won't clean up the PID file itself — the daemon's own signal handler does that.)
 
 ## Configuration
 
 These values are set within the script:
 
-| Setting          | Description                              | Default                          |
-| ---------------- | ---------------------------------------- | -------------------------------- |
-| `SEEK_BACK_TIME` | How many seconds to rewind when resuming | `5.0` seconds                    |
-| `PID_FILE`       | Where to store the daemon's PID          | `/tmp/mpd_rewind_daemon.pid`     |
-| `LOG_FILE`       | Log output file path                     | `/var/log/mpd_rewind_daemon.log` |
+| Setting          | Description                              | Default                                                    |
+| ---------------- | ---------------------------------------- | ----------------------------------------------------------|
+| `SEEK_BACK_TIME` | How many seconds to rewind when resuming | `5.0` seconds                                              |
+| `PID_FILE`       | Where to store the daemon's PID          | `~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.pid`   |
+| `LOG_FILE`       | Log output file path                     | `~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log`   |
 
 To change these values, you can edit `mpd_rewind_daemon.py` directly.
 
 ## Logging
 
-Logs are written to `/var/log/mpd_rewind_daemon.log`. You can view the log with:
+Logs are written to `~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log`. You can view the log with:
 
 ```bash
-tail -f /var/log/mpd_rewind_daemon.log
+tail -f ~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log
 ```
 
-Verbose logs (including console output) are only shown when run with `--verbose`.
+With `--verbose`, logs go to the console instead (not to the log file), and the daemon doesn't fork to the background — useful for debugging.
 
 ## Troubleshooting
 
-* **Permission denied for log file**: Ensure you have write access to `/var/log/`. The installer sets it up with `chmod 666`, but manual intervention may be needed on stricter systems.
+* **Permission denied for the state directory**: the daemon creates `~/.local/state/mpd_rewind_daemon/` itself on first run; this would only fail if `~/.local/state` somehow isn't writable by your user.
 * **Daemon not autostarting**: Check the contents of `~/.config/autostart/mpd-rewind.desktop` and make sure the path is correct.
-* **MPD not detected**: Ensure MPD is running and accessible on `localhost:6600`.
+* **MPD not detected**: the daemon retries the connection (backing off between attempts) rather than giving up, so it's safe to start before MPD is up; check `--verbose` output if it never connects.
 
 ## Uninstallation
 
 To uninstall:
 
 ```bash
+~/bin/mpd_rewind_daemon.py --stop
 rm ~/bin/mpd_rewind_daemon.py
 rm ~/.config/autostart/mpd-rewind.desktop
-sudo rm /var/log/mpd_rewind_daemon.log
+rm -rf ~/.local/state/mpd_rewind_daemon
 ```
 
 Also remove any `PATH` entries from `~/.bashrc` if you no longer use `~/bin` or `~/.local/bin`.
