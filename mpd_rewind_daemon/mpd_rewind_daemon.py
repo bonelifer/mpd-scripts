@@ -7,10 +7,12 @@ When playback resumes from a paused state, it rewinds the track by a set amount 
 The daemon supports logging and verbose output for debugging purposes.
 
 Configuration:
-- SEEK_BACK_TIME: Time (in seconds) to rewind after playback resumes (default: 5 seconds).
-- PID_FILE: Location to store the daemon process ID (PID) (default: "/tmp/mpd_rewind_daemon.pid").
-- LOG_FILE: Location for the daemon log file (default: "/var/log/mpd_rewind_daemon.log").
-- Permissions check for log and PID files.
+- rewind_tiers, mpd_host, mpd_port, mpd_password: see
+  ~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf (seeded from
+  mpd_rewind_daemon.conf.example on first run).
+- PID_FILE: Location to store the daemon process ID (PID) (default: "~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.pid").
+- LOG_FILE: Location for the daemon log file (default: "~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log").
+- Permissions check for the state directory.
 - Enhanced error logging for daemon mode.
 """
 
@@ -20,26 +22,89 @@ import time
 import signal
 import argparse
 import logging
-from mpd import MPDClient, ConnectionError
+import configparser
+from mpd import MPDClient
+from mpd import ConnectionError as MPDConnectionError
 
 # Configuration Constants
-SEEK_BACK_TIME = 5.0  # Time to rewind in seconds
-PID_FILE = "/tmp/mpd_rewind_daemon.pid"  # Path for PID file
-LOG_FILE = "/var/log/mpd_rewind_daemon.log"  # Path for log file
+STATE_DIR = os.path.join(os.path.expanduser("~"), ".local", "state", "mpd_rewind_daemon")
+PID_FILE = os.path.join(STATE_DIR, "mpd_rewind_daemon.pid")  # Path for PID file
+LOG_FILE = os.path.join(STATE_DIR, "mpd_rewind_daemon.log")  # Path for log file
+
+CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "mpd_rewind_daemon")
+CONFIG_FILE = os.path.join(CONFIG_DIR, "mpd_rewind_daemon.conf")
+
+def load_config():
+    """
+    Loads settings from ~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf,
+    seeding it from the mpd_rewind_daemon.conf.example template shipped
+    alongside this script on first run.
+
+    Returns:
+        configparser.SectionProxy: the "mpd_rewind_daemon" section.
+    """
+    if not os.path.exists(CONFIG_FILE):
+        os.makedirs(CONFIG_DIR, mode=0o700, exist_ok=True)
+        template = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mpd_rewind_daemon.conf.example")
+        with open(template) as src, open(CONFIG_FILE, "w") as dst:
+            dst.write(src.read())
+        os.chmod(CONFIG_FILE, 0o600)  # May contain an MPD password
+
+    config = configparser.ConfigParser()
+    config.read(CONFIG_FILE)
+    return config["mpd_rewind_daemon"]
+
+DEFAULT_REWIND_TIERS = [(5.0, 5.0), (15.0, 15.0), (30.0, 30.0), (60.0, 60.0)]
+
+def parse_rewind_tiers(raw):
+    """
+    Parses a "paused_seconds:rewind_seconds,..." string (e.g. from the
+    rewind_tiers config setting) into a list of (threshold, rewind) float
+    pairs, sorted ascending by threshold.
+
+    Args:
+        raw (str): The raw config value.
+
+    Returns:
+        list[tuple[float, float]]: Parsed tiers, or DEFAULT_REWIND_TIERS if
+        raw is empty or malformed.
+    """
+    tiers = []
+    for pair in raw.split(","):
+        pair = pair.strip()
+        if not pair:
+            continue
+        try:
+            threshold_str, rewind_str = pair.split(":")
+            tiers.append((float(threshold_str), float(rewind_str)))
+        except ValueError:
+            print(f"Warning: ignoring malformed rewind_tiers entry {pair!r}.")
+
+    if not tiers:
+        return DEFAULT_REWIND_TIERS
+    tiers.sort(key=lambda tier: tier[0])
+    return tiers
+
+_config = load_config()
+REWIND_TIERS = parse_rewind_tiers(_config.get("rewind_tiers", fallback=""))
+MPD_HOST = _config.get("mpd_host", fallback="localhost")
+MPD_PORT = _config.getint("mpd_port", fallback=6600)
+MPD_PASSWORD = _config.get("mpd_password", fallback="")
 
 def check_permissions():
     """
-    Ensure the necessary permissions for PID and log files.
-
-    This function checks if the daemon has write access to the required directories
-    and files (PID file and log file). If permissions are insufficient, the script exits.
+    Ensure the state directory (which holds the PID and log files) exists
+    and is writable, creating it -- and any missing parent directories --
+    if needed. If permissions are insufficient, the script exits.
     """
-    if not os.access("/tmp", os.W_OK):
-        print("Permission denied: Cannot write to /tmp.")
+    try:
+        os.makedirs(STATE_DIR, exist_ok=True)
+    except OSError as e:
+        print(f"Permission denied: Cannot create {STATE_DIR}: {e}")
         sys.exit(1)
 
-    if not os.access(LOG_FILE, os.W_OK) and not os.path.exists(LOG_FILE):
-        print(f"Permission denied: Cannot write to {LOG_FILE}. Ensure proper permissions.")
+    if not os.access(STATE_DIR, os.W_OK):
+        print(f"Permission denied: Cannot write to {STATE_DIR}.")
         sys.exit(1)
 
 class MPDRewindDaemon:
@@ -47,11 +112,11 @@ class MPDRewindDaemon:
     MPD Rewind Daemon that listens for MPD pause events and rewinds playback when resumed.
 
     Attributes:
-        seek_time (float): Time to rewind (set to SEEK_BACK_TIME).
         verbose (bool): Flag to enable verbose logging.
         running (bool): Flag to control the running state of the daemon.
         client (MPDClient): MPD client for communication with the MPD server.
         last_state (str): Tracks the last state of the MPD player ("play" or "pause").
+        pause_started_at (float | None): time.time() when the last pause began.
     """
 
     def __init__(self, verbose=False):
@@ -61,11 +126,11 @@ class MPDRewindDaemon:
         Args:
             verbose (bool): Whether to run in verbose mode (default: False).
         """
-        self.seek_time = SEEK_BACK_TIME  # Set the rewind time
         self.verbose = verbose  # Set the verbose mode flag
         self.running = True  # Daemon is initially running
         self.client = None  # MPD client instance will be created later
         self.last_state = None  # Tracks last player state (play or pause)
+        self.pause_started_at = None  # When the current/last pause began
 
         # Set logging configuration based on verbose mode
         log_level = logging.DEBUG if verbose else logging.INFO
@@ -90,7 +155,11 @@ class MPDRewindDaemon:
         Connects to the MPD server.
 
         This method creates a new MPDClient, closes the previous connection (if any),
-        and attempts to connect to the MPD server on localhost:6600.
+        and attempts to connect to the MPD server at MPD_HOST:MPD_PORT (and
+        authenticates if MPD_PASSWORD is set). Raises
+        MPDConnectionError/OSError on failure; callers should use
+        connect_with_retry() instead of calling this directly unless they
+        want to handle a failed connection themselves.
         """
         if self.client:
             try:
@@ -98,19 +167,30 @@ class MPDRewindDaemon:
                 self.client.disconnect()  # Disconnect the client
             except Exception as e:
                 self.log(f"Error disconnecting client: {e}")
-        
+
         # Create a new MPD client and set timeouts
         self.client = MPDClient()
         self.client.timeout = 10  # Timeout for MPD client connection
         self.client.idletimeout = None  # Disable idle timeout
 
-        try:
-            # Attempt to connect to the MPD server
-            self.client.connect("localhost", 6600)
-            self.log("Connected to MPD.")
-        except ConnectionError:
-            self.log("Failed to connect to MPD. Is it running?")
-            sys.exit(1)
+        self.client.connect(MPD_HOST, MPD_PORT)
+        if MPD_PASSWORD:
+            self.client.password(MPD_PASSWORD)
+        self.log(f"Connected to MPD at {MPD_HOST}:{MPD_PORT}.")
+
+    def connect_with_retry(self):
+        """
+        Keeps attempting to connect (e.g. MPD not started yet, or restarting)
+        until successful or the daemon is told to stop, logging and backing
+        off between attempts instead of giving up after one failed attempt.
+        """
+        while self.running:
+            try:
+                self.connect()
+                return
+            except (MPDConnectionError, OSError) as e:
+                self.log(f"Failed to connect to MPD ({e}). Retrying in 5s...")
+                time.sleep(5)
 
     def handle_signal(self, signum, frame):
         """
@@ -122,8 +202,11 @@ class MPDRewindDaemon:
         self.log("Stopping MPD rewind daemon...")
         self.running = False  # Stop the daemon
         if self.client:
-            self.client.close()
-            self.client.disconnect()
+            try:
+                self.client.close()
+                self.client.disconnect()
+            except Exception as e:
+                self.log(f"Error disconnecting client during shutdown: {e}")
 
         if os.path.exists(PID_FILE):
             os.remove(PID_FILE)  # Remove the PID file
@@ -131,24 +214,54 @@ class MPDRewindDaemon:
 
         sys.exit(0)
 
-    def rewind_and_resume(self):
+    def get_rewind_amount(self, pause_duration):
+        """
+        Looks up how many seconds to rewind based on how long playback was
+        paused, using REWIND_TIERS (sorted ascending by threshold). Returns
+        the rewind amount for the largest threshold that's <= pause_duration,
+        or 0 if the pause was shorter than the smallest threshold.
+
+        Args:
+            pause_duration (float): How many seconds playback was paused for.
+
+        Returns:
+            float: Seconds to rewind (0 if no tier applies).
+        """
+        amount = 0.0
+        for threshold, rewind in REWIND_TIERS:
+            if pause_duration >= threshold:
+                amount = rewind
+            else:
+                break
+        return amount
+
+    def rewind_and_resume(self, pause_duration):
         """
         Pauses, rewinds, and resumes playback to ensure proper rewind.
 
         This method pauses the current track, seeks to a rewind position, and resumes playback.
+        The rewind amount scales with how long playback was paused (see get_rewind_amount).
+
+        Args:
+            pause_duration (float): How many seconds playback was paused for.
         """
+        seek_back_time = self.get_rewind_amount(pause_duration)
+        if seek_back_time <= 0:
+            self.log(f"Paused for {pause_duration:.2f}s; too brief to rewind.")
+            return
+
         try:
             status = self.client.status()  # Fetch current MPD status
             if status.get("state") == "play":
                 position = float(status.get("elapsed", 0))  # Get current playback position
-                seek_time = max(position - self.seek_time, 0)  # Calculate new seek position
+                seek_time = max(position - seek_back_time, 0)  # Calculate new seek position
 
                 self.log(f"Pausing playback to rewind...")
                 self.client.pause(1)  # Pause playback
-                
+
                 time.sleep(0.2)  # Small delay to ensure state change
 
-                self.log(f"Rewinding {self.seek_time:.2f}s. Seeking to {seek_time:.2f}s...")
+                self.log(f"Paused for {pause_duration:.2f}s; rewinding {seek_back_time:.2f}s. Seeking to {seek_time:.2f}s...")
                 self.client.seekcur(seek_time)  # Seek to the new position
 
                 self.log("Resuming playback after rewind.")
@@ -163,10 +276,10 @@ class MPDRewindDaemon:
         This method runs in a loop and checks for changes in the player state. It triggers
         a rewind when playback resumes from a paused state.
         """
-        self.connect()  # Connect to the MPD server
         signal.signal(signal.SIGTERM, self.handle_signal)  # Handle termination signal
         signal.signal(signal.SIGINT, self.handle_signal)  # Handle interrupt signal
 
+        self.connect_with_retry()  # Connect to the MPD server, retrying until it's up
         self.log("MPD Rewind Daemon started. Listening for pause/unpause events...")
 
         while self.running:
@@ -178,17 +291,19 @@ class MPDRewindDaemon:
                 # Check for state transitions
                 if current_state == "pause" and self.last_state == "play":
                     self.log("Detected MPD pause event.")
+                    self.pause_started_at = time.time()
 
                 elif current_state == "play" and self.last_state == "pause":
-                    self.log("Detected playback resume event. Applying rewind.")
-                    self.rewind_and_resume()  # Apply rewind on resume
+                    pause_duration = (time.time() - self.pause_started_at) if self.pause_started_at else 0.0
+                    self.log(f"Detected playback resume event after {pause_duration:.2f}s pause. Applying rewind.")
+                    self.rewind_and_resume(pause_duration)  # Apply rewind on resume
+                    self.pause_started_at = None
 
                 self.last_state = current_state  # Update last known state
 
-            except ConnectionError:
+            except (MPDConnectionError, OSError):
                 self.log("Lost connection to MPD, attempting to reconnect...")
-                time.sleep(2)  # Wait before reconnecting
-                self.connect()  # Attempt to reconnect
+                self.connect_with_retry()  # Keep retrying until reconnected
             except Exception as e:
                 self.log(f"Error during MPD state monitoring: {e}")
                 time.sleep(2)  # Wait before retrying on error
@@ -250,6 +365,15 @@ def stop_daemon():
     # If the process is running, send SIGTERM to stop it
     os.kill(pid, signal.SIGTERM)
     print("Daemon stopped.")
+
+def run_interactive():
+    """
+    Runs the daemon in the foreground with verbose console logging, instead
+    of forking to the background and writing a PID file. Useful for
+    debugging (see --verbose).
+    """
+    daemon = MPDRewindDaemon(verbose=True)  # Initialize the daemon
+    daemon.listen()  # Start listening for MPD events
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MPD Rewind Daemon")

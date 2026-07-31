@@ -1,16 +1,19 @@
 #!/usr/bin/bash
 
-# MPD Rewind Daemon Installer
+# MPD Rewind Daemon Installer -- XDG autostart entry
+#
+# Installs mpd_rewind_daemon.py to ~/bin and creates a
+# ~/.config/autostart/mpd-rewind.desktop entry so it starts automatically
+# at login. See install-systemd.sh for a systemd --user service
+# alternative instead. Don't run both installers -- pick one.
 
 set -e  # Exit on error
 
 INSTALL_DIR="$HOME/bin"
 SCRIPT_NAME="mpd_rewind_daemon.py"
 SCRIPT_PATH="$INSTALL_DIR/$SCRIPT_NAME"
-USER_HOME=$(eval echo ~$USER)  # Dynamically get the user's home directory
-AUTOSTART_ENTRY="/usr/bin/python3 $SCRIPT_PATH"  # Autostart entry for the daemon
+AUTOSTART_ENTRY="$SCRIPT_PATH"  # Autostart entry for the daemon (already executable with its own shebang)
 DESKTOP_FILE="$HOME/.config/autostart/mpd-rewind.desktop"
-USERNAME=$(whoami)
 
 echo "Installing MPD Rewind Daemon..."
 
@@ -18,7 +21,7 @@ echo "Installing MPD Rewind Daemon..."
 if [ ! -d "$INSTALL_DIR" ]; then
     echo "Creating $INSTALL_DIR..."
     mkdir -p "$INSTALL_DIR"
-    
+
     # Since ~/bin didn't exist, assume it's not in PATH and add it
     echo 'export PATH="$HOME/bin:$PATH"' >> "$HOME/.bashrc"
     echo "Added ~/bin to PATH in .bashrc"
@@ -55,11 +58,6 @@ if ! grep -q "Exec=$AUTOSTART_ENTRY" "$DESKTOP_FILE" 2>/dev/null; then
 else
     echo "MPD Rewind Daemon is already in autostart."
 fi
-
-# Set permissions for the log file
-echo "Creating Log file and setting permissions..."
-sudo touch /var/log/mpd_rewind_daemon.log
-sudo chmod 666 /var/log/mpd_rewind_daemon.log
 
 echo "Installation complete! Please restart your shell or run:"
 echo "  source ~/.bashrc"

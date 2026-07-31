@@ -1,0 +1,19 @@
+# mpd_rewind_daemon configuration
+#
+# Copied to ~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf on first run
+# if that file doesn't already exist. Edit the copy there, not this template.
+
+[mpd_rewind_daemon]
+# How far to rewind when playback resumes, based on how long it was paused:
+# a list of "paused_seconds:rewind_seconds" pairs. The longest threshold
+# that's <= the actual pause duration wins, so pausing for 20s in the
+# example below rewinds 15s; pausing for less than the smallest threshold
+# (5s here) doesn't rewind at all -- too brief to matter.
+rewind_tiers = 5:5,15:15,30:30,60:60
+
+# MPD connection details.
+mpd_host = localhost
+mpd_port = 6600
+
+# Leave blank unless your MPD requires a password.
+mpd_password =
