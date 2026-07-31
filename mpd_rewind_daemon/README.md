@@ -27,7 +27,7 @@ To install and configure the MPD Rewind Daemon, clone or download this repositor
 ### Option A: XDG autostart (default)
 
 ```bash
-./install.sh
+./install-xdg-autostart.sh
 ```
 
 This script performs the following actions:
