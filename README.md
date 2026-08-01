@@ -53,7 +53,7 @@ Listed in each scripts README.md.
 
 
 ### Installation
-Run [`./install.sh`](./install.sh) once. It migrates any existing per-script settings from the old `~/.config/<script-name>/` layout into the new unified `~/.config/mpd-scripts/<script-name>/` layout (see Configuration below), then checks whether a personal bin directory is already on your `PATH`, and, if not, creates `~/bin` and adds it for you. It also offers to create `~/bin/music` and add it to your `PATH` too, a separate personal directory for music-related scripts/data you may want kept on PATH.
+Run [`./install.sh`](./install.sh) once. It migrates any existing per-script settings from the old `~/.config/<script-name>/` layout into the new unified `~/.config/mpd-scripts/<script-name>/` layout (see Configuration below), then checks whether a personal bin directory is already on your `PATH`, and, if not, creates `~/bin` and adds it for you. It also offers to create `~/bin/music` and add it to your `PATH` too, an optional separate directory for installing this repo's scripts, kept apart from other personal scripts in `~/bin`.
 
 Most scripts in this repository are standalone and only need to be copied into a directory on your `$PATH` (e.g. `~/bin` or `~/.local/bin`) and marked executable:
 

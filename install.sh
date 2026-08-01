@@ -6,8 +6,8 @@
 #    ~/.config/mpd-scripts/<script-name>/ layout.
 # 2. Checks whether a personal bin directory is already on PATH, and if
 #    not, offers to create ~/bin and add it. Also checks/offers the same
-#    for ~/bin/music, a separate personal directory for music-related
-#    scripts/data you may want kept on PATH too.
+#    for ~/bin/music, an optional separate directory for installing this
+#    repo's scripts, kept apart from other personal scripts in ~/bin.
 #
 # Run this once before following the Installation steps in README.md.
 
@@ -118,9 +118,10 @@ setup_path() {
         fi
     fi
 
-    # ~/bin/music is a separate, optional personal directory for
-    # music-related scripts/data -- handled independently of the
-    # general-purpose CANDIDATE_DIRS check above.
+    # ~/bin/music is a separate, optional directory for installing this
+    # repo's scripts, kept apart from other personal scripts in ~/bin --
+    # handled independently of the general-purpose CANDIDATE_DIRS check
+    # above.
     if [ -d "$HOME/bin/music" ] && on_path "$HOME/bin/music"; then
         echo "Found $HOME/bin/music already on your PATH. No changes needed there."
     else
