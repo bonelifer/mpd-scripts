@@ -76,14 +76,18 @@ This reads the PID file and sends a graceful shutdown signal. (`pkill -f mpd_rew
 
 Settings live in `~/.config/mpd-scripts/mpd_rewind_daemon/mpd_rewind_daemon.conf`, seeded automatically from [`mpd_rewind_daemon.conf.example`](./mpd_rewind_daemon.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-scripts/mpd_rewind_daemon/`, not the template.
 
-| Setting        | Description                                       | Default                 |
-| -------------- | --------------------------------------------------- | ----------------------- |
-| `rewind_tiers` | How far to rewind based on how long you were paused | `5:5,15:15,30:30,60:60` |
-| `mpd_host`     | MPD server hostname/IP                              | `localhost`              |
-| `mpd_port`     | MPD server port                                     | `6600`                   |
-| `mpd_password` | MPD password, if required (leave blank if none)     | *(blank)*                |
+| Setting                 | Description                                          | Default                 |
+| ----------------------- | ----------------------------------------------------- | ----------------------- |
+| `rewind_tiers`          | How far to rewind based on how long you were paused   | `5:5,15:15,30:30,60:60` |
+| `mpd_host`              | MPD server hostname/IP                                | `localhost`              |
+| `mpd_port`              | MPD server port                                       | `6600`                   |
+| `mpd_password`          | MPD password, if required (leave blank if none)       | *(blank)*                |
+| `genre_filter_enabled`  | Limit rewinding to specific genres (see below)        | `False`                  |
+| `genre_filter`          | Comma-separated genres to limit to, if enabled        | `Audiobook,Podcast`      |
 
 `rewind_tiers` is a comma-separated list of `paused_seconds:rewind_seconds` pairs. The longest threshold that's `<=` the actual pause duration wins, so with the default tiers, pausing for 20s rewinds 15s. Pausing for less than the smallest threshold (5s by default) doesn't rewind at all. Add, remove, or change tiers freely — e.g. `10:3,60:10,300:20` for a gentler curve.
+
+`genre_filter_enabled`/`genre_filter` let you restrict rewinding to certain genres instead of every track — e.g. audiobooks and podcasts, leaving regular music alone. Off by default, so rewinding applies to everything regardless of genre until you turn it on. Genre matching is case-insensitive. If enabled, a track with no genre tag (or one not in the list) is never rewound; leaving `genre_filter` empty while enabled disables rewinding entirely.
 
 Two more paths aren't in the config file, since changing them is a less common need — edit `mpd_rewind_daemon.py` directly if you want to:
 
