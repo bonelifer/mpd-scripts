@@ -49,11 +49,11 @@ migrate_config_dirs() {
     done
 
     # volume/mpc and volume/python-mpd previously shared
-    # ~/.config/mpd/mpd-extended.cfg (note the old .cfg extension). Move
-    # just that file, not the whole ~/.config/mpd/ directory, which also
-    # holds MPD's own mpd.conf and must be left alone.
+    # ~/.config/mpd/mpd-extended.cfg (note the old name/.cfg extension).
+    # Move just that file, not the whole ~/.config/mpd/ directory, which
+    # also holds MPD's own mpd.conf and must be left alone.
     local old_cfg="$HOME/.config/mpd/mpd-extended.cfg"
-    local new_cfg="$NESTED_CONFIG_ROOT/volume/mpd-extended.conf"
+    local new_cfg="$NESTED_CONFIG_ROOT/volume/volume.conf"
     if [ -f "$old_cfg" ] && [ ! -e "$new_cfg" ]; then
         mkdir -p "$NESTED_CONFIG_ROOT/volume"
         mv "$old_cfg" "$new_cfg"

@@ -17,7 +17,7 @@ pip install python-mpd2
 
 ### Configuration
 
-Settings live in `~/.config/mpd-scripts/volume/mpd-extended.conf`, seeded from [`mpd-extended.conf.example`](./mpd-extended.conf.example) by `install.sh` (or run `functions/update-mpd-extended-cfg.py` and `functions/add-mpd-script-section.py` directly).
+Settings live in `~/.config/mpd-scripts/volume/volume.conf`, seeded from [`volume.conf.example`](./volume.conf.example) by `install.sh` (or run `functions/update-mpd-extended-cfg.py` and `functions/add-mpd-script-section.py` directly).
 
 ## License
 

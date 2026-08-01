@@ -4,7 +4,7 @@
 Decrease MPD volume using python-mpd library.
 
 This script allows you to decrease the volume of the Music Player Daemon (MPD) using the settings provided 
-in the 'mpd-extended.conf' configuration file. If the configuration file or its settings are not found, 
+in the 'volume.conf' configuration file. If the configuration file or its settings are not found, 
 the script falls back to default values.
 
 Usage:
@@ -29,18 +29,18 @@ from mpd import MPDClient
 
 def read_config():
     """
-    Function to read MPD configuration from mpd-extended.conf file.
+    Function to read MPD configuration from volume.conf file.
     
     Returns:
     - Dictionary containing MPD configuration.
     """
     config = configparser.ConfigParser()
-    mpd_extended_conf_path = os.path.expanduser("~/.config/mpd-scripts/volume/mpd-extended.conf")
-    if not os.path.isfile(mpd_extended_conf_path):
-        print(f"Error: MPD extended configuration file (mpd-extended.conf) not found at {mpd_extended_conf_path}")
+    volume_conf_path = os.path.expanduser("~/.config/mpd-scripts/volume/volume.conf")
+    if not os.path.isfile(volume_conf_path):
+        print(f"Error: MPD extended configuration file (volume.conf) not found at {volume_conf_path}")
         sys.exit(1)
 
-    config.read(mpd_extended_conf_path)
+    config.read(volume_conf_path)
     mpd_config = {
         'SERVER': config['MPD-SCRIPTS'].get('server', 'localhost'),
         'MPD_PORT': int(config['MPD-SCRIPTS'].get('mpd_port', '6600')),
@@ -49,7 +49,7 @@ def read_config():
     return mpd_config
 
 def main():
-    # Read MPD server configuration from mpd-extended.conf
+    # Read MPD server configuration from volume.conf
     mpd_config = read_config()
     mpd_server = mpd_config['SERVER']
     mpd_port = mpd_config['MPD_PORT']

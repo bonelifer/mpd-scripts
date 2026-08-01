@@ -3,38 +3,38 @@
 # ==============================================================================
 # Script to manage MPD (Music Player Daemon) configuration and installation:
 # - Prompts user to set installation user/group to 'root' or the current user.
-# - Ensures mpd-extended.conf exists, copying it if necessary.
+# - Ensures volume.conf exists, copying it if necessary.
 # - Runs Python scripts to update the configuration and add MPD script sections.
 # - Installs Python dependencies from requirements.txt.
 # - Copies necessary Python scripts to the installation directory and sets proper permissions.
 #
 # ==============================================================================
 
-# Function to check if the mpd-extended.conf file exists; if not, it creates the directory and copies the file
-check_and_copy_mpd_extended_conf() {
-    # Define path for the mpd-extended.conf file
-    MPD_EXTENDED_CONF_PATH=~/.config/mpd-scripts/volume/mpd-extended.conf
+# Function to check if the volume.conf file exists; if not, it creates the directory and copies the file
+check_and_copy_volume_conf() {
+    # Define path for the volume.conf file
+    VOLUME_CONF_PATH=~/.config/mpd-scripts/volume/volume.conf
     # Get the directory of the configuration file
-    MPD_CONFIG_DIR=$(dirname "$MPD_EXTENDED_CONF_PATH")
+    MPD_CONFIG_DIR=$(dirname "$VOLUME_CONF_PATH")
 
     # Check if the configuration file exists
-    if [ ! -f "$MPD_EXTENDED_CONF_PATH" ]; then
+    if [ ! -f "$VOLUME_CONF_PATH" ]; then
         echo "Creating directory $MPD_CONFIG_DIR"
         mkdir -p "$MPD_CONFIG_DIR"  # Create the directory if it does not exist
-        echo "Copying mpd-extended.conf to $MPD_EXTENDED_CONF_PATH"
-        cp ./mpd-extended.conf.example "$MPD_EXTENDED_CONF_PATH"  # Copy the file to the target path
+        echo "Copying volume.conf to $VOLUME_CONF_PATH"
+        cp ./volume.conf.example "$VOLUME_CONF_PATH"  # Copy the file to the target path
     else
-        echo "mpd-extended.conf already exists at $MPD_EXTENDED_CONF_PATH"
+        echo "volume.conf already exists at $VOLUME_CONF_PATH"
     fi
 }
 
 # Function to add MPD script section if the configuration file exists
 add_mpd_script_section_if_conf_exists() {
-    # Define path for the mpd-extended.conf file
-    MPD_EXTENDED_CONF_PATH=~/.config/mpd-scripts/volume/mpd-extended.conf
+    # Define path for the volume.conf file
+    VOLUME_CONF_PATH=~/.config/mpd-scripts/volume/volume.conf
 
     # Check if the configuration file exists
-    if [ -f "$MPD_EXTENDED_CONF_PATH" ]; then
+    if [ -f "$VOLUME_CONF_PATH" ]; then
         # Get the path for python3 executable
         PYTHON3_PATH=$(which python3)
         if [ -x "$PYTHON3_PATH" ]; then
@@ -45,7 +45,7 @@ add_mpd_script_section_if_conf_exists() {
             echo "Error: python3 executable not found."
         fi
     else
-        echo "Error: mpd-extended.conf not found at $MPD_EXTENDED_CONF_PATH"
+        echo "Error: volume.conf not found at $VOLUME_CONF_PATH"
     fi
 }
 
@@ -83,7 +83,7 @@ install_python_requirements() {
 
 # Call the functions in sequence
 prompt_mpd_extended_user_group     # Prompt for user and group configuration
-check_and_copy_mpd_extended_conf    # Ensure the mpd-extended.conf file is in place
+check_and_copy_volume_conf    # Ensure the volume.conf file is in place
 add_mpd_script_section_if_conf_exists  # Add script section to configuration if exists
 install_python_requirements        # Install the required Python dependencies
 

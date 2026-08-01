@@ -1,2 +1,2 @@
-# Ignore a locally-created live config; only mpd-extended.conf.example is tracked
-mpd-extended.conf
+# Ignore a locally-created live config; only volume.conf.example is tracked
+volume.conf

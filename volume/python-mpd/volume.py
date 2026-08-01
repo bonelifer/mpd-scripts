@@ -4,7 +4,7 @@
 Adjust MPD volume using python-mpd library.
 
 This script allows you to adjust the volume of the Music Player Daemon (MPD) using the settings provided 
-in the 'mpd-extended.conf' configuration file. If the configuration file or its settings are not found, 
+in the 'volume.conf' configuration file. If the configuration file or its settings are not found, 
 the script falls back to default values.
 
 Usage:
@@ -35,18 +35,18 @@ import configparser
 
 def read_config():
     """
-    Function to read MPD configuration from mpd-extended.conf file.
+    Function to read MPD configuration from volume.conf file.
     
     Returns:
     - Dictionary containing MPD configuration.
     """
     config = configparser.ConfigParser()
-    mpd_extended_conf_path = os.path.expanduser("~/.config/mpd-scripts/volume/mpd-extended.conf")
-    if not os.path.isfile(mpd_extended_conf_path):
-        print(f"Error: MPD extended configuration file (mpd-extended.conf) not found at {mpd_extended_conf_path}")
+    volume_conf_path = os.path.expanduser("~/.config/mpd-scripts/volume/volume.conf")
+    if not os.path.isfile(volume_conf_path):
+        print(f"Error: MPD extended configuration file (volume.conf) not found at {volume_conf_path}")
         sys.exit(1)
 
-    config.read(mpd_extended_conf_path)
+    config.read(volume_conf_path)
     mpd_config = {
         'volUp': int(config['MPD-SCRIPTS'].get('volUp', 5)),
         'volDown': int(config['MPD-SCRIPTS'].get('volDown', 5)),
@@ -65,7 +65,7 @@ def main():
     parser.add_argument('amount', nargs='?', type=int, default=5, help='Amount by which to adjust volume')
     args = parser.parse_args()
 
-    # Read MPD configuration from mpd-extended.conf
+    # Read MPD configuration from volume.conf
     mpd_config = read_config()
     host = mpd_config['host']
     port = mpd_config['port']

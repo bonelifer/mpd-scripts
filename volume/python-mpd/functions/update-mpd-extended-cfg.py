@@ -4,17 +4,17 @@
 update-mpd-extended-cfg.py
 
 Description:
-This script updates the mpd-extended.conf file with configuration values extracted from the mpd.conf file.
+This script updates the volume.conf file with configuration values extracted from the mpd.conf file.
 If mpd.conf is not found in the default locations, the script prompts the user to enter the path manually.
 The script then extracts relevant configuration values such as music_directory, playlist_directory, log_file, port, and password from mpd.conf.
-These values are then updated in the mpd-extended.conf file located at ~/.config/mpd-scripts/volume/mpd-extended.conf.
+These values are then updated in the volume.conf file located at ~/.config/mpd-scripts/volume/volume.conf.
 If any value is missing or cannot be extracted, appropriate warnings are displayed.
 
 """
 import os
 
 def update_mpd_extended_cfg(mpd_conf_path):
-    mpd_extended_conf_path = os.path.expanduser('~/.config/mpd-scripts/volume/mpd-extended.conf')
+    volume_conf_path = os.path.expanduser('~/.config/mpd-scripts/volume/volume.conf')
 
     # Read values from mpd.conf
     mpd_conf_values = {}
@@ -52,11 +52,11 @@ def update_mpd_extended_cfg(mpd_conf_path):
                     except IndexError:
                         print("Warning: Couldn't extract password from mpd.conf")
 
-    # Update values in mpd-extended.conf
-    with open(mpd_extended_conf_path, 'r') as conf_file:
+    # Update values in volume.conf
+    with open(volume_conf_path, 'r') as conf_file:
         lines = conf_file.readlines()
 
-    with open(mpd_extended_conf_path, 'w') as conf_file:
+    with open(volume_conf_path, 'w') as conf_file:
         for line in lines:
             if line.startswith('music_directory') and 'music_directory' in mpd_conf_values:
                 line = f"music_directory = {mpd_conf_values['music_directory']}\n"
@@ -90,7 +90,7 @@ def main():
         print("MPD configuration file not found in default locations.")
         mpd_conf_path = input("Please enter the path to your MPD configuration file: ")
 
-    # Update mpd-extended.conf
+    # Update volume.conf
     update_mpd_extended_cfg(mpd_conf_path)
     print("MPD Extended Configuration File updated successfully.")
 
