@@ -1,0 +1,2 @@
+# Ignore a locally-created live config; only mpd-add-random.conf.example is tracked
+mpd-add-random.conf
