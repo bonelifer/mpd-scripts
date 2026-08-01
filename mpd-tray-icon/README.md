@@ -13,7 +13,7 @@ A GTK3 tray icon showing the currently playing MPD track in its tooltip/menu, wi
 MPD must already be running — the script checks on startup and exits if it isn't.
 
 ```bash
-./mpctt.py
+./mpd-tray-icon.py
 ```
 
 The tray icon's label/tooltip shows the current track (or "Stopped"/"MPD not running" as appropriate), and updates automatically whenever playback state changes (blocking on `mpc idle player` in a background thread — no polling). Left-click the icon for the menu:
