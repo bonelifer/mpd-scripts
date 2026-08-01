@@ -17,7 +17,7 @@ if ! command -v mpc &>/dev/null; then
     exit 1
 fi
 
-config_file="$HOME/.config/mpd-notifier/mpd-notifier.conf"
+config_file="$HOME/.config/mpd-scripts/mpd-notifier/mpd-notifier.conf"
 MPD_HOST=""
 if [ -f "$config_file" ]; then
     # shellcheck source=/dev/null

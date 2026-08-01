@@ -1,6 +1,6 @@
 # mpdsimilar.conf — configuration for mpdsimilar.sh
 #
-# Copied to ~/.config/mpdsimilar/mpdsimilar.conf on first run if that file
+# Copied to ~/.config/mpd-scripts/mpdsimilar/mpdsimilar.conf on first run if that file
 # doesn't already exist. Edit the copy there, not this template.
 
 # Obtain your own API key from https://www.last.fm/api/account/create

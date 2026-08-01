@@ -3,37 +3,37 @@
 # ==============================================================================
 # Script to manage MPD (Music Player Daemon) configuration and installation:
 # - Prompts user to set installation user/group to 'root' or the current user.
-# - Ensures mpd-extended.cfg exists, copying it if necessary.
+# - Ensures mpd-extended.conf exists, copying it if necessary.
 # - Runs Python scripts to update the configuration and add MPD script sections.
 # - Installs mpc package.
 # - Copies necessary Python scripts to the installation directory and sets proper permissions.
 # ==============================================================================
 
-# Function to check if the mpd-extended.cfg file exists; if not, it creates the directory and copies the file
-check_and_copy_mpd_extended_cfg() {
-    # Define path for the mpd-extended.cfg file
-    MPD_EXTENDED_CFG_PATH=~/.config/mpd/mpd-extended.cfg
+# Function to check if the mpd-extended.conf file exists; if not, it creates the directory and copies the file
+check_and_copy_mpd_extended_conf() {
+    # Define path for the mpd-extended.conf file
+    MPD_EXTENDED_CONF_PATH=~/.config/mpd-scripts/volume/mpd-extended.conf
     # Get the directory of the configuration file
-    MPD_CONFIG_DIR=$(dirname "$MPD_EXTENDED_CFG_PATH")
+    MPD_CONFIG_DIR=$(dirname "$MPD_EXTENDED_CONF_PATH")
 
     # Check if the configuration file exists
-    if [ ! -f "$MPD_EXTENDED_CFG_PATH" ]; then
+    if [ ! -f "$MPD_EXTENDED_CONF_PATH" ]; then
         echo "Creating directory $MPD_CONFIG_DIR"
         mkdir -p "$MPD_CONFIG_DIR"  # Create the directory if it does not exist
-        echo "Copying mpd-extended.cfg to $MPD_EXTENDED_CFG_PATH"
-        cp ./mpd-extended.cfg.example "$MPD_EXTENDED_CFG_PATH"  # Copy the file to the target path
+        echo "Copying mpd-extended.conf to $MPD_EXTENDED_CONF_PATH"
+        cp ./mpd-extended.conf.example "$MPD_EXTENDED_CONF_PATH"  # Copy the file to the target path
     else
-        echo "mpd-extended.cfg already exists at $MPD_EXTENDED_CFG_PATH"
+        echo "mpd-extended.conf already exists at $MPD_EXTENDED_CONF_PATH"
     fi
 }
 
 # Function to add MPD script section if the configuration file exists
-add_mpd_script_section_if_cfg_exists() {
-    # Define path for the mpd-extended.cfg file
-    MPD_EXTENDED_CFG_PATH=~/.config/mpd/mpd-extended.cfg
+add_mpd_script_section_if_conf_exists() {
+    # Define path for the mpd-extended.conf file
+    MPD_EXTENDED_CONF_PATH=~/.config/mpd-scripts/volume/mpd-extended.conf
 
     # Check if the configuration file exists
-    if [ -f "$MPD_EXTENDED_CFG_PATH" ]; then
+    if [ -f "$MPD_EXTENDED_CONF_PATH" ]; then
         # Get the path for python3 executable
         PYTHON3_PATH=$(which python3)
         if [ -x "$PYTHON3_PATH" ]; then
@@ -44,7 +44,7 @@ add_mpd_script_section_if_cfg_exists() {
             echo "Error: python3 executable not found."
         fi
     else
-        echo "Error: mpd-extended.cfg not found at $MPD_EXTENDED_CFG_PATH"
+        echo "Error: mpd-extended.conf not found at $MPD_EXTENDED_CONF_PATH"
     fi
 }
 
@@ -74,8 +74,8 @@ prompt_mpd_extended_user_group() {
 
 # Call the functions in sequence
 prompt_mpd_extended_user_group     # Prompt for user and group configuration
-check_and_copy_mpd_extended_cfg    # Ensure the mpd-extended.cfg file is in place
-add_mpd_script_section_if_cfg_exists  # Add script section to configuration if exists
+check_and_copy_mpd_extended_conf    # Ensure the mpd-extended.conf file is in place
+add_mpd_script_section_if_conf_exists  # Add script section to configuration if exists
 
 # Display the installation directory to confirm path for subsequent steps
 echo "Install directory: $installdir"

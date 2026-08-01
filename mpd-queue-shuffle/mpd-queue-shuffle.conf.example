@@ -1,6 +1,6 @@
 # mpd-queue-shuffle configuration
 #
-# Copied to ~/.config/mpd-queue-shuffle/mpd-queue-shuffle.conf on first run
+# Copied to ~/.config/mpd-scripts/mpd-queue-shuffle/mpd-queue-shuffle.conf on first run
 # if that file doesn't already exist. Edit the copy there, not this template.
 
 # Local music directory containing MP3 files (must match MPD's own

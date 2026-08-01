@@ -5,7 +5,7 @@
 # Copies mpd-notifier.sh, mpd-notifier-watch.sh, mpd-notifier.conf.example,
 # and unknown.jpg to ~/bin, then adds an autostart entry that runs the watch
 # loop (which fires mpd-notifier.sh on every MPD player-state change) at
-# login. Run ../setup-path.sh first if ~/bin isn't already on your PATH.
+# login. Run ../install.sh first if ~/bin isn't already on your PATH.
 
 set -e  # Exit on error
 

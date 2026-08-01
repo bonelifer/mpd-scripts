@@ -14,9 +14,10 @@ Uses `python-mpd2` internally.
 
 Configuration:
     Settings (MPD host/port, optional custom tray icon) live in
-    ~/.config/mpd-radio-tray/mpd-radio-tray.conf, seeded from
+    ~/.config/mpd-scripts/mpd-radio-tray/mpd-radio-tray.conf, seeded from
     mpd-radio-tray.conf.example on first run. The station list lives in
-    ~/.config/mpd-radio-tray/stations.txt, seeded from stations.txt.example.
+    ~/.config/mpd-scripts/mpd-radio-tray/stations.txt, seeded from
+    stations.txt.example.
 """
 
 import configparser
@@ -32,7 +33,7 @@ from PyQt5.QtGui import QIcon, QCursor
 from mpd import MPDClient
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-CONFIG_DIR = Path.home() / ".config" / "mpd-radio-tray"
+CONFIG_DIR = Path.home() / ".config" / "mpd-scripts" / "mpd-radio-tray"
 CONFIG_FILE = CONFIG_DIR / "mpd-radio-tray.conf"
 STATIONS_FILE = CONFIG_DIR / "stations.txt"
 
@@ -44,7 +45,7 @@ MPD_TIMEOUT = 5
 
 def load_config() -> Dict[str, object]:
     """
-    Seed ~/.config/mpd-radio-tray/ from the .example templates shipped
+    Seed ~/.config/mpd-scripts/mpd-radio-tray/ from the .example templates shipped
     alongside this script on first run, then load settings from the config
     file there.
     """

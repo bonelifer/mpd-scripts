@@ -16,9 +16,9 @@
 # -c and -a are mutually exclusive.
 #
 # Configuration:
-#   All configurable parameters live in ~/.config/mpdsimilar/mpdsimilar.conf,
-#   seeded from mpdsimilar.conf.example (shipped alongside this script) on
-#   first run:
+#   All configurable parameters live in
+#   ~/.config/mpd-scripts/mpdsimilar/mpdsimilar.conf, seeded from
+#   mpdsimilar.conf.example (shipped alongside this script) on first run:
 #     lastfm_api_key       Last.fm API key.
 #     lastfm_api_url       Last.fm API endpoint.
 #     similar_limit        Number of similar artists to fetch per query.
@@ -72,9 +72,10 @@ install_missing_apps() {
 # Config file (all configurable parameters)
 # ---------------------------------------------------------------------------
 # Every tunable, including the Last.fm API key, lives outside the script in
-# ~/.config/mpdsimilar/mpdsimilar.conf, seeded from mpdsimilar.conf.example
-# on first run, so secrets never end up committed to version control.
-config_dir="${HOME}/.config/mpdsimilar"
+# ~/.config/mpd-scripts/mpdsimilar/mpdsimilar.conf, seeded from
+# mpdsimilar.conf.example on first run, so secrets never end up committed
+# to version control.
+config_dir="${HOME}/.config/mpd-scripts/mpdsimilar"
 config_file="${config_dir}/mpdsimilar.conf"
 
 # Seed the live config from the tracked .example template on first run, then

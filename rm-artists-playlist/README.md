@@ -24,7 +24,7 @@ This means: **use full, specific artist names in your artist file.** A short or 
 
 ## Configuration
 
-Settings live in `~/.config/rm-artists-playlist/rm-artists-playlist.conf`, seeded automatically from [`rm-artists-playlist.conf.example`](./rm-artists-playlist.conf.example) the first time you run `-p` or `-q` (`-l` doesn't need it). Edit the copy in `~/.config/rm-artists-playlist/`, not the template.
+Settings live in `~/.config/mpd-scripts/rm-artists-playlist/rm-artists-playlist.conf`, seeded automatically from [`rm-artists-playlist.conf.example`](./rm-artists-playlist.conf.example) the first time you run `-p` or `-q` (`-l` doesn't need it). Edit the copy in `~/.config/mpd-scripts/rm-artists-playlist/`, not the template.
 
 - `PLAYLIST_DIR`: directory where MPD playlists are stored. **Must match MPD's own `playlist_directory`** — `mpc save`/`load`/`rm` operate through MPD's own config, independent of this value, which is only used to read/write playlist files directly.
 - `ARTIST_FILE`: plain text file listing one artist name per line, to remove.

@@ -52,7 +52,7 @@ systemctl --user status mpd-rewind-daemon.service
 journalctl --user -u mpd-rewind-daemon.service -f
 ```
 
-Either way, the daemon creates its own state directory (`~/.local/state/mpd_rewind_daemon/`) and config directory (`~/.config/mpd_rewind_daemon/`) the first time it runs — no `sudo` needed anywhere in installation.
+Either way, the daemon creates its own state directory (`~/.local/state/mpd_rewind_daemon/`) and config directory (`~/.config/mpd-scripts/mpd_rewind_daemon/`) the first time it runs — no `sudo` needed anywhere in installation.
 
 ## Usage
 
@@ -72,7 +72,7 @@ This reads the PID file and sends a graceful shutdown signal. (`pkill -f mpd_rew
 
 ## Configuration
 
-Settings live in `~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf`, seeded automatically from [`mpd_rewind_daemon.conf.example`](./mpd_rewind_daemon.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd_rewind_daemon/`, not the template.
+Settings live in `~/.config/mpd-scripts/mpd_rewind_daemon/mpd_rewind_daemon.conf`, seeded automatically from [`mpd_rewind_daemon.conf.example`](./mpd_rewind_daemon.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-scripts/mpd_rewind_daemon/`, not the template.
 
 | Setting        | Description                                       | Default                 |
 | -------------- | --------------------------------------------------- | ----------------------- |
@@ -128,7 +128,7 @@ rm ~/bin/mpd_rewind_daemon.py
 Either way, also remove its state and config:
 
 ```bash
-rm -rf ~/.local/state/mpd_rewind_daemon ~/.config/mpd_rewind_daemon
+rm -rf ~/.local/state/mpd_rewind_daemon ~/.config/mpd-scripts/mpd_rewind_daemon
 ```
 
 Also remove any `PATH` entries from `~/.bashrc` if you no longer use `~/bin` or `~/.local/bin`.

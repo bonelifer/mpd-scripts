@@ -4,7 +4,7 @@
 Decrease MPD volume using mpc command-line tool.
 
 This script allows you to decrease the volume of the Music Player Daemon (MPD) using the settings provided 
-in the 'mpd-extended.cfg' configuration file. If the configuration file or its settings are not found, 
+in the 'mpd-extended.conf' configuration file. If the configuration file or its settings are not found, 
 the script falls back to default values.
 
 Usage:
@@ -28,18 +28,18 @@ import configparser
 
 def read_config():
     """
-    Function to read MPD configuration from mpd-extended.cfg file.
+    Function to read MPD configuration from mpd-extended.conf file.
     
     Returns:
     - Dictionary containing MPD configuration.
     """
     config = configparser.ConfigParser()
-    mpd_extended_cfg_path = os.path.expanduser("~/.config/mpd/mpd-extended.cfg")
-    if not os.path.isfile(mpd_extended_cfg_path):
-        print(f"Error: MPD extended configuration file (mpd-extended.cfg) not found at {mpd_extended_cfg_path}")
+    mpd_extended_conf_path = os.path.expanduser("~/.config/mpd-scripts/volume/mpd-extended.conf")
+    if not os.path.isfile(mpd_extended_conf_path):
+        print(f"Error: MPD extended configuration file (mpd-extended.conf) not found at {mpd_extended_conf_path}")
         sys.exit(1)
 
-    config.read(mpd_extended_cfg_path)
+    config.read(mpd_extended_conf_path)
     mpd_config = {
         'SERVER': config['MPD-SCRIPTS'].get('server', 'localhost'),
         'MPD_PORT': int(config['MPD-SCRIPTS'].get('mpd_port', '6600')),
@@ -65,7 +65,7 @@ def get_current_volume():
         return None
 
 def main():
-    # Read MPD server configuration from mpd-extended.cfg
+    # Read MPD server configuration from mpd-extended.conf
     mpd_config = read_config()
     toggle_max_volume = mpd_config['toggleMaxVolume']
     max_volume = mpd_config['maxVolume']

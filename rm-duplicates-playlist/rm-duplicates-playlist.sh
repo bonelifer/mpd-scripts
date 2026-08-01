@@ -11,7 +11,8 @@
 #   -h, --help       Show usage and exit
 #
 # Configuration:
-#   PLAYLIST_DIR lives in ~/.config/rm-duplicates-playlist/rm-duplicates-playlist.conf,
+#   PLAYLIST_DIR lives in
+#   ~/.config/mpd-scripts/rm-duplicates-playlist/rm-duplicates-playlist.conf,
 #   seeded from rm-duplicates-playlist.conf.example (shipped alongside this
 #   script) on first run.
 # Version: 1.0
@@ -116,10 +117,11 @@ if [[ "$LIST_MODE" == true ]]; then
     exit 0
 fi
 
-# Config lives in ~/.config/rm-duplicates-playlist/rm-duplicates-playlist.conf,
+# Config lives in
+# ~/.config/mpd-scripts/rm-duplicates-playlist/rm-duplicates-playlist.conf,
 # seeded from the rm-duplicates-playlist.conf.example template shipped
 # alongside this script on first run. Only -p/-q need it.
-CONFIG_DIR="$HOME/.config/rm-duplicates-playlist"
+CONFIG_DIR="$HOME/.config/mpd-scripts/rm-duplicates-playlist"
 CONFIG_FILE="$CONFIG_DIR/rm-duplicates-playlist.conf"
 
 if [[ ! -f "$CONFIG_FILE" ]]; then

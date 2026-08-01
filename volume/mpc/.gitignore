@@ -1,2 +1,2 @@
-# Ignore a locally-created live config; only mpd-extended.cfg.example is tracked
-mpd-extended.cfg
+# Ignore a locally-created live config; only mpd-extended.conf.example is tracked
+mpd-extended.conf

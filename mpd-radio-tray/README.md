@@ -17,12 +17,12 @@ A PyQt5 system tray app (similar to RadioTray-NG) for managing categorized inter
 
 ## Configuration
 
-Settings live in `~/.config/mpd-radio-tray/mpd-radio-tray.conf`, seeded automatically from [`mpd-radio-tray.conf.example`](./mpd-radio-tray.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-radio-tray/`, not the template.
+Settings live in `~/.config/mpd-scripts/mpd-radio-tray/mpd-radio-tray.conf`, seeded automatically from [`mpd-radio-tray.conf.example`](./mpd-radio-tray.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-scripts/mpd-radio-tray/`, not the template.
 
 - `mpd_host`, `mpd_port`: MPD server address. Default `localhost`/`6600`.
 - `icon_path`: path to a custom tray icon image. Leave blank to use the desktop theme's `media-playback-start` icon.
 
-Your station list lives in `~/.config/mpd-radio-tray/stations.txt`, seeded from [`stations.txt.example`](./stations.txt.example) (with placeholder URLs) the first time you run the script. Edit the copy in `~/.config/mpd-radio-tray/` to add your own stations, one per line:
+Your station list lives in `~/.config/mpd-scripts/mpd-radio-tray/stations.txt`, seeded from [`stations.txt.example`](./stations.txt.example) (with placeholder URLs) the first time you run the script. Edit the copy in `~/.config/mpd-scripts/mpd-radio-tray/` to add your own stations, one per line:
 
 ```
 category|display name|stream url

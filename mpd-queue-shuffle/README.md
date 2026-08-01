@@ -19,7 +19,7 @@ If any of these are missing, the script will offer to install them via `apt` (co
 
 ## Configuration
 
-Settings live in `~/.config/mpd-queue-shuffle/mpd-queue-shuffle.conf`, seeded automatically from [`mpd-queue-shuffle.conf.example`](./mpd-queue-shuffle.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-queue-shuffle/`, not the template.
+Settings live in `~/.config/mpd-scripts/mpd-queue-shuffle/mpd-queue-shuffle.conf`, seeded automatically from [`mpd-queue-shuffle.conf.example`](./mpd-queue-shuffle.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-scripts/mpd-queue-shuffle/`, not the template.
 
 - `MUSIC_DIR`: local music directory containing MP3 files -- must match MPD's own `music_directory` so the generated playlist's paths resolve correctly.
 - `PLAYLIST_DIR`: directory where `mpc` saves/loads playlists (MPD's `playlist_directory`).

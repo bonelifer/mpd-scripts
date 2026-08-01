@@ -17,7 +17,7 @@ This script removes duplicate entries (matched by file path, case-insensitively)
 
 ## Configuration
 
-Settings live in `~/.config/rm-duplicates-playlist/rm-duplicates-playlist.conf`, seeded automatically from [`rm-duplicates-playlist.conf.example`](./rm-duplicates-playlist.conf.example) the first time you run `-p` or `-q` (`-l` doesn't need it). Edit the copy in `~/.config/rm-duplicates-playlist/`, not the template.
+Settings live in `~/.config/mpd-scripts/rm-duplicates-playlist/rm-duplicates-playlist.conf`, seeded automatically from [`rm-duplicates-playlist.conf.example`](./rm-duplicates-playlist.conf.example) the first time you run `-p` or `-q` (`-l` doesn't need it). Edit the copy in `~/.config/mpd-scripts/rm-duplicates-playlist/`, not the template.
 
 - `PLAYLIST_DIR`: directory where MPD playlists are stored. **Must match MPD's own `playlist_directory`** — `mpc save`/`load`/`rm` operate through MPD's own config, independent of this value, which is only used to read/write playlist files directly.
 

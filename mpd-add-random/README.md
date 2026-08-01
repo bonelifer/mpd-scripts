@@ -16,7 +16,7 @@ This script adds a random selection of tracks from the local music library to th
 
 ## Configuration
 
-Settings live in `~/.config/mpd-add-random/mpd-add-random.conf`, seeded automatically from [`mpd-add-random.conf.example`](./mpd-add-random.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-add-random/`, not the template.
+Settings live in `~/.config/mpd-scripts/mpd-add-random/mpd-add-random.conf`, seeded automatically from [`mpd-add-random.conf.example`](./mpd-add-random.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-scripts/mpd-add-random/`, not the template.
 
 - `MUSIC_DIR`: local music library path. **Must match MPD's own `music_directory`** — tracks are queued via `mpc add` using paths relative to this directory, which only resolve correctly in MPD if this matches its own config.
 

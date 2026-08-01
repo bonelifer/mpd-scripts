@@ -1,6 +1,6 @@
 # mpd-add-random.conf
 #
-# Copied to ~/.config/mpd-add-random/mpd-add-random.conf on first run if
+# Copied to ~/.config/mpd-scripts/mpd-add-random/mpd-add-random.conf on first run if
 # that file doesn't already exist. Edit the copy there, not this template.
 
 # Local music library path. Must match MPD's own music_directory -- tracks

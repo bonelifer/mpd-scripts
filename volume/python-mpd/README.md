@@ -14,6 +14,11 @@ python-mpd2
 ```
 pip install python-mpd2
 ```
+
+### Configuration
+
+Settings live in `~/.config/mpd-scripts/volume/mpd-extended.conf`, seeded from [`mpd-extended.conf.example`](./mpd-extended.conf.example) by `install.sh` (or run `functions/update-mpd-extended-cfg.py` and `functions/add-mpd-script-section.py` directly).
+
 ## License
 
 This project is licensed under the **GNU General Public License v3.0**.

@@ -17,7 +17,7 @@
 
 ## Installation
 
-1. Run [`../setup-path.sh`](../setup-path.sh) first if `~/bin` isn't already on your `PATH`.
+1. Run [`../install.sh`](../install.sh) first if `~/bin` isn't already on your `PATH`.
 2. Run the installer:
 
    ```bash
@@ -51,7 +51,7 @@ exec /path/to/mpd-notifier.sh
 
 ## Configuration
 
-Settings live in `~/.config/mpd-notifier/mpd-notifier.conf`, seeded automatically from [`mpd-notifier.conf.example`](./mpd-notifier.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-notifier/`, not the template.
+Settings live in `~/.config/mpd-scripts/mpd-notifier/mpd-notifier.conf`, seeded automatically from [`mpd-notifier.conf.example`](./mpd-notifier.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-scripts/mpd-notifier/`, not the template.
 
 - `dir`: local music library path, used to look up `cover.jpg` next to the playing track (only used when `MPD_HOST` is empty).
 - `MPD_HOST`: leave empty to treat MPD as local and read cover art from `dir`; set to a hostname/IP to query a remote MPD instead (cover art lookup is skipped in that case).
