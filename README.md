@@ -45,6 +45,7 @@ Collection of scripts related to mpd & mpc.
 | **[rm-artists-playlist](./rm-artists-playlist/)** | Removes songs by a list of artists from a saved MPD playlist or the current queue, or lists available playlists. |
 | **[mpd-add-random-artist](./mpd-add-random-artist/)** | Adds a random sample of a specified artist's tracks to the current MPD queue, matching exactly by default or loosely with `-l`. |
 | **[mpd-add-random](./mpd-add-random/)** | Adds a random selection of tracks from the local music library to the current MPD queue. |
+| **[mpctt](./mpctt/)** | A GTK3 tray icon showing the currently playing MPD track, with Play/Pause/Next/Previous controls. |
 
 ### Prerequisites
 Listed in each scripts README.md.
