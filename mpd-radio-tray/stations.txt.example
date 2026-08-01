@@ -1,0 +1,12 @@
+# Radio stations for mpd-radio-tray, one per line: category|name|url
+#
+# Copied to ~/.config/mpd-radio-tray/stations.txt on first run if that file
+# doesn't already exist. Edit the copy there, not this template. Blank
+# lines and lines starting with # are ignored.
+#
+# The URLs below are placeholders -- replace them with real stream URLs
+# for the stations you want.
+
+Ambient|Example Ambient Station|http://example.com/ambient-stream.mp3
+Ambient|Another Ambient Station|http://example.com/ambient-stream-2.mp3
+News|Example News Station|http://example.com/news-stream.mp3
