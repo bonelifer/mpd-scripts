@@ -22,7 +22,9 @@ MPD Rewind Daemon is a background service that automatically rewinds the current
 
 ## Installation
 
-To install and configure the MPD Rewind Daemon, clone or download this repository, then pick **one** of the following (don't run both):
+To install and configure the MPD Rewind Daemon, clone or download this repository, then pick **one** of the following (don't run both).
+
+Run [`./install.sh`](./install.sh) to be prompted which one you want (defaults to Option A after 30 seconds), or run either script directly if you already know:
 
 ### Option A: XDG autostart (default)
 

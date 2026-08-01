@@ -8,11 +8,14 @@
 #    not, offers to create ~/bin and add it. Also checks/offers the same
 #    for ~/bin/music, an optional separate directory for installing this
 #    repo's scripts, kept apart from other personal scripts in ~/bin.
+# 3. Offers to install the optional MPD Rewind Daemon, delegating to its
+#    own installer chooser (autostart vs systemd) if you say yes.
 #
 # Run this once before following the Installation steps in README.md.
 
 set -e  # Exit on error
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NESTED_CONFIG_ROOT="$HOME/.config/mpd-scripts"
 
 # Scripts that previously stored their own settings directly under
@@ -163,6 +166,29 @@ setup_path() {
     echo "Run 'source $RC_FILE' or open a new shell for any changes to take effect."
 }
 
+# Offers to install the optional MPD Rewind Daemon (not everyone using this
+# repo wants a background daemon running), delegating to its own installer
+# chooser if you say yes. A failure there doesn't abort the rest of this
+# script -- migration and PATH setup have already succeeded by this point,
+# and the daemon can always be installed later via mpd_rewind_daemon/install.sh.
+offer_mpd_rewind_daemon() {
+    local daemon_installer="$SCRIPT_DIR/mpd_rewind_daemon/install.sh"
+
+    if [ ! -x "$daemon_installer" ]; then
+        return
+    fi
+
+    echo
+    read -r -p "Also install the optional MPD Rewind Daemon (auto-rewinds after resuming from pause)? [y/N] " REPLY
+
+    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+        "$daemon_installer" || echo "mpd_rewind_daemon installation did not complete successfully; you can retry with mpd_rewind_daemon/install.sh." >&2
+    else
+        echo "Skipped. Run mpd_rewind_daemon/install.sh later if you change your mind."
+    fi
+}
+
 migrate_config_dirs
 setup_path
+offer_mpd_rewind_daemon
 print_migration_summary
