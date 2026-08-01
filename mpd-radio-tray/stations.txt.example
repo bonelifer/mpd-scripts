@@ -7,6 +7,7 @@
 # The URLs below are placeholders -- replace them with real stream URLs
 # for the stations you want.
 
+#Category|Station Name|URL
 Ambient|Example Ambient Station|http://example.com/ambient-stream.mp3
 Ambient|Another Ambient Station|http://example.com/ambient-stream-2.mp3
 News|Example News Station|http://example.com/news-stream.mp3
