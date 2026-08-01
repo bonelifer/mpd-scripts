@@ -16,9 +16,9 @@
 #
 # Configuration:
 #   PLAYLIST_DIR and ARTIST_FILE live in
-#   ~/.config/rm-artists-playlist/rm-artists-playlist.conf, seeded from
-#   rm-artists-playlist.conf.example (shipped alongside this script) on
-#   first run.
+#   ~/.config/mpd-scripts/rm-artists-playlist/rm-artists-playlist.conf,
+#   seeded from rm-artists-playlist.conf.example (shipped alongside this
+#   script) on first run.
 # Version: 1.8
 
 set -e
@@ -126,10 +126,11 @@ if [[ "$LIST_MODE" == true ]]; then
     exit 0
 fi
 
-# Config lives in ~/.config/rm-artists-playlist/rm-artists-playlist.conf,
+# Config lives in
+# ~/.config/mpd-scripts/rm-artists-playlist/rm-artists-playlist.conf,
 # seeded from the rm-artists-playlist.conf.example template shipped
 # alongside this script on first run. Only -p/-q need it.
-CONFIG_DIR="$HOME/.config/rm-artists-playlist"
+CONFIG_DIR="$HOME/.config/mpd-scripts/rm-artists-playlist"
 CONFIG_FILE="$CONFIG_DIR/rm-artists-playlist.conf"
 
 if [[ ! -f "$CONFIG_FILE" ]]; then

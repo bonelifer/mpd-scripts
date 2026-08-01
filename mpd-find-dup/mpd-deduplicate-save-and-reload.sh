@@ -8,8 +8,8 @@
 #
 # Configuration:
 #   PLAYLIST_DIR and PLAYLIST_NAME live in
-#   ~/.config/mpd-find-dup/mpd-deduplicate-save-and-reload.conf, seeded from
-#   mpd-deduplicate-save-and-reload.conf.example on first run.
+#   ~/.config/mpd-scripts/mpd-find-dup/mpd-deduplicate-save-and-reload.conf,
+#   seeded from mpd-deduplicate-save-and-reload.conf.example on first run.
 #
 #   PLAYLIST_DIR must match MPD's own configured playlist_directory: mpc
 #   save/load/rm operate through MPD's own config, independent of this
@@ -42,10 +42,11 @@ case "${1:-}" in
         ;;
 esac
 
-# Config lives in ~/.config/mpd-find-dup/mpd-deduplicate-save-and-reload.conf,
+# Config lives in
+# ~/.config/mpd-scripts/mpd-find-dup/mpd-deduplicate-save-and-reload.conf,
 # seeded from the mpd-deduplicate-save-and-reload.conf.example template
 # shipped alongside this script on first run.
-CONFIG_DIR="$HOME/.config/mpd-find-dup"
+CONFIG_DIR="$HOME/.config/mpd-scripts/mpd-find-dup"
 CONFIG_FILE="$CONFIG_DIR/mpd-deduplicate-save-and-reload.conf"
 
 if [ ! -f "$CONFIG_FILE" ]; then

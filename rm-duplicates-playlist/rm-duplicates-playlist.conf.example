@@ -1,6 +1,6 @@
 # rm-duplicates-playlist.conf
 #
-# Copied to ~/.config/rm-duplicates-playlist/rm-duplicates-playlist.conf on
+# Copied to ~/.config/mpd-scripts/rm-duplicates-playlist/rm-duplicates-playlist.conf on
 # first run if that file doesn't already exist. Edit the copy there, not
 # this template.
 

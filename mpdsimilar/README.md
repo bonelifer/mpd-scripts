@@ -21,7 +21,7 @@ If any of these are missing, run with `-i`/`--install` to install them automatic
 
 ## Configuration
 
-Settings live in `~/.config/mpdsimilar/mpdsimilar.conf`, seeded automatically from [`mpdsimilar.conf.example`](./mpdsimilar.conf.example) the first time `-c` or `-a` is used. Edit the copy in `~/.config/mpdsimilar/`, not the template.
+Settings live in `~/.config/mpd-scripts/mpdsimilar/mpdsimilar.conf`, seeded automatically from [`mpdsimilar.conf.example`](./mpdsimilar.conf.example) the first time `-c` or `-a` is used. Edit the copy in `~/.config/mpd-scripts/mpdsimilar/`, not the template.
 
 - `lastfm_api_key`: your Last.fm API key — get one at [last.fm/api/account/create](https://www.last.fm/api/account/create). `-c`/`-a` won't run until this is changed from its placeholder value.
 - `lastfm_api_url`: Last.fm API endpoint.

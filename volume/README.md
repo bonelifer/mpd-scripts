@@ -8,7 +8,7 @@ Simple commands allow you to adjust the volume up, down, or to a specific level.
 | Name              | Description              |
 | --- | --- |
 | **[volume (python-mpd based)](./python-mpd/)** | Volume scripts using the python library python-mpd. |
-| **[volume (mpc cli based)](./mpc/)** | Volume scripts directly using the mpc client directly. |
+| **[volume (mpc cli based)](./mpc/)** | Volume scripts using the mpc client directly. |
 ## License
 
 This project is licensed under the **GNU General Public License v3.0**.

@@ -53,7 +53,7 @@ This script saves the current MPD queue to a `.m3u` playlist file, removes dupli
 
 #### Configuration
 
-Settings live in `~/.config/mpd-find-dup/mpd-deduplicate-save-and-reload.conf`, seeded automatically from [`mpd-deduplicate-save-and-reload.conf.example`](./mpd-deduplicate-save-and-reload.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-find-dup/`, not the template.
+Settings live in `~/.config/mpd-scripts/mpd-find-dup/mpd-deduplicate-save-and-reload.conf`, seeded automatically from [`mpd-deduplicate-save-and-reload.conf.example`](./mpd-deduplicate-save-and-reload.conf.example) the first time you run the script. Edit the copy in `~/.config/mpd-scripts/mpd-find-dup/`, not the template.
 
 - `PLAYLIST_DIR`: directory where `mpc` saves/loads playlists. **Must match MPD's own `playlist_directory`** — `mpc save`/`load`/`rm` operate through MPD's own config, independent of this value, which is only used to edit the saved playlist file directly during the dedup step. If the two don't match, that step silently edits a different file than the one MPD actually reloads.
 - `PLAYLIST_NAME`: name of the playlist to save/reload (without the `.m3u` extension). Default `current_playlist`.

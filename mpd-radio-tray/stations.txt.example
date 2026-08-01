@@ -1,6 +1,6 @@
 # Radio stations for mpd-radio-tray, one per line: category|name|url
 #
-# Copied to ~/.config/mpd-radio-tray/stations.txt on first run if that file
+# Copied to ~/.config/mpd-scripts/mpd-radio-tray/stations.txt on first run if that file
 # doesn't already exist. Edit the copy there, not this template. Blank
 # lines and lines starting with # are ignored.
 #

@@ -5,7 +5,7 @@
 # Alternative to install-xdg-autostart.sh's XDG autostart .desktop entry:
 # installs and enables mpd_rewind_daemon.py as a systemd --user service
 # instead, giving auto-restart on crash and journald logging. Run
-# ../setup-path.sh first if ~/bin isn't already on your PATH. Don't run
+# ../install.sh first if ~/bin isn't already on your PATH. Don't run
 # both installers -- pick one.
 
 set -e  # Exit on error

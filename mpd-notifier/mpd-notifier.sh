@@ -14,10 +14,10 @@
 # Cobbled together from other now playing scripts.
 # Image found on Google Images
 
-# Config lives in ~/.config/mpd-notifier/mpd-notifier.conf, seeded from the
-# mpd-notifier.conf.example template shipped alongside this script on first
-# run; see that file for what each setting does.
-config_dir="$HOME/.config/mpd-notifier"
+# Config lives in ~/.config/mpd-scripts/mpd-notifier/mpd-notifier.conf,
+# seeded from the mpd-notifier.conf.example template shipped alongside
+# this script on first run; see that file for what each setting does.
+config_dir="$HOME/.config/mpd-scripts/mpd-notifier"
 config_file="$config_dir/mpd-notifier.conf"
 
 if [ ! -f "$config_file" ]; then

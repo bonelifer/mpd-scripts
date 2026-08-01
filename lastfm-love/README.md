@@ -12,13 +12,13 @@ Prefers the track's own artist over the album artist, so compilation albums (whe
 
 ## Configuration
 
-On first run, both scripts create `~/.config/lastfm-love/lastfm-love.conf` (from the [template](./lastfm-love.conf.example) shipped alongside them) and exit with instructions to fill it in. Edit the copy in `~/.config/lastfm-love/`, not the template.
+On first run, both scripts create `~/.config/mpd-scripts/lastfm-love/lastfm-love.conf` (from the [template](./lastfm-love.conf.example) shipped alongside them) and exit with instructions to fill it in. Edit the copy in `~/.config/mpd-scripts/lastfm-love/`, not the template.
 
 - `api_key` / `api_secret`: obtain from https://www.last.fm/api/account/create
 - `username`: your Last.fm username
 - `password`: your Last.fm password, in plain text — it's hashed (via `pylast.md5`) before use and only the hash is ever sent to Last.fm
 
-The first time you run either script, it opens a browser tab to authorize access; the resulting session key is cached in `~/.config/lastfm-love/session_key` so you're not prompted again. Both files are created with `0600`/`0700` permissions since they hold credentials.
+The first time you run either script, it opens a browser tab to authorize access; the resulting session key is cached in `~/.config/mpd-scripts/lastfm-love/session_key` so you're not prompted again. Both files are created with `0600`/`0700` permissions since they hold credentials.
 
 ## License
 

@@ -8,8 +8,8 @@ The daemon supports logging and verbose output for debugging purposes.
 
 Configuration:
 - rewind_tiers, mpd_host, mpd_port, mpd_password: see
-  ~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf (seeded from
-  mpd_rewind_daemon.conf.example on first run).
+  ~/.config/mpd-scripts/mpd_rewind_daemon/mpd_rewind_daemon.conf (seeded
+  from mpd_rewind_daemon.conf.example on first run).
 - PID_FILE: Location to store the daemon process ID (PID) (default: "~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.pid").
 - LOG_FILE: Location for the daemon log file (default: "~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.log").
 - Permissions check for the state directory.
@@ -31,14 +31,15 @@ STATE_DIR = os.path.join(os.path.expanduser("~"), ".local", "state", "mpd_rewind
 PID_FILE = os.path.join(STATE_DIR, "mpd_rewind_daemon.pid")  # Path for PID file
 LOG_FILE = os.path.join(STATE_DIR, "mpd_rewind_daemon.log")  # Path for log file
 
-CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "mpd_rewind_daemon")
+CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "mpd-scripts", "mpd_rewind_daemon")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "mpd_rewind_daemon.conf")
 
 def load_config():
     """
-    Loads settings from ~/.config/mpd_rewind_daemon/mpd_rewind_daemon.conf,
-    seeding it from the mpd_rewind_daemon.conf.example template shipped
-    alongside this script on first run.
+    Loads settings from
+    ~/.config/mpd-scripts/mpd_rewind_daemon/mpd_rewind_daemon.conf, seeding
+    it from the mpd_rewind_daemon.conf.example template shipped alongside
+    this script on first run.
 
     Returns:
         configparser.SectionProxy: the "mpd_rewind_daemon" section.

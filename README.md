@@ -28,7 +28,7 @@
 
 ## About
 Collection of scripts related to mpd & mpc.
-###
+
 | Name              | Description              |
 | --- | --- |
 | **[lastfm-love](./lastfm-love/)** | Love or unlove tracks on lastfm |
@@ -49,11 +49,11 @@ Collection of scripts related to mpd & mpc.
 | **[mpd-radio-tray](./mpd-radio-tray/)** | A PyQt5 system tray app for managing and playing categorized internet radio station URLs with MPD, similar to RadioTray-NG. |
 
 ### Prerequisites
-Listed in each scripts README.md.
+Listed in each script's README.md.
 
 
 ### Installation
-Run [`./setup-path.sh`](./setup-path.sh) once to check whether a personal bin directory is already on your `PATH`, and, if not, create `~/bin` and add it for you. It also offers to create `~/bin/music` and add it to your `PATH` too, for scripts that use it for music-related data files.
+Run [`./install.sh`](./install.sh) once. It migrates any existing per-script settings from the old `~/.config/<script-name>/` layout into the new unified `~/.config/mpd-scripts/<script-name>/` layout (see Configuration below), then checks whether a personal bin directory is already on your `PATH`, and, if not, creates `~/bin` and adds it for you. It also offers to create `~/bin/music` and add it to your `PATH` too, an optional separate directory for installing this repo's scripts, kept apart from other personal scripts in `~/bin`.
 
 Most scripts in this repository are standalone and only need to be copied into a directory on your `$PATH` (e.g. `~/bin` or `~/.local/bin`) and marked executable:
 
@@ -64,11 +64,11 @@ chmod +x ~/bin/<script-name>
 
 Check each script's own README for language-specific dependencies (Python, Perl, `mpc`/`python-mpd2`, etc.) before running it.
 
-`mpd_rewind_daemon` ships its own installer instead:
+`mpd_rewind_daemon` ships its own installers instead (`install-xdg-autostart.sh` or `install-systemd.sh` — pick one):
 
 ```bash
 cd mpd_rewind_daemon
-./install.sh
+./install-xdg-autostart.sh
 ```
 
 See [`mpd_rewind_daemon/README.md`](./mpd_rewind_daemon/) for details.

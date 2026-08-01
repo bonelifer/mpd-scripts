@@ -12,9 +12,9 @@
 #   -t, --tracks NUMBER  Number of random tracks to add (default: 10).
 #
 # Configuration:
-#   MUSIC_DIR lives in ~/.config/mpd-add-random/mpd-add-random.conf, seeded
-#   from mpd-add-random.conf.example (shipped alongside this script) on
-#   first run.
+#   MUSIC_DIR lives in ~/.config/mpd-scripts/mpd-add-random/mpd-add-random.conf,
+#   seeded from mpd-add-random.conf.example (shipped alongside this script)
+#   on first run.
 #
 # Examples:
 #   ./mpd-add-random.sh -t 5    # Adds 5 random tracks to the queue
@@ -72,10 +72,10 @@ for cmd in mpc find shuf; do
     fi
 done
 
-# Config lives in ~/.config/mpd-add-random/mpd-add-random.conf, seeded from
-# the mpd-add-random.conf.example template shipped alongside this script
-# on first run.
-CONFIG_DIR="$HOME/.config/mpd-add-random"
+# Config lives in ~/.config/mpd-scripts/mpd-add-random/mpd-add-random.conf,
+# seeded from the mpd-add-random.conf.example template shipped alongside
+# this script on first run.
+CONFIG_DIR="$HOME/.config/mpd-scripts/mpd-add-random"
 CONFIG_FILE="$CONFIG_DIR/mpd-add-random.conf"
 
 if [[ ! -f "$CONFIG_FILE" ]]; then

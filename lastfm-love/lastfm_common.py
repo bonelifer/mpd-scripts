@@ -17,14 +17,15 @@ import webbrowser
 
 import pylast
 
-CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "lastfm-love")
+CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "mpd-scripts", "lastfm-love")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "lastfm-love.conf")
 SESSION_KEY_FILE = os.path.join(CONFIG_DIR, "session_key")
 
 
 def load_config():
     """
-    Loads Last.fm credentials from ~/.config/lastfm-love/lastfm-love.conf.
+    Loads Last.fm credentials from
+    ~/.config/mpd-scripts/lastfm-love/lastfm-love.conf.
 
     If that doesn't exist yet, it's seeded from a lastfm-love.conf sitting
     next to this module if one exists (e.g. an already-filled-in config

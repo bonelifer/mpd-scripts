@@ -14,8 +14,8 @@
 #
 # Configuration:
 # MUSIC_DIR, PLAYLIST_DIR, and the defaults below live in
-# ~/.config/mpd-queue-shuffle/mpd-queue-shuffle.conf, seeded from
-# mpd-queue-shuffle.conf.example on first run.
+# ~/.config/mpd-scripts/mpd-queue-shuffle/mpd-queue-shuffle.conf, seeded
+# from mpd-queue-shuffle.conf.example on first run.
 #
 # Usage:
 # - You can specify a custom track count and playlist name with the `-c` and `-p` options respectively.
@@ -25,10 +25,11 @@
 
 set -e  # Exit on error
 
-# Config lives in ~/.config/mpd-queue-shuffle/mpd-queue-shuffle.conf, seeded
+# Config lives in
+# ~/.config/mpd-scripts/mpd-queue-shuffle/mpd-queue-shuffle.conf, seeded
 # from the mpd-queue-shuffle.conf.example template shipped alongside this
 # script on first run.
-CONFIG_DIR="$HOME/.config/mpd-queue-shuffle"
+CONFIG_DIR="$HOME/.config/mpd-scripts/mpd-queue-shuffle"
 CONFIG_FILE="$CONFIG_DIR/mpd-queue-shuffle.conf"
 
 if [ ! -f "$CONFIG_FILE" ]; then

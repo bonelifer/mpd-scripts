@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-# MPD control notification icon + show song name in tooltip
-# based on https://github.com/sc8/MPD_Tray/
-#
-# Note: uses AppIndicator3, which stock GNOME Shell doesn't support
-# natively -- install the "AppIndicator and KStatusNotifierItem Support"
-# extension if the icon doesn't appear.
+"""
+MPD control notification icon + show song name in tooltip.
+Based on https://github.com/sc8/MPD_Tray/
+
+Note: uses AppIndicator3, which stock GNOME Shell doesn't support
+natively -- install the "AppIndicator and KStatusNotifierItem Support"
+extension if the icon doesn't appear.
+"""
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -16,8 +18,10 @@ import time
 import os
 
 class MPDIndicator:
+    """Tray icon showing the current MPD track, with Play/Pause/Next/Previous controls."""
+
     def __init__(self):
-        # Use the current directory or a system icon as fallback
+        """Builds the tray icon and its menu, then starts the background player-state watcher."""
         icon_path = self.get_icon_path()
 
         self.indicator = AppIndicator3.Indicator.new(
@@ -35,7 +39,8 @@ class MPDIndicator:
         threading.Thread(target=self.watch_player, daemon=True).start()
 
     def get_icon_path(self):
-        # Try multiple possible icon paths
+        """Returns the first existing icon path from a preference list, or a
+        named fallback icon from the desktop theme if none exist."""
         paths = [
             os.path.expanduser("/usr/share/icons/hicolor/scalable/apps/mpd.svg"),
             "/usr/share/icons/gnome/22x22/actions/player_pause.png",
@@ -44,19 +49,18 @@ class MPDIndicator:
         for path in paths:
             if os.path.exists(path):
                 return path
-        return "media-playback-start"  # Fallback to named icon
+        return "media-playback-start"
 
     def build_menu(self):
+        """Builds the tray icon's context menu: current track label, playback
+        controls, and quit."""
         self.menu = Gtk.Menu()
 
-        # Current track item (non-clickable)
         self.track_item = Gtk.MenuItem(label="MPD starting...")
         self.menu.append(self.track_item)
 
-        # Separator
         self.menu.append(Gtk.SeparatorMenuItem())
 
-        # Control items
         play_pause = Gtk.MenuItem(label="Play/Pause")
         play_pause.connect("activate", self.toggle)
         self.menu.append(play_pause)
@@ -69,10 +73,8 @@ class MPDIndicator:
         prev_track.connect("activate", self.prev_track)
         self.menu.append(prev_track)
 
-        # Separator
         self.menu.append(Gtk.SeparatorMenuItem())
 
-        # Quit item
         quit_item = Gtk.MenuItem(label="Quit")
         quit_item.connect("activate", Gtk.main_quit)
         self.menu.append(quit_item)
@@ -81,6 +83,8 @@ class MPDIndicator:
         self.indicator.set_menu(self.menu)
 
     def watch_player(self):
+        """Blocks on `mpc idle player`, refreshing the label via the GTK main
+        loop whenever playback state changes."""
         # Blocks until MPD reports a player-state change, then asks the GTK
         # main loop to refresh the label (GLib.idle_add is the safe way to
         # touch GTK widgets from a background thread). A non-zero exit
@@ -96,6 +100,8 @@ class MPDIndicator:
             GLib.idle_add(self.update_track)
 
     def update_track(self):
+        """Fetches the current track from mpc and updates the tray label and
+        tooltip, showing "MPD not running" if mpc fails."""
         try:
             result = subprocess.run(
                 ['mpc', 'current'],
