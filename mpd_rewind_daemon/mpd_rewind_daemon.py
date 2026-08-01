@@ -7,7 +7,8 @@ When playback resumes from a paused state, it rewinds the track by a set amount 
 The daemon supports logging and verbose output for debugging purposes.
 
 Configuration:
-- rewind_tiers, mpd_host, mpd_port, mpd_password: see
+- rewind_tiers, mpd_host, mpd_port, mpd_password, genre_filter_enabled,
+  genre_filter: see
   ~/.config/mpd-scripts/mpd_rewind_daemon/mpd_rewind_daemon.conf (seeded
   from mpd_rewind_daemon.conf.example on first run).
 - PID_FILE: Location to store the daemon process ID (PID) (default: "~/.local/state/mpd_rewind_daemon/mpd_rewind_daemon.pid").
@@ -86,11 +87,26 @@ def parse_rewind_tiers(raw):
     tiers.sort(key=lambda tier: tier[0])
     return tiers
 
+def parse_genre_filter(raw):
+    """
+    Parses a comma-separated genre_filter config value into a set of
+    lowercased, trimmed genre names for case-insensitive membership checks.
+
+    Args:
+        raw (str): The raw config value.
+
+    Returns:
+        set[str]: Lowercased genre names (empty if raw has none).
+    """
+    return {genre.strip().lower() for genre in raw.split(",") if genre.strip()}
+
 _config = load_config()
 REWIND_TIERS = parse_rewind_tiers(_config.get("rewind_tiers", fallback=""))
 MPD_HOST = _config.get("mpd_host", fallback="localhost")
 MPD_PORT = _config.getint("mpd_port", fallback=6600)
 MPD_PASSWORD = _config.get("mpd_password", fallback="")
+GENRE_FILTER_ENABLED = _config.getboolean("genre_filter_enabled", fallback=False)
+GENRE_FILTER = parse_genre_filter(_config.get("genre_filter", fallback=""))
 
 def check_permissions():
     """
@@ -236,16 +252,50 @@ class MPDRewindDaemon:
                 break
         return amount
 
+    def current_track_genre_allowed(self):
+        """
+        Returns True if genre_filter_enabled is off, or the currently
+        playing track's genre (case-insensitive) is in genre_filter. A
+        track with no genre tag -- or one not in the list -- is not
+        allowed once filtering is enabled, so an empty genre_filter with
+        filtering enabled disables rewinding entirely.
+
+        Returns:
+            bool: Whether rewind_and_resume should proceed for this track.
+        """
+        if not GENRE_FILTER_ENABLED:
+            return True
+
+        try:
+            current = self.client.currentsong()
+        except Exception as e:
+            self.log(f"Error fetching current song for genre filter: {e}")
+            return False
+
+        genre = current.get("genre", [])
+        # MPD returns a list instead of a plain string when a track has
+        # multiple genre tag values.
+        genres = genre if isinstance(genre, list) else [genre]
+        track_genres = {g.strip().lower() for g in genres if g.strip()}
+
+        return bool(track_genres & GENRE_FILTER)
+
     def rewind_and_resume(self, pause_duration):
         """
         Pauses, rewinds, and resumes playback to ensure proper rewind.
 
         This method pauses the current track, seeks to a rewind position, and resumes playback.
         The rewind amount scales with how long playback was paused (see get_rewind_amount).
+        Skipped entirely if genre_filter_enabled is on and the current
+        track's genre isn't in genre_filter (see current_track_genre_allowed).
 
         Args:
             pause_duration (float): How many seconds playback was paused for.
         """
+        if not self.current_track_genre_allowed():
+            self.log("Current track's genre is not in genre_filter; skipping rewind.")
+            return
+
         seek_back_time = self.get_rewind_amount(pause_duration)
         if seek_back_time <= 0:
             self.log(f"Paused for {pause_duration:.2f}s; too brief to rewind.")

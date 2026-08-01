@@ -17,3 +17,14 @@ mpd_port = 6600
 
 # Leave blank unless your MPD requires a password.
 mpd_password =
+
+# Limit rewinding to specific genres -- e.g. audiobooks/podcasts, leaving
+# regular music playback alone. Off by default: rewinding applies to every
+# track regardless of genre. If enabled, a track with no genre tag, or
+# one not in genre_filter, is never rewound; an empty genre_filter with
+# this enabled disables rewinding entirely.
+genre_filter_enabled = False
+
+# Comma-separated, matched case-insensitively against the track's genre
+# tag. Only consulted when genre_filter_enabled is True.
+genre_filter = Audiobook,Podcast
