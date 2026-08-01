@@ -64,11 +64,11 @@ chmod +x ~/bin/<script-name>
 
 Check each script's own README for language-specific dependencies (Python, Perl, `mpc`/`python-mpd2`, etc.) before running it.
 
-`mpd_rewind_daemon` ships its own installers instead (`install-xdg-autostart.sh` or `install-systemd.sh` — pick one):
+`mpd_rewind_daemon` ships its own installer instead, prompting you to choose between two methods (`install-xdg-autostart.sh` or `install-systemd.sh`, with a clear recommendation either way):
 
 ```bash
 cd mpd_rewind_daemon
-./install-xdg-autostart.sh
+./install.sh
 ```
 
 See [`mpd_rewind_daemon/README.md`](./mpd_rewind_daemon/) for details.
