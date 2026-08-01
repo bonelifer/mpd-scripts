@@ -42,9 +42,9 @@ def read_config():
 
     config.read(volume_conf_path)
     mpd_config = {
-        'SERVER': config['MPD-SCRIPTS'].get('server', 'localhost'),
-        'MPD_PORT': int(config['MPD-SCRIPTS'].get('mpd_port', '6600')),
-        'MPDPASS': config['MPD-SCRIPTS'].get('password', ''),
+        'SERVER': config['MPD'].get('host', 'localhost'),
+        'MPD_PORT': int(config['MPD'].get('port', '6600')),
+        'MPDPASS': config['MPD'].get('password', ''),
         'toggleMaxVolume': config['MPD-SCRIPTS'].getboolean('toggleMaxVolume', fallback=False),
         'maxVolume': int(config['MPD-SCRIPTS'].get('maxVolume', 80))
     }

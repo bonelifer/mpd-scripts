@@ -48,13 +48,32 @@ def read_config():
 
     config.read(volume_conf_path)
     mpd_config = {
-        'SERVER': config['MPD-SCRIPTS'].get('server', 'localhost'),
-        'MPD_PORT': int(config['MPD-SCRIPTS'].get('mpd_port', '6600')),
-        'MPDPASS': config['MPD-SCRIPTS'].get('password', ''),
+        'host': config['MPD'].get('host', 'localhost'),
+        'port': int(config['MPD'].get('port', '6600')),
+        'password': config['MPD'].get('password', ''),
         'toggleMaxVolume': config['MPD-SCRIPTS'].getboolean('toggleMaxVolume', fallback=False),
         'maxVolume': int(config['MPD-SCRIPTS'].get('maxVolume', 80))
     }
     return mpd_config
+
+def mpc_env(mpd_config):
+    """
+    Builds the environment mpc reads its connection settings from
+    (MPD_HOST/MPD_PORT), so volume.conf's host/port/password are actually
+    honored instead of silently falling back to mpc's own defaults. The
+    password travels via MPD_HOST's "password@host" form rather than a
+    -P/--password flag, so it doesn't show up in `ps` output.
+    """
+    env = os.environ.copy()
+    host = mpd_config['host']
+    env['MPD_HOST'] = f"{mpd_config['password']}@{host}" if mpd_config['password'] else host
+    env['MPD_PORT'] = str(mpd_config['port'])
+    return env
+
+def get_current_volume(env):
+    """Returns the current MPD volume percentage as an int, via `mpc volume`."""
+    output = subprocess.check_output(["mpc", "volume"], env=env).decode()
+    return int(output.split()[1].strip("%"))
 
 def main():
     # Parse command-line arguments
@@ -67,11 +86,12 @@ def main():
     mpd_config = read_config()
     toggle_max_volume = mpd_config['toggleMaxVolume']
     max_volume = mpd_config['maxVolume']
+    env = mpc_env(mpd_config)
 
     # If no arguments provided, show usage and current volume
     if not args.direction:
         try:
-            current_volume = int(subprocess.getoutput("mpc volume").split()[1].strip("%"))
+            current_volume = get_current_volume(env)
             print(f"usage: {sys.argv[0]} [-h] {{up,down}} [amount]\nCurrent volume: {current_volume}%")
         except Exception as e:
             print(f"Error: {e}")
@@ -81,15 +101,15 @@ def main():
     try:
         if args.direction == 'up':
             if toggle_max_volume:
-                current_volume = int(subprocess.getoutput("mpc volume").split()[1].strip("%"))
+                current_volume = get_current_volume(env)
                 new_volume = min(current_volume + args.amount, max_volume)
-                subprocess.run(f"mpc volume {new_volume}", shell=True)
+                subprocess.run(["mpc", "volume", str(new_volume)], env=env)
                 print(f"Volume increased by {new_volume - current_volume} units.")
             else:
-                subprocess.run(f"mpc volume +{args.amount}", shell=True)
+                subprocess.run(["mpc", "volume", f"+{args.amount}"], env=env)
                 print(f"Volume increased by {args.amount} units.")
         elif args.direction == 'down':
-            subprocess.run(f"mpc volume -{args.amount}", shell=True)
+            subprocess.run(["mpc", "volume", f"-{args.amount}"], env=env)
             print(f"Volume decreased by {args.amount} units.")
     except Exception as e:
         print(f"Error: {e}")

@@ -46,24 +46,39 @@ def read_config():
 
     config.read(volume_conf_path)
     mpd_config = {
-        'SERVER': config['MPD-SCRIPTS'].get('server', 'localhost'),
-        'MPD_PORT': int(config['MPD-SCRIPTS'].get('mpd_port', '6600')),
-        'MPDPASS': config['MPD-SCRIPTS'].get('password', ''),
+        'host': config['MPD'].get('host', 'localhost'),
+        'port': int(config['MPD'].get('port', '6600')),
+        'password': config['MPD'].get('password', ''),
         'toggleMaxVolume': config['MPD-SCRIPTS'].getboolean('toggleMaxVolume', fallback=False),
         'maxVolume': int(config['MPD-SCRIPTS'].get('maxVolume', 80))
     }
     return mpd_config
+
+def mpc_env(mpd_config):
+    """
+    Builds the environment mpc reads its connection settings from
+    (MPD_HOST/MPD_PORT), so volume.conf's host/port/password are actually
+    honored instead of silently falling back to mpc's own defaults. The
+    password travels via MPD_HOST's "password@host" form rather than a
+    -P/--password flag, so it doesn't show up in `ps` output.
+    """
+    env = os.environ.copy()
+    host = mpd_config['host']
+    env['MPD_HOST'] = f"{mpd_config['password']}@{host}" if mpd_config['password'] else host
+    env['MPD_PORT'] = str(mpd_config['port'])
+    return env
 
 def main():
     # Read MPD server configuration from volume.conf
     mpd_config = read_config()
     toggle_max_volume = mpd_config['toggleMaxVolume']
     max_volume = mpd_config['maxVolume']
+    env = mpc_env(mpd_config)
 
     # If no arguments provided, show usage and current volume
     if len(sys.argv) == 1:
         try:
-            output = subprocess.check_output(["mpc", "volume"]).decode().strip()
+            output = subprocess.check_output(["mpc", "volume"], env=env).decode().strip()
             current_volume = int(output.split()[1].strip("%"))
             print(f"usage: {sys.argv[0]} [-h] [amount]\nCurrent volume: {current_volume}%")
         except Exception as e:
@@ -78,7 +93,7 @@ def main():
 
     # Retrieve current volume
     try:
-        output = subprocess.check_output(["mpc", "volume"]).decode().strip()
+        output = subprocess.check_output(["mpc", "volume"], env=env).decode().strip()
         current_volume = int(output.split()[1].strip("%"))
     except Exception as e:
         print(f"Error: {e}")
@@ -89,7 +104,7 @@ def main():
 
     # Adjust volume
     try:
-        subprocess.run(["mpc", "volume", str(new_volume)])
+        subprocess.run(["mpc", "volume", str(new_volume)], env=env)
         print(f"Volume increased by {new_volume - current_volume} units.")
     except Exception as e:
         print(f"Error: {e}")
