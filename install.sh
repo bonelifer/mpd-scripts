@@ -48,6 +48,17 @@ migrate_config_dirs() {
         fi
     done
 
+    # mv preserves whatever permissions a file already had, so scripts'
+    # config files holding credentials (API keys, an MPD password) need
+    # their permissions tightened explicitly after migrating -- being
+    # freshly created via each script's own load_config() would have
+    # already done this, but a moved pre-existing file might still be
+    # world/group-readable from before that chmod existed.
+    chmod 600 "$NESTED_CONFIG_ROOT/lastfm-love/lastfm-love.conf" 2>/dev/null || true
+    chmod 600 "$NESTED_CONFIG_ROOT/lastfm-love/session_key" 2>/dev/null || true
+    chmod 600 "$NESTED_CONFIG_ROOT/mpdsimilar/mpdsimilar.conf" 2>/dev/null || true
+    chmod 600 "$NESTED_CONFIG_ROOT/mpd_rewind_daemon/mpd_rewind_daemon.conf" 2>/dev/null || true
+
     # volume/mpc and volume/python-mpd previously shared
     # ~/.config/mpd/mpd-extended.cfg (note the old name/.cfg extension).
     # Move just that file, not the whole ~/.config/mpd/ directory, which
@@ -57,6 +68,7 @@ migrate_config_dirs() {
     if [ -f "$old_cfg" ] && [ ! -e "$new_cfg" ]; then
         mkdir -p "$NESTED_CONFIG_ROOT/volume"
         mv "$old_cfg" "$new_cfg"
+        chmod 600 "$new_cfg"  # May contain an MPD password
         echo "Migrated $old_cfg -> $new_cfg"
         migrated_any=true
     fi

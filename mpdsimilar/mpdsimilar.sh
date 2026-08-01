@@ -85,6 +85,7 @@ load_config() {
     if [[ ! -f "${config_file}" ]]; then
         mkdir -p "${config_dir}"
         cp "$(dirname "$0")/mpdsimilar.conf.example" "${config_file}"
+        chmod 600 "${config_file}"  # Contains a Last.fm API key
         echo "Created ${config_file} -- add your Last.fm API key, then run this again." >&2
         exit 1
     fi

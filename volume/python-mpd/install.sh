@@ -23,6 +23,7 @@ check_and_copy_volume_conf() {
         mkdir -p "$MPD_CONFIG_DIR"  # Create the directory if it does not exist
         echo "Copying volume.conf to $VOLUME_CONF_PATH"
         cp ./volume.conf.example "$VOLUME_CONF_PATH"  # Copy the file to the target path
+        chmod 600 "$VOLUME_CONF_PATH"  # May contain an MPD password
     else
         echo "volume.conf already exists at $VOLUME_CONF_PATH"
     fi
