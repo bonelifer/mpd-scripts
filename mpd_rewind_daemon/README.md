@@ -1,6 +1,6 @@
 # MPD Rewind Daemon
 
-MPD Rewind Daemon is a background service that automatically rewinds the currently playing track in [MPD (Music Player Daemon)](https://www.musicpd.org/) by a few seconds when playback is resumed after being paused. This helps you seamlessly resume where you left off — especially useful when listening to music, long mixes, or **audiobooks** where you might want a quick recap of the last few seconds.
+MPD Rewind Daemon is a background service that automatically rewinds the currently playing track in [MPD (Music Player Daemon)](https://www.musicpd.org/) by a few seconds when playback is resumed after being paused. This helps you resume right where you left off — especially useful when listening to music, long mixes, or **audiobooks** where you might want a quick recap of the last few seconds.
 
 ## Features
 

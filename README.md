@@ -28,7 +28,7 @@
 
 ## About
 Collection of scripts related to mpd & mpc.
-###
+
 | Name              | Description              |
 | --- | --- |
 | **[lastfm-love](./lastfm-love/)** | Love or unlove tracks on lastfm |
@@ -49,7 +49,7 @@ Collection of scripts related to mpd & mpc.
 | **[mpd-radio-tray](./mpd-radio-tray/)** | A PyQt5 system tray app for managing and playing categorized internet radio station URLs with MPD, similar to RadioTray-NG. |
 
 ### Prerequisites
-Listed in each scripts README.md.
+Listed in each script's README.md.
 
 
 ### Installation
@@ -64,11 +64,11 @@ chmod +x ~/bin/<script-name>
 
 Check each script's own README for language-specific dependencies (Python, Perl, `mpc`/`python-mpd2`, etc.) before running it.
 
-`mpd_rewind_daemon` ships its own installer instead:
+`mpd_rewind_daemon` ships its own installers instead (`install-xdg-autostart.sh` or `install-systemd.sh` — pick one):
 
 ```bash
 cd mpd_rewind_daemon
-./install.sh
+./install-xdg-autostart.sh
 ```
 
 See [`mpd_rewind_daemon/README.md`](./mpd_rewind_daemon/) for details.

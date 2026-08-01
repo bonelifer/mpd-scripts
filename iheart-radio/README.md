@@ -21,7 +21,7 @@ sudo cpanm StreamFinder::IHeartRadio
 ```
 ### Usage
 
-Ensure you have the StreamFinder::IHeartRadio Perl module installed to utilize this script effectively.
+Ensure you have the StreamFinder::IHeartRadio Perl module installed before running this script.
 
 `--download` (or `-d`) is required to actually fetch anything; running the script with no arguments (or without `-d`) just prints usage and exits.
 
