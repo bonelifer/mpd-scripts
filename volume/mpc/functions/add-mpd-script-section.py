@@ -1,10 +1,25 @@
 #!/usr/bin/env python3
 
+"""
+add-mpd-script-section.py
+
+Appends a [MPD-SCRIPTS] section (volume step sizes and the max-volume
+toggle read by volume.py/mpdvolup.py/mpdvoldown.py) to mpd-extended.conf,
+unless that section is already present. Run after
+update-mpd-extended-cfg.py has populated the file's base MPD settings --
+install.sh calls both in sequence.
+"""
+
 import os
 
 MPD_EXTENDED_CONF_PATH = os.path.expanduser("~/.config/mpd-scripts/volume/mpd-extended.conf")
 
+
 def add_mpd_scripts_section():
+    """
+    Appends a default [MPD-SCRIPTS] section to mpd-extended.conf, unless
+    one is already present.
+    """
     if not os.path.exists(MPD_EXTENDED_CONF_PATH):
         print(f"Error: {MPD_EXTENDED_CONF_PATH} not found.")
         return
