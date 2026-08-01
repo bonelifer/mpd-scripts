@@ -30,12 +30,15 @@ CONFIG_DIRS_TO_MIGRATE=(
     "rm-duplicates-playlist"
 )
 
+# Populated by migrate_config_dirs with one "old -> new" line per config
+# actually migrated, so the full list can be recapped at the end of the
+# script instead of only scrolling by as each one happens.
+MIGRATED_ITEMS=()
+
 # Moves each script's old ~/.config/<name>/ directory to its new home
 # under $NESTED_CONFIG_ROOT, if the old one exists and hasn't already
 # been migrated.
 migrate_config_dirs() {
-    local migrated_any=false
-
     for name in "${CONFIG_DIRS_TO_MIGRATE[@]}"; do
         local old_dir="$HOME/.config/$name"
         local new_dir="$NESTED_CONFIG_ROOT/$name"
@@ -44,7 +47,7 @@ migrate_config_dirs() {
             mkdir -p "$NESTED_CONFIG_ROOT"
             mv "$old_dir" "$new_dir"
             echo "Migrated $old_dir -> $new_dir"
-            migrated_any=true
+            MIGRATED_ITEMS+=("$old_dir -> $new_dir")
         fi
     done
 
@@ -70,12 +73,23 @@ migrate_config_dirs() {
         mv "$old_cfg" "$new_cfg"
         chmod 600 "$new_cfg"  # May contain an MPD password
         echo "Migrated $old_cfg -> $new_cfg"
-        migrated_any=true
+        MIGRATED_ITEMS+=("$old_cfg -> $new_cfg")
+    fi
+}
+
+# Recaps everything migrate_config_dirs moved, if anything. Printed at the
+# very end of the script (after PATH setup too) so the full list is the
+# last thing on screen instead of scrolling by earlier.
+print_migration_summary() {
+    if [ "${#MIGRATED_ITEMS[@]}" -eq 0 ]; then
+        return
     fi
 
-    if [ "$migrated_any" = true ]; then
-        echo "Existing settings migrated to the new unified ~/.config/mpd-scripts/ layout."
-    fi
+    echo
+    echo "Migrated ${#MIGRATED_ITEMS[@]} existing config(s) to the new unified ~/.config/mpd-scripts/ layout:"
+    for item in "${MIGRATED_ITEMS[@]}"; do
+        echo "  - $item"
+    done
 }
 
 # Common personal bin directories to check for, in order of preference.
@@ -151,3 +165,4 @@ setup_path() {
 
 migrate_config_dirs
 setup_path
+print_migration_summary
