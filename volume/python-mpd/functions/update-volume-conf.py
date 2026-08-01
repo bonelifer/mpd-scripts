@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-update-mpd-extended-cfg.py
+update-volume-conf.py
 
 Description:
 This script updates the volume.conf file with configuration values extracted from the mpd.conf file.
@@ -13,7 +13,7 @@ If any value is missing or cannot be extracted, appropriate warnings are display
 """
 import os
 
-def update_mpd_extended_cfg(mpd_conf_path):
+def update_volume_conf(mpd_conf_path):
     volume_conf_path = os.path.expanduser('~/.config/mpd-scripts/volume/volume.conf')
 
     # Read values from mpd.conf
@@ -91,7 +91,7 @@ def main():
         mpd_conf_path = input("Please enter the path to your MPD configuration file: ")
 
     # Update volume.conf
-    update_mpd_extended_cfg(mpd_conf_path)
+    update_volume_conf(mpd_conf_path)
     print("MPD Extended Configuration File updated successfully.")
 
 if __name__ == "__main__":

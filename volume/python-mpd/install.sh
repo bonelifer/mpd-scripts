@@ -39,7 +39,7 @@ add_mpd_script_section_if_conf_exists() {
         PYTHON3_PATH=$(which python3)
         if [ -x "$PYTHON3_PATH" ]; then
             # Run the Python scripts to update the configuration and add script section
-            $PYTHON3_PATH ./functions/update-mpd-extended-cfg.py
+            $PYTHON3_PATH ./functions/update-volume-conf.py
             $PYTHON3_PATH ./functions/add-mpd-script-section.py
         else
             echo "Error: python3 executable not found."

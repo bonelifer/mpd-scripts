@@ -6,7 +6,7 @@ add-mpd-script-section.py
 Appends a [MPD-SCRIPTS] section (volume step sizes and the max-volume
 toggle read by volume.py/mpdvolup.py/mpdvoldown.py) to volume.conf,
 unless that section is already present. Run after
-update-mpd-extended-cfg.py has populated the file's base MPD settings --
+update-volume-conf.py has populated the file's base MPD settings --
 install.sh calls both in sequence.
 """
 
