@@ -43,6 +43,7 @@ Collection of scripts related to mpd & mpc.
 | **[mpdsimilar](./mpdsimilar/)** | Fetches similar artist tracks from Last.fm for the currently playing track or every track in the queue, and adds a sample of them to the MPD queue. |
 | **[rm-duplicates-playlist](./rm-duplicates-playlist/)** | Removes duplicate entries from a saved MPD playlist or the current queue, or lists available playlists, combining what the two `mpd-find-dup` scripts each do separately into one tool. |
 | **[rm-artists-playlist](./rm-artists-playlist/)** | Removes songs by a list of artists from a saved MPD playlist or the current queue, or lists available playlists. |
+| **[mpd-add-random](./mpd-add-random/)** | Adds a random selection of tracks from the local music library to the current MPD queue. |
 
 ### Prerequisites
 Listed in each scripts README.md.
