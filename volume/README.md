@@ -1,5 +1,4 @@
 # mpd-scripts - volume
-## WIP: May not work currently
 
 These scripts provide a straightforward way to control the volume of your Music Player Daemon (MPD).  They work with both the mpc command and the python-mpd library.
 

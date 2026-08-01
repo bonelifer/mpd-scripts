@@ -4,5 +4,15 @@ playlist_directory = /path/to/default/playlists
 log_file = /var/log/mpd/mpd.log
 host = localhost
 port = 6600
-password = 
+password =
+
+[MPD-SCRIPTS]
+# Amount volume.py/mpdvolup.py/mpdvoldown.py adjust by when no amount is given.
+volUp = 5
+volDown = 5
+
+# When True, mpdvolup.py/volume.py's "up" direction won't raise the volume
+# past maxVolume, no matter how large an amount is requested.
+toggleMaxVolume = False
+maxVolume = 80
 
