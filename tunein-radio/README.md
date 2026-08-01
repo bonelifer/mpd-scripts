@@ -35,7 +35,7 @@ Completed stations are tracked as marker files under `playlists/.completed/`; de
 
 ### Configuration
 
-Station URLs live in [`stations.txt`](./stations.txt), one tunein.com URL per line (blank lines and `#`-prefixed comments are ignored) — edit that file to add or remove stations instead of editing `tunein.pl`. By default the script reads `stations.txt` next to itself; point it at a different file with `--stations=FILE` (or `-f FILE`).
+Station URLs live in [`tunein-radio-stations.txt`](./tunein-radio-stations.txt), one tunein.com URL per line (blank lines and `#`-prefixed comments are ignored) — edit that file to add or remove stations instead of editing `tunein.pl`. By default the script reads `tunein-radio-stations.txt` next to itself; point it at a different file with `--stations=FILE` (or `-f FILE`).
 
 By default the playlist/image filenames are derived from the station's title as fetched from tunein.com. To pin a specific filename instead, append it after a comma: `https://tunein.com/radio/some-station-s12345/,My Station Name`.
 
