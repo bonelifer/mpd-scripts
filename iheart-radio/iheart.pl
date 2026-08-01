@@ -4,8 +4,8 @@
 # along with associated station information, including titles,
 # stream URLs, and optional station images. Utilizes StreamFinder::IHeartRadio
 # Perl module for data retrieval and saves data in a 'playlists' directory.
-# Station URLs are read from stations.txt (see --stations) so the list can
-# be edited without touching this script.
+# Station URLs are read from iheart-stations.txt (see --stations) so the list
+# can be edited without touching this script.
 # Requires LWP::Simple and File::Path modules for downloading images
 # and managing directories.
 
@@ -35,19 +35,19 @@ Usage: $0 -d [--skip-existing|-s] [--retries|-r N] [--stations|-f FILE]
   -d, --download        Fetch stations and write playlists/images (required; nothing else does this)
   -s, --skip-existing    Skip stations already completed in a prior run
   -r, --retries N        Attempts per station before giving up (default: 3)
-  -f, --stations FILE    Station list file (default: stations.txt next to this script)
+  -f, --stations FILE    Station list file (default: iheart-stations.txt next to this script)
 EOF
 
 # With --skip-existing, stations already completed in a prior run are left
 # untouched instead of being re-fetched, so the script can be re-run as many
 # times as needed to pick up the stations iheart.com failed on previously.
 # --retries overrides how many attempts each station gets (default: 3).
-# --stations points at the station list file (default: stations.txt next to this script).
+# --stations points at the station list file (default: iheart-stations.txt next to this script).
 # --download is required to actually run; with no arguments (or without
 # --download), the script just prints usage and exits.
 my $skipExisting = 0;
 my $maxAttempts = 3;
-my $stationsFile = "$RealBin/stations.txt";
+my $stationsFile = "$RealBin/iheart-stations.txt";
 my $download = 0;
 GetOptions(
     'skip-existing|s' => \$skipExisting,
@@ -116,7 +116,7 @@ foreach my $stationEntry (@stations) {
 
     my $stationTitle = $station->getTitle();  # Fetch station title/name
 
-    # A custom name from stations.txt overrides the derived-from-title filename;
+    # A custom name from iheart-stations.txt overrides the derived-from-title filename;
     # otherwise fall back to the station's title, same as before.
     my $filenameBase = (defined $customName && $customName ne '') ? $customName : $stationTitle;
 

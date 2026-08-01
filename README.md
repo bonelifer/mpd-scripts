@@ -53,25 +53,15 @@ Listed in each script's README.md.
 
 
 ### Installation
-Run [`./install.sh`](./install.sh) once. It migrates any existing per-script settings from the old `~/.config/<script-name>/` layout into the new unified `~/.config/mpd-scripts/<script-name>/` layout (see Configuration below), then checks whether a personal bin directory is already on your `PATH`, and, if not, creates `~/bin` and adds it for you. It also offers to create `~/bin/music` and add it to your `PATH` too, an optional separate directory for installing this repo's scripts, kept apart from other personal scripts in `~/bin`.
+Run [`./install.sh`](./install.sh) once — no manual copying needed. It:
 
-Most scripts in this repository are standalone and only need to be copied into a directory on your `$PATH` (e.g. `~/bin` or `~/.local/bin`) and marked executable:
+1. Migrates any existing per-script settings from the old `~/.config/<script-name>/` layout into the new unified `~/.config/mpd-scripts/<script-name>/` layout (see Configuration below).
+2. Checks whether a personal bin directory is already on your `PATH`, and, if not, creates `~/bin` and adds it for you. It also offers to create `~/bin/music` and add it to your `PATH` too, an optional separate directory for installing this repo's scripts, kept apart from other personal scripts in `~/bin`.
+3. Offers to install any missing apt/pip/cpan dependencies the scripts below need (`mpc`, `curl`, `jq`, PyQt5, PyGObject/GTK3, `pylast`, `python-mpd2`, the Perl `StreamFinder` modules, etc.).
+4. Copies every standalone script (and whatever companion file it needs alongside it, e.g. a `.conf.example` template or a station list) into the directory from step 2, and installs MPD Notifier via its own installer.
+5. Offers to install the optional MPD Rewind Daemon, prompting you to choose between two methods (`install-xdg-autostart.sh` or `install-systemd.sh`, with a clear recommendation either way — see [`mpd_rewind_daemon/README.md`](./mpd_rewind_daemon/) for details), and the optional volume control scripts, prompting you to choose between the `mpc`- and `python-mpd2`-based variants (installing only one, since both use the same filenames).
 
-```bash
-cp <script-dir>/<script-name> ~/bin/
-chmod +x ~/bin/<script-name>
-```
-
-Check each script's own README for language-specific dependencies (Python, Perl, `mpc`/`python-mpd2`, etc.) before running it.
-
-`mpd_rewind_daemon` ships its own installer instead, prompting you to choose between two methods (`install-xdg-autostart.sh` or `install-systemd.sh`, with a clear recommendation either way):
-
-```bash
-cd mpd_rewind_daemon
-./install.sh
-```
-
-See [`mpd_rewind_daemon/README.md`](./mpd_rewind_daemon/) for details.
+Check each script's own README for usage notes once it's installed.
 
 ## Contributing
 
