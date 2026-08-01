@@ -1,0 +1,5 @@
+__pycache__/
+
+# Personal station list and settings; only the .example templates are tracked
+stations.txt
+mpd-radio-tray.conf

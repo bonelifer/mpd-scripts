@@ -1,0 +1,11 @@
+[mpd-radio-tray]
+# Copied to ~/.config/mpd-radio-tray/mpd-radio-tray.conf on first run if
+# that file doesn't already exist. Edit the copy there, not this template.
+
+# MPD server host and port.
+mpd_host = localhost
+mpd_port = 6600
+
+# Path to a custom tray icon image. Leave blank to use the desktop theme's
+# "media-playback-start" icon instead.
+icon_path =
