@@ -13,6 +13,7 @@ A PyQt5 system tray app (similar to RadioTray-NG) for managing categorized inter
 - `mpc`-compatible MPD server
 - PyQt5 (e.g. `sudo apt install python3-pyqt5`)
 - `python-mpd2` (e.g. `pip install python-mpd2`)
+- A tray host that supports `QSystemTrayIcon`/KStatusNotifierItem. Stock GNOME Shell doesn't — install the "AppIndicator and KStatusNotifierItem Support" extension if the icon doesn't appear. KDE Plasma, XFCE, and most other desktop environments support it natively.
 
 ## Configuration
 
