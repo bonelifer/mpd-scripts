@@ -1,0 +1,117 @@
+# mpd-smart-shuffle configuration
+#
+# Copied to ~/.config/mpd-scripts/mpd-smart-shuffle/config.ini on first run
+# of any of monitor.py/randomtrack.py/db_admin.py, if that file doesn't
+# already exist. Edit the copy there, not this template.
+
+[mpd]
+host = localhost
+port = 6600
+password =
+
+[paths]
+music_dir = /path/to/your/music
+# Relative paths resolve against ~/.local/state/mpd-smart-shuffle/, not this
+# directory - that's where the LMDB database, PID file, and monitor log all
+# live once installed.
+db_file = status.lmdb
+
+[behavior]
+min_replay_days = 31
+default_playlist_length = 100
+# Fraction of a track's duration that must play before it's no longer
+# counted as a skip (skip_detection feature). 0.5 = under 50% played.
+skip_threshold = 0.5
+# How many recently-queued tracks back to check before allowing another
+# track by the same artist/album (artist_diversity / album_diversity).
+diversity_window = 5
+# How many days after a file's mtime it still counts as "new" for
+# new_music_boost. Note: a bulk retag touches mtime too, which would
+# temporarily make everything look "new".
+new_music_days = 30
+# How many times more likely a new track is to pass the new_music_boost
+# gate than a non-new one (non-new tracks pass with probability
+# 1/new_music_weight).
+new_music_weight = 3.0
+# Scale used by whatever MPD client sets the "rating" sticker (e.g. ncmpcpp
+# uses 1-10 in half-star steps), so rating_weighting can normalize it to 0-1.
+rating_scale_max = 10
+
+[features]
+# Master on/off switches for the extra selection behaviors. All default on;
+# set any to false to fall back to the plain historical behavior.
+weighted_selection = true
+skip_detection = true
+artist_diversity = true
+album_diversity = true
+seasonal_filters = true
+time_profiles = true
+exclude_list = true
+low_eligible_alert = true
+play_counts = true
+new_music_boost = true
+rating_weighting = true
+spread_insertion = true
+
+[exclude]
+# Plain text files, one entry per line, '#' comments and blank lines
+# ignored. Leave a value empty to skip that exclusion type. Relative paths
+# resolve against ~/.config/mpd-scripts/mpd-smart-shuffle/, where these are
+# seeded from their own .example templates on first run - edit the copies
+# there, not the templates.
+files = exclude_files.txt
+artists = exclude_artists.txt
+genres = exclude_genres.txt
+
+[notify]
+# Sends a notification (via the apprise library) when randomtrack.py can't
+# reach its target playlist length after exhausting its attempts - usually
+# means the library needs more tracks or min_replay_days is too strict.
+enabled = false
+# Plain text file, one apprise URL per line, '#' comments and blank lines
+# ignored. Path resolves relative to this directory unless absolute.
+urls = notify_urls.txt
+
+[season:christmas]
+genres = christmas,holiday,xmas
+# start/end accept: "MM-DD", "<1st|2nd|3rd|4th|last>-<weekday>-of-<month>"
+# (optionally +/-N days), or "easter" (optionally +/-N days).
+# Black Friday = day after the 4th Thursday in November.
+start = 4th-thu-of-nov+1
+end = 01-15
+
+# Add more seasons the same way - just a genre list and a start/end. A few
+# examples of what the date spec syntax can express:
+# [season:halloween]
+# genres = halloween,spooky
+# start = 10-01
+# end = 11-01
+#
+# [season:easter]
+# genres = easter
+# start = easter-7
+# end = easter+1
+#
+# [season:memorial_day]
+# genres = patriotic
+# start = last-mon-of-may
+# end = last-mon-of-may
+
+# [profile:<name>] sections restrict selection to specific genres during
+# specific days/times - tracks with no GENRE tag are always allowed through;
+# tracks with a GENRE tag only pass if it matches the active profile. "days"
+# is a comma-separated list of mon/tue/wed/thu/fri/sat/sun. start_time/
+# end_time are HH:MM (24h); a start after end wraps past midnight (list both
+# bordering days, e.g. fri,sat for a Friday-night-into-Saturday window).
+#
+# [profile:morning]
+# genres = upbeat,pop,electronic
+# days = mon,tue,wed,thu,fri
+# start_time = 06:00
+# end_time = 10:00
+#
+# [profile:late_night]
+# genres = ambient,chill,jazz
+# days = fri,sat
+# start_time = 22:00
+# end_time = 02:00

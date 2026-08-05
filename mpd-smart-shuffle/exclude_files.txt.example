@@ -1,0 +1,2 @@
+# One file path per line, matching MPD's "file" tag exactly (relative to
+# music_dir). Lines starting with '#' and blank lines are ignored.
