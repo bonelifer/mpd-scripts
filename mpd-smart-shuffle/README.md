@@ -106,7 +106,7 @@ end = 01-15
 
 `db_file` and the `[exclude]`/`[notify]` list-file values resolve relative to `~/.local/state/mpd-smart-shuffle/` and `~/.config/mpd-scripts/mpd-smart-shuffle/` respectively (not the install directory) unless given as absolute paths.
 
-### Season Date Syntax
+### Season date syntax
 
 A `[season:<name>]` block's `start`/`end` value can be written three ways:
 
@@ -148,7 +148,7 @@ Examples:
 
 `start` and `end` don't have to use the same form - `[season:christmas]` mixes a computed `start` (`4th-thu-of-nov+1`) with a fixed `end` (`01-15`). If `end` falls before `start` in the same calendar year, it's treated as falling in the next year. A literal `02-29` falls back to `02-28` on non-leap years.
 
-### Time Profile Syntax
+### Time profile syntax
 
 `[profile:<name>]` sections (used by `time_profiles`) restrict selection to a genre list during a recurring day/time window:
 
@@ -178,7 +178,7 @@ start_time = 22:00
 end_time = 02:00
 ```
 
-## Database Maintenance (`db_admin.py`)
+## Database maintenance (`db_admin.py`)
 
 ```bash
 # Back up all tracked LMDB data to a text file
