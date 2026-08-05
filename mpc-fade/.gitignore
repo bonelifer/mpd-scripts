@@ -1,0 +1,2 @@
+# Ignore a locally-created live config; only mpc-fade.conf.example is tracked
+mpc-fade.conf
