@@ -1,0 +1,2 @@
+# Ignore a locally-created live config; only music_queue_manager.conf.example is tracked
+music_queue_manager.conf
