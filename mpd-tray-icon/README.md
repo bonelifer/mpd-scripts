@@ -1,6 +1,6 @@
 # MPD Control Tray Icon
 
-A GTK3 tray icon showing the currently playing MPD track in its tooltip/menu, with Play/Pause, Next, and Previous controls. Based on [MPD_Tray](https://github.com/sc8/MPD_Tray/).
+A GTK3 tray icon showing the currently playing MPD track in its tooltip/menu, with Play/Pause, Next, and Previous controls.
 
 ## Requirements
 
@@ -22,6 +22,10 @@ The tray icon's label/tooltip shows the current track (or "Stopped"/"MPD not run
 - **Next**
 - **Previous**
 - **Quit**
+
+## Acknowledgments
+
+Based on [MPD_Tray](https://github.com/sc8/MPD_Tray/).
 
 ## License
 

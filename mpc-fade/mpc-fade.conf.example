@@ -1,0 +1,17 @@
+# Default PulseAudio application name to match in --pulse/-P mode.
+# Overridden by -a/--app on the command line.
+#
+# Set this by running `mpc-fade.sh -l` (or `--list-sinks`), which lists the
+# active PulseAudio sink inputs and saves your choice here, or edit it
+# directly.
+PULSE_APP="mpd"
+
+# Default fade duration (seconds) for -t/--toggle mode.
+# Overridden by -s/--secs on the command line.
+DEFAULT_SECS=2
+
+# Use a logarithmic (perceptually linear) fade curve by default instead of
+# a constant %/sec linear one. 1 = on, 0 = off.
+# -L/--log-curve on the command line only turns it on for that run; set
+# this to 1 to make log-curve fades your default everywhere.
+LOG_CURVE=0

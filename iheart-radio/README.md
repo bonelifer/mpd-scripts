@@ -1,7 +1,5 @@
 # mpd-scripts - iHeartRadio Script
 
-#### Based on the [StreamFinder::IHeartRadio Perl Module](https://metacpan.org/pod/StreamFinder::IHeartRadio) ([documentation](https://metacpan.org/pod/StreamFinder::IHeartRadio)) for interacting with iHeartRadio stations.
-
 ### Description
 
 This script interacts with the StreamFinder::IHeartRadio Perl module to fetch iHeartRadio station URLs and generates M3U playlists along with associated information.
@@ -38,6 +36,10 @@ Completed stations are tracked as marker files under `playlists/.completed/`; de
 Station URLs live in [`iheart-stations.txt`](./iheart-stations.txt), one iheart.com URL per line (blank lines and `#`-prefixed comments are ignored) — edit that file to add or remove stations instead of editing `iheart.pl`. By default the script reads `iheart-stations.txt` next to itself; point it at a different file with `--stations=FILE` (or `-f FILE`).
 
 By default the playlist/image filenames are derived from the station's title as fetched from iheart.com. To pin a specific filename instead, append it after a comma: `https://www.iheart.com/live/some-station/,My Station Name`.
+
+### Acknowledgments
+
+Based on the [StreamFinder::IHeartRadio Perl Module](https://metacpan.org/pod/StreamFinder::IHeartRadio) ([documentation](https://metacpan.org/pod/StreamFinder::IHeartRadio)) for interacting with iHeartRadio stations.
 
 ### License
 
