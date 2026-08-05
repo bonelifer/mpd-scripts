@@ -49,6 +49,7 @@ Collection of scripts related to mpd & mpc.
 | **[mpd-tray-icon](./mpd-tray-icon/)** | A GTK3 tray icon showing the currently playing MPD track, with Play/Pause/Next/Previous controls. |
 | **[mpd-radio-tray](./mpd-radio-tray/)** | A PyQt5 system tray app for managing and playing categorized internet radio station URLs with MPD, similar to RadioTray-NG. |
 | **[music_queue_manager](./music_queue_manager/)** | Manages song ratings and "bad" flags via MPD stickers: rate on a 5- or 10-point scale, flag/unflag broken songs, remove or jump to a random/top-rated song, and list or rescale ratings. |
+| **[mpd-recent-tracks](./mpd-recent-tracks/)** | Generates an M3U playlist (newest first) of music files added or modified in the last N days, optionally capped in size and auto-loaded into MPD, paused or playing. |
 
 ### Prerequisites
 Listed in each script's README.md.

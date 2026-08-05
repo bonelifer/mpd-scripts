@@ -283,6 +283,7 @@ SIMPLE_SCRIPTS=(
     "mpd-find-dup|mpd-remove-duplicates-queue.sh mpd-deduplicate-save-and-reload.sh|mpd-deduplicate-save-and-reload.conf.example"
     "mpd-queue-shuffle|mpd-queue-shuffle.sh|mpd-queue-shuffle.conf.example"
     "mpd-radio-tray|mpd-radio-tray.py|mpd-radio-tray.conf.example stations.txt.example"
+    "mpd-recent-tracks|mpd-recent-tracks.sh|mpd-recent-tracks.conf.example"
     "mpdsimilar|mpdsimilar.sh|mpdsimilar.conf.example"
     "mpd-tray-icon|mpd-tray-icon.py|"
     "music_queue_manager|music_queue_manager.sh|music_queue_manager.conf.example"

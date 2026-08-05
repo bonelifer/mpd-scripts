@@ -1,0 +1,2 @@
+# Ignore a locally-created live config; only mpd-recent-tracks.conf.example is tracked
+mpd-recent-tracks.conf
