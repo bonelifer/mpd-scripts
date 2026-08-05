@@ -181,9 +181,11 @@ setup_path() {
 }
 
 # apt packages required by at least one script below (optional extras like
-# ripgrep/parallel/ffmpeg/imagemagick/dunst are left to each script's own
-# first-run prompt, since they're feature-gated rather than always needed).
+# ripgrep/parallel/ffmpeg/imagemagick/dunst/pulseaudio-utils are left to each
+# script's own first-run prompt, since they're feature-gated rather than
+# always needed).
 APT_PACKAGES=(
+    bc
     mpc
     curl
     jq
@@ -278,6 +280,7 @@ SIMPLE_SCRIPTS=(
     "iheart-radio|iheart.pl|iheart-stations.txt"
     "tunein-radio|tunein.pl|tunein-radio-stations.txt"
     "lastfm-love|loved.py unloved.py|lastfm_common.py lastfm-love.conf.example"
+    "mpc-fade|mpc-fade.sh|mpc-fade.conf.example"
     "mpd-add-random|mpd-add-random.sh|mpd-add-random.conf.example"
     "mpd-add-random-artist|mpd-add-random-artist.sh|"
     "mpd-find-dup|mpd-remove-duplicates-queue.sh mpd-deduplicate-save-and-reload.sh|mpd-deduplicate-save-and-reload.conf.example"
