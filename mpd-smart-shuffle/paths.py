@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 # vim: ai ts=4 sw=4 sts=4 expandtab
 
-"""Shared config/state path handling for mpd-algo-playlist.
+"""Shared config/state path handling for mpd-smart-shuffle.
 
 Follows this repo's convention: user-editable settings live under
-~/.config/mpd-scripts/mpd-algo-playlist/, seeded from the .example
+~/.config/mpd-scripts/mpd-smart-shuffle/, seeded from the .example
 templates shipped alongside the scripts the first time any of them run;
 runtime state (LMDB database, PID file, monitor log) lives under
-~/.local/state/mpd-algo-playlist/.
+~/.local/state/mpd-smart-shuffle/.
 """
 
 import os
@@ -17,8 +17,8 @@ import configparser
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-CONFIG_DIR = Path.home() / ".config" / "mpd-scripts" / "mpd-algo-playlist"
-STATE_DIR = Path.home() / ".local" / "state" / "mpd-algo-playlist"
+CONFIG_DIR = Path.home() / ".config" / "mpd-scripts" / "mpd-smart-shuffle"
+STATE_DIR = Path.home() / ".local" / "state" / "mpd-smart-shuffle"
 
 CONFIG_FILE = CONFIG_DIR / "config.ini"
 

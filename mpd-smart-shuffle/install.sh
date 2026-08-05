@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-# mpd-algo-playlist installer
+# mpd-smart-shuffle installer
 #
 # Installs client.py/db.py/paths.py/monitor.py/randomtrack.py/db_admin.py
 # (and their .example config/list templates) to ~/bin, then offers to also
@@ -17,7 +17,7 @@ INSTALL_DIR="$HOME/bin"
 SCRIPT_FILES="client.py db.py paths.py monitor.py randomtrack.py db_admin.py"
 TEMPLATE_FILES="config.ini.example exclude_files.txt.example exclude_artists.txt.example exclude_genres.txt.example notify_urls.txt.example"
 
-echo "Installing mpd-algo-playlist..."
+echo "Installing mpd-smart-shuffle..."
 
 echo "Installing Python dependencies (python-mpd2, lmdb, mutagen, python-dateutil)..."
 pip3 install --user python-mpd2 lmdb mutagen python-dateutil
@@ -44,7 +44,7 @@ done
 
 echo
 echo "Installed. config.ini and the exclude/notify list files get seeded into"
-echo "~/.config/mpd-scripts/mpd-algo-playlist/ the first time you run any script"
+echo "~/.config/mpd-scripts/mpd-smart-shuffle/ the first time you run any script"
 echo "(monitor.py, randomtrack.py, or db_admin.py) - edit the copies there."
 echo
 echo "Set music_dir (and anything else you want to change) in that config"

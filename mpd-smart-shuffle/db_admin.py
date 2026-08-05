@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # vim: ai ts=4 sw=4 sts=4 expandtab
 
-"""Maintenance CLI for the mpd-algo-playlist LMDB database."""
+"""Maintenance CLI for the mpd-smart-shuffle LMDB database."""
 
 import argparse
 from db import env, playcount, backup_database, compact_database
@@ -29,7 +29,7 @@ def cmd_stats(args):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Maintenance utility for mpd-algo-playlist's LMDB database")
+    ap = argparse.ArgumentParser(description="Maintenance utility for mpd-smart-shuffle's LMDB database")
     sub = ap.add_subparsers(dest="command", required=True)
 
     p_compact = sub.add_parser("compact", help="Write a compacted copy of the database")

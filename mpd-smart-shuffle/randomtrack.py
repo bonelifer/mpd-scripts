@@ -284,7 +284,7 @@ def notify_low_eligible(playlistlen, target, attempts):
     for url in urls:
         ap.add(url)
     ap.notify(
-        title="mpd-algo-playlist: running low on eligible tracks",
+        title="mpd-smart-shuffle: running low on eligible tracks",
         body=(
             f"Only reached {playlistlen}/{target} tracks after {attempts} attempts. "
             "The library may need more tracks, or min_replay_days may be too strict."

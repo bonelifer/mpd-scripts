@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-# mpd-algo-playlist monitor systemd --user service installer
+# mpd-smart-shuffle monitor systemd --user service installer
 #
 # Installs and enables monitor.py as a systemd --user service, giving
 # auto-restart on crash and journald logging. Run install.sh first (or make
@@ -9,7 +9,7 @@
 
 set -e  # Exit on error
 
-UNIT_NAME="mpd-algo-playlist-monitor.service"
+UNIT_NAME="mpd-smart-shuffle-monitor.service"
 UNIT_DIR="$HOME/.config/systemd/user"  # Per-user systemd unit search path
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -30,4 +30,4 @@ echo "Installation complete! Check status with:"
 echo "  systemctl --user status $UNIT_NAME"
 echo "View logs with:"
 echo "  journalctl --user -u $UNIT_NAME -f"
-echo "(or ~/.local/state/mpd-algo-playlist/monitor.log, which the daemon also writes itself)"
+echo "(or ~/.local/state/mpd-smart-shuffle/monitor.log, which the daemon also writes itself)"

@@ -1,5 +1,5 @@
 [Unit]
-Description=MPD Algo Playlist Monitor
+Description=MPD Smart Shuffle Monitor
 After=network.target sound.target
 
 [Service]

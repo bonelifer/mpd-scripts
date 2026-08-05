@@ -1,4 +1,4 @@
-# MPD Algo Playlist
+# MPD Smart Shuffle
 
 A smarter shuffle for [MPD](https://www.musicpd.org/). `monitor.py` runs in the background and records play history (last-played time, skip counts, play counts) as tracks actually play; `randomtrack.py` (run periodically via cron) uses that history to top up the MPD queue with tracks that haven't played recently, while dodging out-of-season holiday music, respecting exclude lists, favoring new additions, and more - all individually toggleable. `db_admin.py` is a small maintenance CLI for the underlying database.
 
@@ -33,9 +33,9 @@ Run [`./install.sh`](./install.sh) (or let the root [`../install.sh`](../install
 
 1. Installs the required Python dependencies (and optionally `apprise`).
 2. Copies `client.py`, `db.py`, `paths.py`, `monitor.py`, `randomtrack.py`, `db_admin.py`, and the `.example` config/list templates to `~/bin`.
-3. Offers to install `monitor.py` as an optional `systemd --user` background service (see [`install-systemd.sh`](./install-systemd.sh) / [`mpd-algo-playlist-monitor.service`](./mpd-algo-playlist-monitor.service)) - not required; `randomtrack.py` and `db_admin.py` work fine without it, but recency-based selection (`weighted_selection`, `min_replay_days`, etc.) needs `monitor.py` running to actually build up play history.
+3. Offers to install `monitor.py` as an optional `systemd --user` background service (see [`install-systemd.sh`](./install-systemd.sh) / [`mpd-smart-shuffle-monitor.service`](./mpd-smart-shuffle-monitor.service)) - not required; `randomtrack.py` and `db_admin.py` work fine without it, but recency-based selection (`weighted_selection`, `min_replay_days`, etc.) needs `monitor.py` running to actually build up play history.
 
-`config.ini` and the exclude/notify list files get seeded automatically, the first time any of the three scripts runs, from their `.example` templates into `~/.config/mpd-scripts/mpd-algo-playlist/` - edit the copies there, not the templates. **Set `music_dir` before running `randomtrack.py` for real** - it must match MPD's own `music_directory`, since tracks are queued by path relative to it.
+`config.ini` and the exclude/notify list files get seeded automatically, the first time any of the three scripts runs, from their `.example` templates into `~/.config/mpd-scripts/mpd-smart-shuffle/` - edit the copies there, not the templates. **Set `music_dir` before running `randomtrack.py` for real** - it must match MPD's own `music_directory`, since tracks are queued by path relative to it.
 
 ## Usage
 
@@ -49,12 +49,12 @@ randomtrack.py -n [COUNT]    # --dry-run: log what would be queued without chang
 Add `randomtrack.py` to your crontab to run it periodically:
 
 ```cron
-@hourly /home/youruser/bin/randomtrack.py >> ~/.local/state/mpd-algo-playlist/randomtrack.log 2>&1
+@hourly /home/youruser/bin/randomtrack.py >> ~/.local/state/mpd-smart-shuffle/randomtrack.log 2>&1
 ```
 
 ## Configuration
 
-Settings live in `~/.config/mpd-scripts/mpd-algo-playlist/config.ini`, seeded from [`config.ini.example`](./config.ini.example) on first run:
+Settings live in `~/.config/mpd-scripts/mpd-smart-shuffle/config.ini`, seeded from [`config.ini.example`](./config.ini.example) on first run:
 
 ```ini
 [mpd]
@@ -104,7 +104,7 @@ start = 4th-thu-of-nov+1
 end = 01-15
 ```
 
-`db_file` and the `[exclude]`/`[notify]` list-file values resolve relative to `~/.local/state/mpd-algo-playlist/` and `~/.config/mpd-scripts/mpd-algo-playlist/` respectively (not the install directory) unless given as absolute paths.
+`db_file` and the `[exclude]`/`[notify]` list-file values resolve relative to `~/.local/state/mpd-smart-shuffle/` and `~/.config/mpd-scripts/mpd-smart-shuffle/` respectively (not the install directory) unless given as absolute paths.
 
 ### Season Date Syntax
 
@@ -195,7 +195,7 @@ db_admin.py stats -n 10
 
 ## Logging
 
-`monitor.py` logs to `~/.local/state/mpd-algo-playlist/monitor.log` (and the console, or `journalctl --user -u mpd-algo-playlist-monitor.service` if installed as a systemd service). `randomtrack.py` and `db_admin.py` log to the console only - redirect output yourself (e.g. the cron example above) if you want a persistent log.
+`monitor.py` logs to `~/.local/state/mpd-smart-shuffle/monitor.log` (and the console, or `journalctl --user -u mpd-smart-shuffle-monitor.service` if installed as a systemd service). `randomtrack.py` and `db_admin.py` log to the console only - redirect output yourself (e.g. the cron example above) if you want a persistent log.
 
 ## Troubleshooting
 
@@ -206,11 +206,11 @@ db_admin.py stats -n 10
 ## Uninstallation
 
 ```bash
-systemctl --user disable --now mpd-algo-playlist-monitor.service 2>/dev/null
-rm -f ~/.config/systemd/user/mpd-algo-playlist-monitor.service
+systemctl --user disable --now mpd-smart-shuffle-monitor.service 2>/dev/null
+rm -f ~/.config/systemd/user/mpd-smart-shuffle-monitor.service
 rm -f ~/bin/client.py ~/bin/db.py ~/bin/paths.py ~/bin/monitor.py ~/bin/randomtrack.py ~/bin/db_admin.py
 rm -f ~/bin/config.ini.example ~/bin/exclude_files.txt.example ~/bin/exclude_artists.txt.example ~/bin/exclude_genres.txt.example ~/bin/notify_urls.txt.example
-rm -rf ~/.local/state/mpd-algo-playlist ~/.config/mpd-scripts/mpd-algo-playlist
+rm -rf ~/.local/state/mpd-smart-shuffle ~/.config/mpd-scripts/mpd-smart-shuffle
 ```
 
 Also remove the `randomtrack.py` cron entry if you added one.

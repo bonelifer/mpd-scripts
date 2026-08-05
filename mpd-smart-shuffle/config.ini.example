@@ -1,6 +1,6 @@
-# mpd-algo-playlist configuration
+# mpd-smart-shuffle configuration
 #
-# Copied to ~/.config/mpd-scripts/mpd-algo-playlist/config.ini on first run
+# Copied to ~/.config/mpd-scripts/mpd-smart-shuffle/config.ini on first run
 # of any of monitor.py/randomtrack.py/db_admin.py, if that file doesn't
 # already exist. Edit the copy there, not this template.
 
@@ -11,7 +11,7 @@ password =
 
 [paths]
 music_dir = /path/to/your/music
-# Relative paths resolve against ~/.local/state/mpd-algo-playlist/, not this
+# Relative paths resolve against ~/.local/state/mpd-smart-shuffle/, not this
 # directory - that's where the LMDB database, PID file, and monitor log all
 # live once installed.
 db_file = status.lmdb
@@ -56,7 +56,7 @@ spread_insertion = true
 [exclude]
 # Plain text files, one entry per line, '#' comments and blank lines
 # ignored. Leave a value empty to skip that exclusion type. Relative paths
-# resolve against ~/.config/mpd-scripts/mpd-algo-playlist/, where these are
+# resolve against ~/.config/mpd-scripts/mpd-smart-shuffle/, where these are
 # seeded from their own .example templates on first run - edit the copies
 # there, not the templates.
 files = exclude_files.txt
