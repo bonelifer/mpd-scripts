@@ -1,0 +1,17 @@
+# Symbol printed before the title while MPD is playing.
+SYMBOL_PLAYING="►"
+
+# Symbol printed before the title while MPD is paused.
+SYMBOL_PAUSED="∎∎"
+
+# Symbol printed alone (no title) while MPD is stopped.
+SYMBOL_STOPPED="■"
+
+# Truncate the title to this many characters, appending an ellipsis when
+# it's cut short. Overridden by -l/--max-len on the command line.
+# 0 = no truncation.
+MAX_LEN=0
+
+# Title shown when MPD reports an empty current-track line (e.g. some
+# internet radio streams with no tags).
+FALLBACK_TITLE="(unknown track)"

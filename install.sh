@@ -290,6 +290,7 @@ SIMPLE_SCRIPTS=(
     "mpdsimilar|mpdsimilar.sh|mpdsimilar.conf.example"
     "mpd-tray-icon|mpd-tray-icon.py|"
     "music_queue_manager|music_queue_manager.sh|music_queue_manager.conf.example"
+    "playpause|playpause.sh|playpause.conf.example"
     "rm-artists-playlist|rm-artists-playlist.sh|rm-artists-playlist.conf.example"
     "rm-duplicates-playlist|rm-duplicates-playlist.sh|rm-duplicates-playlist.conf.example"
     "somafm|soma_fm_playlist_fetcher.py|"

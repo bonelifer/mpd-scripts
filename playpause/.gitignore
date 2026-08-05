@@ -1,0 +1,2 @@
+# Ignore a locally-created live config; only playpause.conf.example is tracked
+playpause.conf
