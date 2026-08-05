@@ -7,16 +7,19 @@ This script **automatically generates a playlist** of songs **added or modified 
 - **Customizable time range**: Specify the number of days via `-d/--days` (default: 30).
 - **Newest-first ordering**: Songs are sorted by modification time, most recent first.
 - **Optional size cap**: `-n/--limit` caps the playlist at N songs (still newest first).
+- **Optional random sample**: `-r/--random` picks N songs at random from the recent-tracks pool instead of the newest N. Requires `shuf`; cannot be combined with `-n/--limit`.
 - **Automatic playlist generation**: Finds recent music files and adds them to an `.m3u` playlist, with paths relative to `MUSIC_DIR` so MPD can resolve them.
 - **Optional auto-load into MPD**: `-l/--load` runs `mpc load` on the generated playlist afterwards, leaving it paused unless `-p/--play` is also given.
 - **Cron-friendly quiet mode**: `-q/--quiet` suppresses informational output; errors still print.
-- **Supports common audio formats**: `mp3`, `m4a`, `flac`, `ogg`.
+- **Configurable audio formats**: `EXTENSIONS` in the config controls which file extensions are scanned (default: `mp3 m4a flac ogg`).
+- **Exclude patterns**: `exclude_paths.txt` lists glob patterns (relative to `MUSIC_DIR`) to skip, e.g. an entire `Podcasts/` folder.
 - **Removes empty playlists**: If no new songs are found, the existing playlist is deleted. A failed run (e.g. a permission error) never touches an existing playlist — the new one is only swapped in once generation succeeds.
 
 ## Requirements
 - **MPD (Music Player Daemon)**
 - **Bash (Linux/macOS)**
 - **`find`** utility (with GNU-style `-printf` support)
+- **`shuf`**, only if using `-r/--random`
 - **`mpc`**, only if using `-l/--load`
 
 ## Configuration
@@ -25,12 +28,14 @@ On first run, a config file is created at
 from `mpd-recent-tracks.conf.example`. Edit the copy there, not the
 template, then run the script again.
 
-| Variable           | Description                                       | Default Value              |
-|--------------------|----------------------------------------------------|-----------------------------|
-| `PLAYLIST_DIR`     | Path to the MPD playlist directory                 | `/path/to/mpd/playlists`   |
-| `MUSIC_DIR`        | Path to the music directory                        | `/path/to/Music`           |
-| `PLAYLIST_TITLE`   | Name of the generated playlist                     | `Recently Added`           |
-| `DEFAULT_DAYS_OLD` | Default number of days if `-d/--days` isn't given  | `30`                       |
+| Variable           | Description                                                  | Default Value              |
+|--------------------|----------------------------------------------------------------|-----------------------------|
+| `PLAYLIST_DIR`     | Path to the MPD playlist directory                            | `/path/to/mpd/playlists`   |
+| `MUSIC_DIR`        | Path to the music directory                                   | `/path/to/Music`           |
+| `PLAYLIST_TITLE`   | Name of the generated playlist                                | `Recently Added`           |
+| `DEFAULT_DAYS_OLD` | Default number of days if `-d/--days` isn't given             | `30`                       |
+| `EXTENSIONS`       | Space-separated file extensions (no leading dot) to scan for  | `mp3 m4a flac ogg`         |
+| `EXCLUDE_FILE`     | Exclude-patterns filename, resolved relative to the config dir| `exclude_paths.txt`        |
 
 ### Playlist Location
 - The generated playlist will be located at:
@@ -38,15 +43,31 @@ template, then run the script again.
   [PLAYLIST_DIR]/[PLAYLIST_TITLE].m3u
   ```
 
+### Excluding paths
+`exclude_paths.txt` (seeded from `exclude_paths.txt.example` into the same
+config directory as `mpd-recent-tracks.conf`) lists one glob pattern per
+line, matched against each file's path relative to `MUSIC_DIR`:
+
+```
+# Exclude an entire top-level folder
+Podcasts/*
+# Exclude any "Live" subfolder one level down
+*/Live/*
+```
+
+Lines starting with `#` and blank lines are ignored. Leave the file with
+no active patterns to disable exclusion entirely.
+
 ## Usage
 ### Running the script:
 ```bash
-./mpd-recent-tracks.sh [-d <days>] [-n <limit>] [-q] [-l [-p]]
+./mpd-recent-tracks.sh [-d <days>] [-n <limit> | -r <count>] [-q] [-l [-p]]
 ```
 
 ### Available Options
 - **-d, --days N**: Number of days to look back for recently added/modified files. If not given, uses `DEFAULT_DAYS_OLD` from the config.
 - **-n, --limit N**: Cap the playlist at N songs (newest first).
+- **-r, --random N**: Pick N songs at random from the recent-tracks pool, instead of the newest N. Requires `shuf`. Errors if combined with `-n/--limit`.
 - **-q, --quiet**: Suppress informational output; only errors are printed.
 - **-l, --load**: Load the generated playlist into MPD via `mpc load` after creating it. Requires `mpc`. Playback is left paused unless `-p/--play` is also given.
 - **-p, --play**: With `-l/--load`, also start playback via `mpc play` after loading. Errors if given without `-l/--load`.
@@ -64,6 +85,10 @@ template, then run the script again.
 - **Cap it at the 20 newest songs**:
   ```bash
   ./mpd-recent-tracks.sh -n 20
+  ```
+- **Pick 20 random songs from the recent-tracks pool**:
+  ```bash
+  ./mpd-recent-tracks.sh -r 20
   ```
 - **Generate and load into MPD paused, suitable for a cron job**:
   ```bash

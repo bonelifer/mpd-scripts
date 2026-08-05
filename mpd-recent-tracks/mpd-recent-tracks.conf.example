@@ -17,3 +17,13 @@ PLAYLIST_TITLE="Recently Added"
 
 # Default number of days to look back when -d/--days isn't given.
 DEFAULT_DAYS_OLD=30
+
+# Space-separated file extensions (without the leading dot) to include
+# when scanning MUSIC_DIR.
+EXTENSIONS="mp3 m4a flac ogg"
+
+# Name of the exclude-patterns file, resolved relative to this config's
+# own directory (~/.config/mpd-scripts/mpd-recent-tracks/). Seeded from
+# exclude_paths.txt.example on first run. Leave every line commented out
+# (or the file empty) to disable exclusion.
+EXCLUDE_FILE="exclude_paths.txt"

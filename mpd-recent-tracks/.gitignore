@@ -1,2 +1,4 @@
-# Ignore a locally-created live config; only mpd-recent-tracks.conf.example is tracked
+# Ignore locally-created live config/exclude files; only the .example
+# templates are tracked
 mpd-recent-tracks.conf
+exclude_paths.txt
