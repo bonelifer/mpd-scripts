@@ -1,0 +1,12 @@
+[Unit]
+Description=MPD Algo Playlist Monitor
+After=network.target sound.target
+
+[Service]
+Type=simple
+ExecStart=%h/bin/monitor.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

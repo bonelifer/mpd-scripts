@@ -1,0 +1,4 @@
+# One genre per line, matched case-insensitively against the GENRE tag.
+# Unlike seasonal_filters (which only excludes a genre outside its date
+# window), a genre listed here is always excluded. Lines starting with '#'
+# and blank lines are ignored.

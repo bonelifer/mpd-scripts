@@ -1,0 +1,5 @@
+# Config/state live entirely outside this directory now
+# (~/.config/mpd-scripts/mpd-algo-playlist/, ~/.local/state/mpd-algo-playlist/);
+# nothing local to ignore there, but keep bytecode out.
+__pycache__/
+*.pyc

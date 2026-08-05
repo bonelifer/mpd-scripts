@@ -14,8 +14,8 @@
 #    alongside it, e.g. a .conf.example template or a stations list) into
 #    the directory chosen in step 2, and installs MPD Notifier via its own
 #    installer.
-# 5. Offers to install the optional MPD Rewind Daemon and volume control
-#    scripts, each delegating to its own installer.
+# 5. Offers to install the optional MPD Rewind Daemon, mpd-algo-playlist,
+#    and volume control scripts, each delegating to its own installer.
 #
 # Run this once; no manual copying into your PATH is needed afterwards.
 
@@ -345,6 +345,29 @@ offer_mpd_rewind_daemon() {
     fi
 }
 
+# Offers to install the optional mpd-algo-playlist tool (background play
+# monitor + smarter random-queue-fill script), delegating to its own
+# installer if you say yes, for the same reason as offer_mpd_rewind_daemon
+# above -- it's multi-file and has its own optional systemd --user service
+# to offer, both better handled by its own install.sh than the generic
+# SIMPLE_SCRIPTS mechanism.
+offer_mpd_algo_playlist() {
+    local algo_installer="$SCRIPT_DIR/mpd-algo-playlist/install.sh"
+
+    if [ ! -x "$algo_installer" ]; then
+        return
+    fi
+
+    echo
+    read -r -p "Also install the optional mpd-algo-playlist tool (smarter random queue-fill with play history)? [y/N] " REPLY
+
+    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+        "$algo_installer" || echo "mpd-algo-playlist installation did not complete successfully; you can retry with mpd-algo-playlist/install.sh." >&2
+    else
+        echo "Skipped. Run mpd-algo-playlist/install.sh later if you change your mind."
+    fi
+}
+
 # Installs MPD Notifier (desktop notification on track change) by
 # delegating to its own installer, unconditionally -- unlike the rewind
 # daemon or volume scripts below, there's no conflicting choice to make
@@ -413,5 +436,6 @@ install_dependencies
 copy_simple_scripts
 install_mpd_notifier
 offer_mpd_rewind_daemon
+offer_mpd_algo_playlist
 offer_volume_scripts
 print_migration_summary

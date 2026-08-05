@@ -1,0 +1,4 @@
+# One apprise URL per line, e.g.:
+# mailto://user:pass@gmail.com
+# tgram://bot_token/chat_id
+# Lines starting with '#' and blank lines are ignored.

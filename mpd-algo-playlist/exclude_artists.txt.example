@@ -1,0 +1,2 @@
+# One artist name per line, matched case-insensitively against the
+# ARTIST tag. Lines starting with '#' and blank lines are ignored.
