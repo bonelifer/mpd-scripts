@@ -1,0 +1,14 @@
+# music_queue_manager.conf
+#
+# Copied to ~/.config/mpd-scripts/music_queue_manager/music_queue_manager.conf on
+# first run if that file doesn't already exist. Edit the copy there, not
+# this template.
+
+# Rating scale for the `rate` command: 5 or 10.
+# Sets the maximum value accepted by `rate` and shown in usage.
+RATING_SCALE=10
+
+# How `top_rated` breaks ties for the highest rating: "single" or "random".
+# single: always jumps to the same song among ties.
+# random: picks randomly among all songs tied for the highest rating.
+TOP_RATED_MODE=single
