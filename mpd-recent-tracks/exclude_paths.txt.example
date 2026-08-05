@@ -1,0 +1,6 @@
+# One glob pattern per line, matched against each file's path relative to
+# MUSIC_DIR (the same relative form written into the generated playlist).
+# Standard bash glob syntax applies, e.g.:
+#   Podcasts/*     excludes everything under a top-level Podcasts folder
+#   */Live/*       excludes any "Live" subfolder one level down
+# Lines starting with '#' and blank lines are ignored.
