@@ -1,0 +1,92 @@
+# MPD Recent Songs Playlist Creator
+
+## Overview
+This script **automatically generates a playlist** of songs **added or modified in the last X days** in your MPD library. It scans the configured music directory, finds recent files, and creates a new `.m3u` playlist, newest song first.
+
+## Features
+- **Customizable time range**: Specify the number of days via `-d/--days` (default: 30).
+- **Newest-first ordering**: Songs are sorted by modification time, most recent first.
+- **Optional size cap**: `-n/--limit` caps the playlist at N songs (still newest first).
+- **Automatic playlist generation**: Finds recent music files and adds them to an `.m3u` playlist, with paths relative to `MUSIC_DIR` so MPD can resolve them.
+- **Optional auto-load into MPD**: `-l/--load` runs `mpc load` on the generated playlist afterwards, leaving it paused unless `-p/--play` is also given.
+- **Cron-friendly quiet mode**: `-q/--quiet` suppresses informational output; errors still print.
+- **Supports common audio formats**: `mp3`, `m4a`, `flac`, `ogg`.
+- **Removes empty playlists**: If no new songs are found, the existing playlist is deleted. A failed run (e.g. a permission error) never touches an existing playlist — the new one is only swapped in once generation succeeds.
+
+## Requirements
+- **MPD (Music Player Daemon)**
+- **Bash (Linux/macOS)**
+- **`find`** utility (with GNU-style `-printf` support)
+- **`mpc`**, only if using `-l/--load`
+
+## Configuration
+On first run, a config file is created at
+`~/.config/mpd-scripts/mpd-recent-tracks/mpd-recent-tracks.conf`, seeded
+from `mpd-recent-tracks.conf.example`. Edit the copy there, not the
+template, then run the script again.
+
+| Variable           | Description                                       | Default Value              |
+|--------------------|----------------------------------------------------|-----------------------------|
+| `PLAYLIST_DIR`     | Path to the MPD playlist directory                 | `/path/to/mpd/playlists`   |
+| `MUSIC_DIR`        | Path to the music directory                        | `/path/to/Music`           |
+| `PLAYLIST_TITLE`   | Name of the generated playlist                     | `Recently Added`           |
+| `DEFAULT_DAYS_OLD` | Default number of days if `-d/--days` isn't given  | `30`                       |
+
+### Playlist Location
+- The generated playlist will be located at:
+  ```
+  [PLAYLIST_DIR]/[PLAYLIST_TITLE].m3u
+  ```
+
+## Usage
+### Running the script:
+```bash
+./mpd-recent-tracks.sh [-d <days>] [-n <limit>] [-q] [-l [-p]]
+```
+
+### Available Options
+- **-d, --days N**: Number of days to look back for recently added/modified files. If not given, uses `DEFAULT_DAYS_OLD` from the config.
+- **-n, --limit N**: Cap the playlist at N songs (newest first).
+- **-q, --quiet**: Suppress informational output; only errors are printed.
+- **-l, --load**: Load the generated playlist into MPD via `mpc load` after creating it. Requires `mpc`. Playback is left paused unless `-p/--play` is also given.
+- **-p, --play**: With `-l/--load`, also start playback via `mpc play` after loading. Errors if given without `-l/--load`.
+- **-h, --help**: Show usage and exit.
+
+### Example Commands:
+- **Generate a playlist for songs added in the last 10 days**:
+  ```bash
+  ./mpd-recent-tracks.sh -d 10
+  ```
+- **Use the configured default days**:
+  ```bash
+  ./mpd-recent-tracks.sh
+  ```
+- **Cap it at the 20 newest songs**:
+  ```bash
+  ./mpd-recent-tracks.sh -n 20
+  ```
+- **Generate and load into MPD paused, suitable for a cron job**:
+  ```bash
+  ./mpd-recent-tracks.sh -q -l
+  ```
+- **Generate, load, and start playing immediately**:
+  ```bash
+  ./mpd-recent-tracks.sh -l -p
+  ```
+
+## Error Handling
+- On first run, or if `PLAYLIST_DIR`/`MUSIC_DIR` in the config are still the placeholder values, the script exits with an error telling you to edit the config.
+- If the playlist or music directories don't exist, the script exits with an error.
+- If `find` fails partway through (e.g. a permission error on a subdirectory), the script reports the failure and leaves any existing playlist untouched.
+- If no recent songs are found (and the scan itself succeeded), the existing playlist is deleted.
+
+## Example Output
+```bash
+Created the 'Recently Added' playlist with 42 songs at /path/to/mpd/playlists/Recently Added.m3u.
+```
+
+## License
+
+This project is licensed under the **GNU General Public License v3.0**.
+
+See [LICENSE](../LICENSE) for more information.

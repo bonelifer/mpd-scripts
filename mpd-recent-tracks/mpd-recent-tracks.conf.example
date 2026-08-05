@@ -1,0 +1,19 @@
+# mpd-recent-tracks.conf
+#
+# Copied to ~/.config/mpd-scripts/mpd-recent-tracks/mpd-recent-tracks.conf on
+# first run if that file doesn't already exist. Edit the copy there, not
+# this template.
+
+# Path to the MPD playlist directory. Must match MPD's own
+# playlist_directory. No trailing slash required.
+PLAYLIST_DIR="/path/to/mpd/playlists"
+
+# Path to the music library directory. Must match MPD's own music_directory.
+# No trailing slash required.
+MUSIC_DIR="/path/to/Music"
+
+# Name of the generated playlist, without the .m3u extension.
+PLAYLIST_TITLE="Recently Added"
+
+# Default number of days to look back when -d/--days isn't given.
+DEFAULT_DAYS_OLD=30
