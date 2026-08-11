@@ -1,0 +1,36 @@
+# alarmpd configuration
+#
+# Copied to ~/.config/mpd-scripts/alarmpd/alarmpd.conf on first run if that
+# file doesn't already exist. Edit the copy there, not this template.
+
+[alarmpd]
+
+# MPD connection details. Can be overridden per invocation with
+# -H/--host, -P/--port, -a/--password.
+mpd_host = localhost
+mpd_port = 6600
+
+# Leave blank unless your MPD requires a password.
+mpd_password =
+
+# How often (in seconds) to re-scan stored playlists for schedule changes
+# while no alarm is imminent.
+interval = 20
+
+# Seconds to go from 0 to 100% volume when an alarm fires. An alarm's own
+# "max=" suffix caps how far it fades, at this same seconds-per-percent
+# rate, so a lower cap finishes proportionally faster. Set to 0 to disable
+# fading and jump straight to the target volume.
+fade_duration = 600
+
+# Volume an alarm fades to (or jumps to, if fade_duration is 0) when its
+# name doesn't include its own "max=" override.
+default_max_volume = 100
+
+# Optional shell commands run when an alarm fires. pre_alarm_hook runs
+# right before the playlist starts playing; post_alarm_hook runs once the
+# fade reaches its target (or immediately, if fade_duration is 0). Leave
+# blank to disable either. Skipped alarms (see the "~" prefix in the
+# README) run neither hook.
+pre_alarm_hook =
+post_alarm_hook =
