@@ -27,3 +27,14 @@ EXTENSIONS="mp3 m4a flac ogg"
 # exclude_paths.txt.example on first run. Leave every line commented out
 # (or the file empty) to disable exclusion.
 EXCLUDE_FILE="exclude_paths.txt"
+
+# Named time-window presets used by -P/--presets: one "NAME:DAYS" string
+# per array element. NAME becomes that playlist's title (avoid spaces --
+# use underscores instead, since NAME is split on the first ":" alone).
+# DAYS is how many days back to look for that entry. Each preset produces
+# its own "$PLAYLIST_DIR/NAME.m3u", independent of PLAYLIST_TITLE above.
+PRESETS=(
+    "New_Last_Week:7"
+    "New_Last_Month:31"
+    "New_Last_Year:365"
+)
