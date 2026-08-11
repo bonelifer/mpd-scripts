@@ -1,0 +1,52 @@
+# mpd-auto-stop configuration
+#
+# Copied to ~/.config/mpd-scripts/mpd-auto-stop/mpd-auto-stop.conf on first
+# run if that file doesn't already exist. Edit the copy there, not this
+# template.
+
+[mpd-auto-stop]
+
+# Address/port the web server itself listens on. Can be overridden per
+# invocation with -a/--http-host, -p/--http-port.
+http_host = 0.0.0.0
+http_port = 9090
+
+# Optional HTTP Basic Auth, since the server has no other access control
+# and listens on 0.0.0.0 by default -- anyone on the same network can
+# otherwise start/stop your timer. Leave both blank to disable (the
+# default). If set, every request (including the web UI itself) requires
+# these credentials. Can be overridden per invocation with
+# -U/--http-username, -W/--http-password.
+http_username =
+http_password =
+
+# MPD connection details. Can be overridden per invocation with
+# -H/--mpd-host, -P/--mpd-port, -w/--mpd-password.
+mpd_host = localhost
+mpd_port = 6600
+
+# Leave blank unless your MPD requires a password.
+mpd_password =
+
+# Seconds to fade the volume from its current level down to 0, ending
+# exactly when the timer would otherwise fire -- e.g. a 1h timer with
+# fade_duration=300 stays at full volume until 55 minutes in, then tapers
+# off over the last 5 minutes. Set to 0 to skip fading and pause instantly,
+# like the original tool this is based on. The volume is restored to its
+# pre-fade level right after pausing, so the next play isn't silently at 0.
+fade_duration = 300
+
+# Fire warning_hook this many seconds before the timer would fire (0
+# disables the warning entirely). Independent of fade_duration -- it
+# fires at its own configured offset regardless of whether that lands
+# before, during, or after the fade.
+warning_lead_time = 60
+
+# Optional shell commands. warning_hook runs warning_lead_time before the
+# timer fires; stop_hook runs right after playback is actually paused.
+# Leave blank to disable either. Useful for a desktop notification
+# (notify-send), a push notification (e.g. curl to ntfy.sh/your-topic), or
+# a home-automation webhook -- whatever fits a given machine, since this
+# is commonly run headless with no notification daemon of its own.
+warning_hook =
+stop_hook =

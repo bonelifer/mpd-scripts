@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MPD Auto Stop</title>
+<style>
+  :root {
+    --bg: #f5f5f5;
+    --fg: #1a1a1a;
+    --muted: #666;
+    --button-bg: #ffffff;
+    --button-border: #ccc;
+    --button-hover: #e8e8e8;
+    --accent: #2a6f97;
+    --accent-fg: #ffffff;
+    --danger: #a33;
+    --danger-fg: #ffffff;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1e;
+      --fg: #e8e8e8;
+      --muted: #a0a0a0;
+      --button-bg: #2a2a2a;
+      --button-border: #444;
+      --button-hover: #383838;
+      --accent: #4d9fd6;
+      --accent-fg: #101010;
+      --danger: #c46;
+      --danger-fg: #101010;
+    }
+  }
+
+  html[data-theme="light"] {
+    --bg: #f5f5f5;
+    --fg: #1a1a1a;
+    --muted: #666;
+    --button-bg: #ffffff;
+    --button-border: #ccc;
+    --button-hover: #e8e8e8;
+    --accent: #2a6f97;
+    --accent-fg: #ffffff;
+    --danger: #a33;
+    --danger-fg: #ffffff;
+  }
+
+  html[data-theme="dark"] {
+    --bg: #1e1e1e;
+    --fg: #e8e8e8;
+    --muted: #a0a0a0;
+    --button-bg: #2a2a2a;
+    --button-border: #444;
+    --button-hover: #383838;
+    --accent: #4d9fd6;
+    --accent-fg: #101010;
+    --danger: #c46;
+    --danger-fg: #101010;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: system-ui, sans-serif, verdana;
+    background: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    padding: 1.5rem;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    text-align: center;
+    margin: 0.5rem 0 1.5rem;
+  }
+
+  .theme-picker {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .theme-picker button {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+  }
+
+  .theme-picker button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-color: var(--accent);
+  }
+
+  #status {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 1rem 0;
+    min-height: 2.2rem;
+  }
+
+  #status.fading {
+    color: var(--danger);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+
+  button {
+    font-size: 1rem;
+    padding: 0.7rem;
+    border-radius: 0.4rem;
+    border: 1px solid var(--button-border);
+    background: var(--button-bg);
+    color: var(--fg);
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: var(--button-hover);
+  }
+
+  button:active {
+    transform: scale(0.98);
+  }
+
+  .row {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .row button {
+    flex: 1;
+  }
+
+  #cancel-btn {
+    width: 100%;
+    background: var(--danger);
+    color: var(--danger-fg);
+    border-color: var(--danger);
+  }
+
+  form#custom-form {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  form#custom-form input {
+    flex: 1;
+    font-size: 1rem;
+    padding: 0.6rem;
+    border-radius: 0.4rem;
+    border: 1px solid var(--button-border);
+    background: var(--button-bg);
+    color: var(--fg);
+  }
+
+  #error {
+    color: var(--danger);
+    text-align: center;
+    min-height: 1.2rem;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>MPD Auto Stop</h1>
+
+<div class="theme-picker" role="group" aria-label="Theme">
+  <button type="button" data-theme-choice="light">Light</button>
+  <button type="button" data-theme-choice="dark">Dark</button>
+  <button type="button" data-theme-choice="auto">Auto</button>
+</div>
+
+<div id="status">Loading&hellip;</div>
+<div id="error"></div>
+
+<div class="grid">
+  <button type="button" data-duration="15m">+15m</button>
+  <button type="button" data-duration="30m">+30m</button>
+  <button type="button" data-duration="45m">+45m</button>
+  <button type="button" data-duration="1h">+1h</button>
+  <button type="button" data-duration="1.5h">+1.5h</button>
+  <button type="button" data-duration="2h">+2h</button>
+</div>
+
+<form id="custom-form">
+  <input type="text" id="custom-duration" placeholder="e.g. 20m, 1h, 90s" pattern="[0-9.]+[smh]" required>
+  <button type="submit">Start</button>
+</form>
+
+<button type="button" id="cancel-btn">Cancel timer</button>
+
+<script>
+(function () {
+  "use strict";
+
+  var STATUS_POLL_MS = 3000;
+  var statusEl = document.getElementById("status");
+  var errorEl = document.getElementById("error");
+
+  function showError(message) {
+    errorEl.textContent = message || "";
+  }
+
+  function formatRemaining(seconds) {
+    seconds = Math.max(0, Math.round(seconds));
+    var h = Math.floor(seconds / 3600);
+    var m = Math.floor((seconds % 3600) / 60);
+    var s = seconds % 60;
+    var parts = [];
+    if (h > 0) parts.push(h + "h");
+    if (h > 0 || m > 0) parts.push(m + "m");
+    parts.push(s + "s");
+    return parts.join(" ");
+  }
+
+  function refreshStatus() {
+    fetch("/timer")
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.status === "started") {
+          statusEl.textContent = formatRemaining(data.remaining_seconds) + " remaining";
+          statusEl.classList.toggle("fading", !!data.fading);
+        } else {
+          statusEl.textContent = "Stopped";
+          statusEl.classList.remove("fading");
+        }
+      })
+      .catch(function () {
+        statusEl.textContent = "Unable to reach server";
+      });
+  }
+
+  function callAction(path) {
+    showError("");
+    fetch(path)
+      .then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok) {
+            throw new Error(data.error || "Request failed");
+          }
+          return data;
+        });
+      })
+      .then(refreshStatus)
+      .catch(function (err) {
+        showError(err.message);
+      });
+  }
+
+  document.querySelectorAll("[data-duration]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      callAction("/timer/" + encodeURIComponent(btn.dataset.duration) + "/start");
+    });
+  });
+
+  document.getElementById("cancel-btn").addEventListener("click", function () {
+    callAction("/timer/stop");
+  });
+
+  document.getElementById("custom-form").addEventListener("submit", function (evt) {
+    evt.preventDefault();
+    var input = document.getElementById("custom-duration");
+    var value = input.value.trim();
+    if (!value) return;
+    callAction("/timer/" + encodeURIComponent(value) + "/start");
+    input.value = "";
+  });
+
+  // --- theme picker ---
+  var THEME_KEY = "mpd-auto-stop-theme";
+
+  function applyTheme(theme) {
+    if (theme === "auto") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+    document.querySelectorAll("[data-theme-choice]").forEach(function (btn) {
+      btn.setAttribute("aria-pressed", String(btn.dataset.themeChoice === theme));
+    });
+  }
+
+  document.querySelectorAll("[data-theme-choice]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var theme = btn.dataset.themeChoice;
+      localStorage.setItem(THEME_KEY, theme);
+      applyTheme(theme);
+    });
+  });
+
+  applyTheme(localStorage.getItem(THEME_KEY) || "auto");
+
+  // --- status polling ---
+  refreshStatus();
+  setInterval(refreshStatus, STATUS_POLL_MS);
+})();
+</script>
+
+</body>
+</html>

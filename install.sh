@@ -15,8 +15,8 @@
 #    the directory chosen in step 2, and installs MPD Notifier via its own
 #    installer.
 # 5. Offers to install the optional MPD Rewind Daemon, mpd-smart-shuffle,
-#    alarmpd, and volume control scripts, each delegating to its own
-#    installer.
+#    alarmpd, mpd-auto-stop, and volume control scripts, each delegating to
+#    its own installer.
 #
 # Run this once; no manual copying into your PATH is needed afterwards.
 
@@ -398,6 +398,27 @@ offer_alarmpd() {
     fi
 }
 
+# Offers to install the optional mpd-auto-stop tool (sleep-timer daemon
+# with a web UI), delegating to its own installer chooser if you say yes,
+# for the same reason as offer_mpd_rewind_daemon above -- it's multi-file
+# and has its own optional systemd --user service to offer.
+offer_mpd_auto_stop() {
+    local auto_stop_installer="$SCRIPT_DIR/mpd-auto-stop/install.sh"
+
+    if [ ! -x "$auto_stop_installer" ]; then
+        return
+    fi
+
+    echo
+    read -r -p "Also install the optional mpd-auto-stop tool (sleep-timer web UI, fades out and pauses MPD)? [y/N] " REPLY
+
+    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+        "$auto_stop_installer" || echo "mpd-auto-stop installation did not complete successfully; you can retry with mpd-auto-stop/install.sh." >&2
+    else
+        echo "Skipped. Run mpd-auto-stop/install.sh later if you change your mind."
+    fi
+}
+
 # Installs MPD Notifier (desktop notification on track change) by
 # delegating to its own installer, unconditionally -- unlike the rewind
 # daemon or volume scripts below, there's no conflicting choice to make
@@ -468,5 +489,6 @@ install_mpd_notifier
 offer_mpd_rewind_daemon
 offer_mpd_smart_shuffle
 offer_alarmpd
+offer_mpd_auto_stop
 offer_volume_scripts
 print_migration_summary
