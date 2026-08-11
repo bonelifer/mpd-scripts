@@ -91,6 +91,7 @@ Contributions are welcome!
 - [alarmpd](./alarmpd/) is based on [alarmpd](https://github.com/ingobecker/alarmpd) by Ingo Becker.
 - [mpd-kb-control](./mpd-kb-control/) is based on [mpd_kb_control](https://github.com/nogaems/mpd_kb_control) by nogaems.
 - [mpd-auto-stop](./mpd-auto-stop/) is based on [mpd_auto_stop](https://github.com/vms20591/mpd_auto_stop) by Meenakshi Sundaram V.
+- [add-current-song](./add-current-song/) and [mpd-random-album](./mpd-random-album/) are derived from [Alejandro-Roldan/mpc-scripts](https://github.com/Alejandro-Roldan/mpc-scripts).
 - Documentation updates assisted by [Claude](https://www.anthropic.com/claude).
 
 ## License

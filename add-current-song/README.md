@@ -43,6 +43,10 @@ Settings live in `~/.config/mpd-scripts/add-current-song/add-current-song.conf`,
 | `REQUIRE_M3U_EXTENSION` | Require the playlist filename to end in `.m3u` or `.m3u8` | `true` |
 | `LOCK_TIMEOUT` | Seconds to wait for the playlist lock (`0` = fail immediately if locked) | `5` |
 
+## Acknowledgments
+
+Derived from `AddSongToFavsPlaylist` in [Alejandro-Roldan/mpc-scripts](https://github.com/Alejandro-Roldan/mpc-scripts).
+
 ## License
 
 This project is licensed under the **GNU General Public License v3.0**.
