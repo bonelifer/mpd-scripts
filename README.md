@@ -51,6 +51,7 @@ Collection of scripts related to mpd & mpc.
 | **[music_queue_manager](./music_queue_manager/)** | Manages song ratings and "bad" flags via MPD stickers: rate on a 5- or 10-point scale, flag/unflag broken songs, remove or jump to a random/top-rated song, and list or rescale ratings. |
 | **[mpdmark](./mpdmark/)** | Bookmark playback positions in MPD via stickers, with multiple named bookmarks per song, listing, loading, renaming, deleting, and pruning stale entries. |
 | **[alarmpd](./alarmpd/)** | Playlist-named alarm clock daemon: schedule alarms by creating/renaming an MPD playlist, with multi-day/named-group and one-shot forms, per-alarm volume caps, gentle fade-in with snooze, one-time skip, and collision detection. |
+| **[mpd-kb-control](./mpd-kb-control/)** | Dispatches multimedia-key presses (play/pause/next/prev/volume/mute) to MPD, plus consume/random/repeat/single mode toggles for a separate keypad, for binding in a window manager's keybindings. |
 | **[mpd-recent-tracks](./mpd-recent-tracks/)** | Generates an M3U playlist (newest first) of music files added or modified in the last N days, optionally capped in size and auto-loaded into MPD, paused or playing. |
 | **[mpc-fade](./mpc-fade/)** | Fades MPD playback volume smoothly to a target level over a duration, or fades out/toggles play-pause/fades back in, using either MPD's own volume or a PulseAudio sink-input stream. |
 | **[playpause](./playpause/)** | Prints the currently playing MPD track prefixed with a play/pause symbol, for use in a status bar (polybar, i3blocks, xmobar, etc). |
@@ -85,6 +86,7 @@ Contributions are welcome!
 - [playpause](./playpause/) is based on a [gist](https://gist.github.com/fernandotakai/8138704) by [fernandotakai](https://gist.github.com/fernandotakai).
 - [mpdmark](./mpdmark/) is based on `mpdmark` from [Mic92/mpdtools](https://github.com/Mic92/mpdtools).
 - [alarmpd](./alarmpd/) is based on [alarmpd](https://github.com/ingobecker/alarmpd) by Ingo Becker.
+- [mpd-kb-control](./mpd-kb-control/) is based on [mpd_kb_control](https://github.com/nogaems/mpd_kb_control) by nogaems.
 - Documentation updates assisted by [Claude](https://www.anthropic.com/claude).
 
 ## License
