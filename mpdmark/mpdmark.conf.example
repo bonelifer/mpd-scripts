@@ -1,0 +1,14 @@
+# mpdmark configuration
+#
+# Copied to ~/.config/mpd-scripts/mpdmark/mpdmark.conf on first run if that
+# file doesn't already exist. Edit the copy there, not this template.
+
+[mpdmark]
+
+# MPD connection details. Can be overridden per invocation with
+# -H/--host, -P/--port, -a/--password.
+mpd_host = localhost
+mpd_port = 6600
+
+# Leave blank unless your MPD requires a password.
+mpd_password =
