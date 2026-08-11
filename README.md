@@ -49,6 +49,7 @@ Collection of scripts related to mpd & mpc.
 | **[mpd-tray-icon](./mpd-tray-icon/)** | A GTK3 tray icon showing the currently playing MPD track, with Play/Pause/Next/Previous controls. |
 | **[mpd-radio-tray](./mpd-radio-tray/)** | A PyQt5 system tray app for managing and playing categorized internet radio station URLs with MPD, similar to RadioTray-NG. |
 | **[music_queue_manager](./music_queue_manager/)** | Manages song ratings and "bad" flags via MPD stickers: rate on a 5- or 10-point scale, flag/unflag broken songs, remove or jump to a random/top-rated song, and list or rescale ratings. |
+| **[mpdmark](./mpdmark/)** | Bookmark playback positions in MPD via stickers, with multiple named bookmarks per song, listing, loading, renaming, deleting, and pruning stale entries. |
 | **[mpd-recent-tracks](./mpd-recent-tracks/)** | Generates an M3U playlist (newest first) of music files added or modified in the last N days, optionally capped in size and auto-loaded into MPD, paused or playing. |
 | **[mpc-fade](./mpc-fade/)** | Fades MPD playback volume smoothly to a target level over a duration, or fades out/toggles play-pause/fades back in, using either MPD's own volume or a PulseAudio sink-input stream. |
 | **[playpause](./playpause/)** | Prints the currently playing MPD track prefixed with a play/pause symbol, for use in a status bar (polybar, i3blocks, xmobar, etc). |
@@ -81,6 +82,7 @@ Contributions are welcome!
 - The original setup of this repository is by [William Jacoby](https://github.com/bonelifer). For a full list of all authors and contributors, see [the contributors page](https://github.com/bonelifer/mpd-scripts/contributors).
 - [mpc-fade](./mpc-fade/) combines and builds on gists by [koppi](https://gist.github.com/koppi/60b9d1f14b0af2bdde1e49b9c225649d) and [Pablo1107](https://gist.github.com/Pablo1107/1d61cfa39e683289d96301230bf88fa5).
 - [playpause](./playpause/) is based on a [gist](https://gist.github.com/fernandotakai/8138704) by [fernandotakai](https://gist.github.com/fernandotakai).
+- [mpdmark](./mpdmark/) is based on `mpdmark` from [Mic92/mpdtools](https://github.com/Mic92/mpdtools).
 - Documentation updates assisted by [Claude](https://www.anthropic.com/claude).
 
 ## License
