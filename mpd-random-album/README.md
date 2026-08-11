@@ -58,6 +58,10 @@ Each setting can still be overridden per invocation with its corresponding flag.
 
 By default, if a selected album can't be resolved (e.g. it was removed from the library between selection and resolution), the run **aborts** and the original queue/state is restored -- nothing is left half-changed. Pass `--force` (or set `FORCE=true` in the config) to skip unresolvable albums instead and continue with whatever did resolve, exiting `2` if that means fewer albums were added than requested.
 
+## Acknowledgments
+
+Derived from `RandAlbum` in [Alejandro-Roldan/mpc-scripts](https://github.com/Alejandro-Roldan/mpc-scripts).
+
 ## License
 
 This project is licensed under the **GNU General Public License v3.0**.
