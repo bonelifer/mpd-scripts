@@ -1,0 +1,15 @@
+# mpd.conf.snippet
+#
+# Add these directives to your /etc/mpd.conf (install.sh checks whether
+# they're already present but does not edit mpd.conf automatically --
+# patching a config file you've likely already customized is riskier than
+# a clear manual step).
+#
+# Leave music_directory pointing at wherever it already does (the default
+# is /var/lib/mpd/music) even though your real music lives on the
+# removable disk -- see this project's README.md for why that matters.
+# Only the two directives below need adding.
+
+follow_outside_symlinks	"yes"
+
+follow_inside_symlinks		"yes"

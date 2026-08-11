@@ -1,0 +1,11 @@
+# 10-mpd-disk.rules
+#
+# Installed to /etc/udev/rules.d/10-mpd-disk.rules by install.sh, which
+# substitutes in your actual disk's vendor/product/serial IDs (run
+# "install.sh --detect /dev/sdX1" to fill these in automatically instead
+# of hunting through `udevadm info` output by hand).
+#
+# Creates a stable /dev/mpd-disk symlink for your MPD music disk,
+# regardless of which /dev/sdX name the kernel happens to assign it on any
+# given boot, and runs hdparm-mpd-disk.sh whenever the device appears.
+KERNEL=="sd?1",ATTRS{idVendor}=="__ID_VENDOR__",ATTRS{idProduct}=="__ID_PRODUCT__",ATTRS{serial}=="__ID_SERIAL__",SYMLINK+="mpd-disk",RUN+="/usr/local/sbin/hdparm-mpd-disk.sh"

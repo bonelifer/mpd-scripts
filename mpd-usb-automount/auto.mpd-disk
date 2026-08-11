@@ -1,0 +1,6 @@
+# auto.mpd-disk
+#
+# Installed to /etc/auto.mpd-disk by install.sh. Maps /dev/mpd-disk (the
+# stable symlink 10-mpd-disk.rules creates) to /media/mpd-auto/mpd-disk,
+# mounted on demand by autofs.
+mpd-disk	-fstype=auto	:/dev/mpd-disk
