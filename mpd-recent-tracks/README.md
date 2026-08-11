@@ -14,6 +14,7 @@ This script **automatically generates a playlist** of songs **added or modified 
 - **Configurable audio formats**: `EXTENSIONS` in the config controls which file extensions are scanned (default: `mp3 m4a flac ogg`).
 - **Exclude patterns**: `exclude_paths.txt` lists glob patterns (relative to `MUSIC_DIR`) to skip, e.g. an entire `Podcasts/` folder.
 - **Removes empty playlists**: If no new songs are found, the existing playlist is deleted. A failed run (e.g. a permission error) never touches an existing playlist — the new one is only swapped in once generation succeeds.
+- **Named time-window presets**: `-P/--presets` generates one playlist per `PRESETS` entry in the config (e.g. a week/month/year set) in a single run, instead of one playlist per invocation.
 
 ## Requirements
 - **MPD (Music Player Daemon)**
@@ -36,12 +37,30 @@ template, then run the script again.
 | `DEFAULT_DAYS_OLD` | Default number of days if `-d/--days` isn't given             | `30`                       |
 | `EXTENSIONS`       | Space-separated file extensions (no leading dot) to scan for  | `mp3 m4a flac ogg`         |
 | `EXCLUDE_FILE`     | Exclude-patterns filename, resolved relative to the config dir| `exclude_paths.txt`        |
+| `PRESETS`          | Array of `"NAME:DAYS"` entries used by `-P/--presets`         | see below                  |
 
 ### Playlist Location
-- The generated playlist will be located at:
+- The single-playlist mode (no `-P`) writes to:
   ```
   [PLAYLIST_DIR]/[PLAYLIST_TITLE].m3u
   ```
+- Each `-P/--presets` entry writes its own file instead:
+  ```
+  [PLAYLIST_DIR]/[NAME].m3u
+  ```
+
+### Presets
+`PRESETS` is a bash array of `"NAME:DAYS"` strings, one per named playlist `-P/--presets` should generate:
+
+```bash
+PRESETS=(
+    "New_Last_Week:7"
+    "New_Last_Month:31"
+    "New_Last_Year:365"
+)
+```
+
+`NAME` becomes that entry's playlist title (avoid spaces in it -- use underscores, since it's split from `DAYS` on the first `:`); `DAYS` is that entry's own day count, independent of `DEFAULT_DAYS_OLD`. `-n/--limit`/`-r/--random` still apply, capping or sampling each generated playlist the same way they would in single-playlist mode. `-d/--days` and `-l/--load` can't be combined with `-P` -- day count comes from each preset individually, and there's no single resulting playlist for `-l/--load` to load.
 
 ### Excluding paths
 `exclude_paths.txt` (seeded from `exclude_paths.txt.example` into the same
@@ -62,14 +81,16 @@ no active patterns to disable exclusion entirely.
 ### Running the script:
 ```bash
 ./mpd-recent-tracks.sh [-d <days>] [-n <limit> | -r <count>] [-q] [-l [-p]]
+./mpd-recent-tracks.sh -P [-n <limit> | -r <count>] [-q]
 ```
 
 ### Available Options
-- **-d, --days N**: Number of days to look back for recently added/modified files. If not given, uses `DEFAULT_DAYS_OLD` from the config.
-- **-n, --limit N**: Cap the playlist at N songs (newest first).
+- **-d, --days N**: Number of days to look back for recently added/modified files. If not given, uses `DEFAULT_DAYS_OLD` from the config. Errors if combined with `-P/--presets`.
+- **-n, --limit N**: Cap the playlist at N songs (newest first). With `-P/--presets`, applies to each generated playlist.
 - **-r, --random N**: Pick N songs at random from the recent-tracks pool, instead of the newest N. Requires `shuf`. Errors if combined with `-n/--limit`.
+- **-P, --presets**: Generate one playlist per `PRESETS` entry from the config instead of a single playlist. Errors if combined with `-d/--days` or `-l/--load`.
 - **-q, --quiet**: Suppress informational output; only errors are printed.
-- **-l, --load**: Load the generated playlist into MPD via `mpc load` after creating it. Requires `mpc`. Playback is left paused unless `-p/--play` is also given.
+- **-l, --load**: Load the generated playlist into MPD via `mpc load` after creating it. Requires `mpc`. Playback is left paused unless `-p/--play` is also given. Errors if combined with `-P/--presets`.
 - **-p, --play**: With `-l/--load`, also start playback via `mpc play` after loading. Errors if given without `-l/--load`.
 - **-h, --help**: Show usage and exit.
 
@@ -97,6 +118,14 @@ no active patterns to disable exclusion entirely.
 - **Generate, load, and start playing immediately**:
   ```bash
   ./mpd-recent-tracks.sh -l -p
+  ```
+- **Generate the week/month/year preset playlists in one run**:
+  ```bash
+  ./mpd-recent-tracks.sh -P
+  ```
+- **Same, capped at 50 songs each**:
+  ```bash
+  ./mpd-recent-tracks.sh -P -n 50
   ```
 
 ## Error Handling
