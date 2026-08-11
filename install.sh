@@ -278,6 +278,7 @@ install_dependencies() {
 # ship their own install.sh (mpd-notifier, mpd_rewind_daemon, volume/mpc,
 # volume/python-mpd) are handled separately below instead.
 SIMPLE_SCRIPTS=(
+    "add-current-song|add-current-song.sh|add-current-song.conf.example"
     "iheart-radio|iheart.pl|iheart-stations.txt"
     "tunein-radio|tunein.pl|tunein-radio-stations.txt"
     "lastfm-love|loved.py unloved.py|lastfm_common.py lastfm-love.conf.example"
