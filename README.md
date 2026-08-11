@@ -40,6 +40,7 @@ Collection of scripts related to mpd & mpc.
 | **[somafm](./somafm/)** | This script fetches the playlist URLs of SomaFM channels with the highest quality in MP3 format and creates separate playlists for each channel in extended M3U format with the channel name. |
 | **[mpd-find-dup](./mpd-find-dup/)** | Contains two scripts for deduplicating MPD queues: `mpd-remove-duplicates-queue.sh` interactively deletes duplicates from the current MPD playlist in-place, while `mpd-deduplicate-save-and-reload.sh` saves the current queue as a playlist, removes duplicates, then reloads the cleaned playlist. |
 | **[mpd_rewind_daemon](./mpd_rewind_daemon/)** | A background daemon for MPD that automatically rewinds playback by a few seconds when resuming from pause, improving the experience for music, mixes, podcasts, and audiobooks. |
+| **[mpd-usb-automount](./mpd-usb-automount/)** | System-level (root) setup for a removable USB music disk: a stable udev device name, on-demand autofs mounting, and idle spindown. Has its own separate installer, not part of the top-level `install.sh`. |
 | **[mpd-smart-shuffle](./mpd-smart-shuffle/)** | A smarter shuffle: a background monitor records play/skip history, and a cron-run script tops up the MPD queue avoiding recent repeats, with optional weighted selection, artist/album diversity, seasonal and time-of-day genre filtering, exclude lists, and more. |
 | **[mpdsimilar](./mpdsimilar/)** | Fetches similar artist tracks from Last.fm for the currently playing track or every track in the queue, and adds a sample of them to the MPD queue. |
 | **[rm-duplicates-playlist](./rm-duplicates-playlist/)** | Removes duplicate entries from a saved MPD playlist or the current queue, or lists available playlists, combining what the two `mpd-find-dup` scripts each do separately into one tool. |
@@ -92,6 +93,7 @@ Contributions are welcome!
 - [mpd-kb-control](./mpd-kb-control/) is based on [mpd_kb_control](https://github.com/nogaems/mpd_kb_control) by nogaems.
 - [mpd-auto-stop](./mpd-auto-stop/) is based on [mpd_auto_stop](https://github.com/vms20591/mpd_auto_stop) by Meenakshi Sundaram V.
 - [add-current-song](./add-current-song/) and [mpd-random-album](./mpd-random-album/) are derived from [Alejandro-Roldan/mpc-scripts](https://github.com/Alejandro-Roldan/mpc-scripts).
+- [mpd-usb-automount](./mpd-usb-automount/) is based on a [gist](https://gist.github.com/daks/8030543) by [daks](https://gist.github.com/daks).
 - Documentation updates assisted by [Claude](https://www.anthropic.com/claude).
 
 ## License

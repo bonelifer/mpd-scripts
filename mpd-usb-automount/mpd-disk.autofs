@@ -1,0 +1,9 @@
+# mpd-disk.autofs
+#
+# Installed to /etc/auto.master.d/mpd-disk.autofs by install.sh.
+#
+# A dedicated /media/mpd-auto mount root (rather than reusing a generic
+# /media/auto) avoids colliding with any other autofs map you might
+# already have. --timeout=60 unmounts the disk again after 60 seconds of
+# no access, so it isn't spun up 24/7.
+/media/mpd-auto	/etc/auto.mpd-disk	--timeout=60
