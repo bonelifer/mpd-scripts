@@ -1,0 +1,59 @@
+# add-current-song.conf
+#
+# Copied to
+# ~/.config/mpd-scripts/add-current-song/add-current-song.conf on first run
+# if that file doesn't already exist. Edit the copy there, not this
+# template.
+
+# Sort the playlist alphabetically after adding a song.
+# true  = sort alphabetically
+# false = preserve the order songs were added
+SORT_PLAYLIST=true
+
+# Create the parent directory if it does not exist.
+# true  = create the directory automatically
+# false = fail if the directory does not exist
+CREATE_DIRECTORY=true
+
+# Allow the same song to be added more than once.
+# true  = allow duplicates
+# false = prevent duplicates
+ALLOW_DUPLICATES=false
+
+# Remove duplicate entries that already exist in the playlist.
+# true  = remove existing duplicates
+# false = leave existing duplicates untouched
+REMOVE_EXISTING_DUPLICATES=false
+
+# Remove blank or whitespace-only lines from the playlist when it is
+# rewritten.
+# true  = remove blank lines
+# false = preserve blank lines
+REMOVE_BLANK_LINES=false
+
+# Normalize Windows CRLF line endings to Unix LF line endings.
+# true  = remove carriage returns from line endings
+# false = preserve existing line endings
+NORMALIZE_CRLF=true
+
+# MPD format used to obtain the song information, passed to mpc's -f/--format
+# option. %file% (the default) is what this script expects for matching
+# against playlist entries -- changing it changes what gets written to the
+# playlist. Full format syntax and the list of available placeholders
+# (%artist%, %title%, %album%, etc.) are documented at:
+# https://www.musicpd.org/doc/mpc/html/
+MPD_FORMAT='%file%'
+
+# Display informational messages.
+# true  = show status messages
+# false = only show errors
+VERBOSE=true
+
+# Require the playlist filename to end in .m3u or .m3u8.
+# true  = enforce the extension
+# false = allow any filename
+REQUIRE_M3U_EXTENSION=true
+
+# Maximum number of seconds to wait for the playlist lock.
+# 0 = do not wait; fail immediately if locked
+LOCK_TIMEOUT=5
