@@ -12,7 +12,9 @@ Recurring, one or more days:
     Weekdays 7:30          (Weekdays/Weekends/Daily are built-in groups)
     Monday 7:30 max=60      (fades to 60% instead of the configured default)
 
-One-shot, a specific date (never recurs, and expires once past):
+One-shot, a specific date (never recurs, and expires once past -- run
+this script with --prune to delete expired ones, since they otherwise
+just sit there unused):
     2026-08-12 7:30
     2026-08-12 7:30 max=60
 
@@ -397,6 +399,38 @@ class AlarmDaemon:
             self.fade_tick()
         self.log("Test alarm complete.")
 
+    def prune_expired(self, now: datetime) -> list:
+        """Delete stored playlists for one-shot alarms whose date has
+        already passed. Recurring alarms never expire and are left alone;
+        a schedule counts as expired the same way next_occurrence already
+        treats it (past one-shot dates never roll forward)."""
+        removed = []
+        for entry in self._client.listplaylists():
+            name = entry["playlist"]
+            schedule = parse_entry(name, self._default_max_volume)
+            if schedule is None or schedule.fire_date is None:
+                continue  # Not a one-shot alarm.
+            if schedule.next_occurrence(now) is None:
+                self._client.rm(name)
+                removed.append(name)
+        return removed
+
+    def run_prune(self) -> None:
+        """Connect, delete expired one-shot alarm playlists, print what was
+        removed, then return -- doesn't enter the daemon loop."""
+        try:
+            self.connect()
+        except (MPDConnectionError, OSError) as e:
+            print(f"Failed to connect to MPD: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        removed = self.prune_expired(datetime.now().astimezone())
+        if removed:
+            for name in removed:
+                print(f"Pruned expired one-shot alarm: {name}")
+        else:
+            print("No expired one-shot alarms found.")
+
 
 def build_daemon(args: argparse.Namespace, config: configparser.SectionProxy) -> AlarmDaemon:
     return AlarmDaemon(
@@ -464,6 +498,8 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", action="store_true", help="Run in the foreground with console logging")
     parser.add_argument("-t", "--test", metavar="PLAYLIST", default=None,
                          help="Immediately fire the named playlist as a test alarm, then exit")
+    parser.add_argument("--prune", action="store_true",
+                         help="Delete expired one-shot alarm playlists, then exit")
     cli_args = parser.parse_args()
 
     if cli_args.stop:
@@ -472,7 +508,9 @@ if __name__ == "__main__":
         check_permissions()  # AlarmDaemon.__init__ opens LOG_FILE under STATE_DIR right away
         cli_config = load_config()
         alarm_daemon = build_daemon(cli_args, cli_config)
-        if cli_args.test:
+        if cli_args.prune:
+            alarm_daemon.run_prune()
+        elif cli_args.test:
             alarm_daemon.fire_test(cli_args.test)
         elif cli_args.verbose:
             alarm_daemon.run()

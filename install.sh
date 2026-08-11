@@ -290,6 +290,7 @@ SIMPLE_SCRIPTS=(
     "mpd-recent-tracks|mpd-recent-tracks.sh|mpd-recent-tracks.conf.example exclude_paths.txt.example"
     "mpdsimilar|mpdsimilar.sh|mpdsimilar.conf.example"
     "mpd-tray-icon|mpd-tray-icon.py|"
+    "mpd-kb-control|mpd-kb-control.py|mpd-kb-control.conf.example"
     "mpdmark|mpdmark.py|mpdmark.conf.example"
     "music_queue_manager|music_queue_manager.sh|music_queue_manager.conf.example"
     "playpause|playpause.sh|playpause.conf.example"

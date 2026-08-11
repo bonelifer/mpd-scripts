@@ -13,6 +13,7 @@ A playlist-based alarm clock daemon for [MPD](https://www.musicpd.org/). Schedul
 * Refuses to guess: if two playlists resolve to the same exact time, neither is scheduled until the collision is resolved
 * Optional pre-/post-alarm shell hooks (lights, notifications, whatever)
 * A `--test` flag to fire an alarm immediately, for checking fade/volume/hook behavior without waiting
+* A `--prune` flag to delete expired one-shot alarm playlists, which otherwise just sit there unused forever
 * Reconnects to MPD automatically (with backoff) if it's down or restarts
 * alarmpd can run on a different machine than the one running MPD
 
@@ -68,7 +69,7 @@ Scheduling a new alarm is as easy as creating a playlist. The name determines wh
 | `Monday,Wednesday,Friday 7:30` | Recurs on each listed day |
 | `Weekdays 7:30` / `Weekends 9:00` / `Daily 6:45` | Built-in day groups |
 | `Monday 7:30 max=60` | Fades to 60% instead of `default_max_volume` |
-| `2026-08-12 7:30` | Fires once, on that date, then expires -- never reschedules |
+| `2026-08-12 7:30` | Fires once, on that date, then expires -- never reschedules (run `--prune` to delete it once it has) |
 | `!Monday 7:30` | Permanently disabled -- ignored entirely until renamed back |
 | `~Monday 7:30` | Skips just the next occurrence, then alarmpd renames it back to `Monday 7:30` automatically |
 
@@ -89,6 +90,12 @@ Test a playlist immediately, without waiting for its scheduled time:
 alarmpd.py --test "Monday 7:30"
 ```
 Works even if the name doesn't match the schedule grammar -- any existing playlist can be tested, falling back to `default_max_volume`.
+
+Delete expired one-shot alarm playlists (a past date never reschedules, so they'd otherwise accumulate unused):
+```bash
+alarmpd.py --prune
+```
+Recurring alarms, disabled (`!`) alarms, and future one-shot alarms are left alone. Safe to run periodically (e.g. from cron) or by hand.
 
 Stop the daemon (Option A / XDG autostart install):
 ```bash

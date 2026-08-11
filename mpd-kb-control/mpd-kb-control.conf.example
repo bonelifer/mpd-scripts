@@ -1,0 +1,29 @@
+# mpd-kb-control configuration
+#
+# Copied to ~/.config/mpd-scripts/mpd-kb-control/mpd-kb-control.conf on
+# first run if that file doesn't already exist. Edit the copy there, not
+# this template.
+
+[mpd-kb-control]
+
+# MPD connection details. Can be overridden per invocation with
+# -H/--host, -P/--port, -a/--password.
+mpd_host = localhost
+mpd_port = 6600
+
+# Leave blank unless your MPD requires a password.
+mpd_password =
+
+# Percentage points to adjust the volume by on each "raise"/"lower" call.
+volume_step = 5
+
+# If true, "raise" won't push the volume above max_volume. "lower" is
+# never affected by this.
+enforce_max_volume = false
+max_volume = 100
+
+# Show a desktop notification (via notify-send) on play/pause/volume
+# changes. Off by default since not every setup (e.g. a bare dwm session)
+# has a notification daemon running; harmless to enable either way, since
+# a missing notify-send is silently ignored.
+notify = false
