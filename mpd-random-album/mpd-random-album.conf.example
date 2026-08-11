@@ -1,0 +1,28 @@
+# mpd-random-album.conf
+#
+# Copied to
+# ~/.config/mpd-scripts/mpd-random-album/mpd-random-album.conf on first run
+# if that file doesn't already exist. Edit the copy there, not this
+# template.
+
+# Number of albums selected when no count is supplied on the command line.
+DEFAULT_ALBUM_COUNT=1
+
+# Suppress informational messages by default.
+# true  = quiet by default
+# false = show status messages by default
+# Can be overridden per invocation with -q/--quiet.
+QUIET=false
+
+# Select and resolve albums without changing the MPD queue, by default.
+# true  = dry-run by default
+# false = actually replace the queue by default
+# Can be overridden per invocation with -d/--dry-run.
+DRY_RUN=false
+
+# Skip albums that fail to resolve (e.g. removed from the library between
+# selection and resolution) instead of aborting the whole run, by default.
+# true  = skip failed albums and continue by default
+# false = abort on the first album that fails to resolve, by default
+# Can be overridden per invocation with -f/--force.
+FORCE=false
