@@ -9,6 +9,7 @@ Clears the current MPD queue and replaces it with a randomly selected collection
 - Optional `-y`/`--year` filter to restrict selection to albums with a track dated a given year, or within a year range
 - Optional `-g`/`--genre` filter (case-insensitive substring match) to restrict selection to a genre
 - Optional `-a`/`--artist` filter (exact match) to restrict selection to a specific album artist
+- Optional `-p`/`--append` mode adds the selected albums to the end of the existing queue instead of replacing it, without disturbing current playback
 - Resolves every selected album *before* touching the existing queue -- nothing is modified until the whole selection succeeds (or degrades gracefully with `--force`)
 - Saves the original queue and playback state (random/repeat/single/consume, play state, song position) beforehand, and restores it automatically if anything fails partway through
 - Verifies the resulting queue actually contains what was intended before starting playback
@@ -33,6 +34,7 @@ mpd-random-album.sh [OPTIONS] [ALBUM_COUNT]
 | `-d`, `--dry-run` | Select and resolve albums without changing the queue |
 | `-f`, `--force` | Skip albums that fail to resolve instead of aborting the run |
 | `-g`, `--genre GENRE` | Only select albums with a track whose genre contains `GENRE` (case insensitive) |
+| `-p`, `--append` | Add the selected albums to the end of the existing queue instead of replacing it, without disturbing current playback |
 | `-q`, `--quiet` | Suppress informational messages |
 | `-y`, `--year YEAR` | Only select albums with a track dated `YEAR`, or a `YEAR-YEAR` range (e.g. `1970-1979`); a full `1975-06-12`-style date still matches a bare `1975` |
 | `-h`, `--help` | Show help |
@@ -51,6 +53,7 @@ mpd-random-album.sh --year 1975 3      # three random albums with a track dated 
 mpd-random-album.sh --year 1970-1979 3 # three random albums from that decade
 mpd-random-album.sh --genre jazz 3     # three random albums tagged (or containing) "jazz"
 mpd-random-album.sh --artist "Pink Floyd" 2 # two random albums by exactly "Pink Floyd"
+mpd-random-album.sh --append 2         # add two random albums to the end of the queue, keep playing
 mpd-random-album.sh --allow-repeats 1  # force a pick even if the whole pool is "recent"
 ```
 
@@ -66,6 +69,7 @@ Settings live in `~/.config/mpd-scripts/mpd-random-album/mpd-random-album.conf`,
 | `FORCE` | Skip failed albums instead of aborting, by default | `false` |
 | `AVOID_REPEATS` | Avoid re-picking recently-selected albums by default | `true` |
 | `CACHE_SIZE` | How many recently-picked albums to remember and avoid | `20` |
+| `APPEND` | Add to the end of the existing queue instead of replacing it, by default | `false` |
 
 Each setting can still be overridden per invocation with its corresponding flag.
 
@@ -82,6 +86,12 @@ If excluding recent picks leaves too few albums to satisfy the requested count, 
 `-A`/`--allow-repeats` skips the exclusion for a single run without touching the config -- useful if the pool is nearly exhausted, or you just want to deliberately hear something recent again. Recording still happens afterward regardless of `-A`, so a normal (non-`-A`) run right after still correctly treats that album as "just played" rather than forgetting about it. Only permanently disabling `AVOID_REPEATS` in the config stops recording entirely.
 
 A dry run (`-d`/`--dry-run`) never writes to the cache, since nothing was actually queued or played.
+
+## Append mode
+
+`-p`/`--append` (or `APPEND=true` in the config) adds the selected albums to the end of the existing queue instead of clearing and replacing it. Unlike the default mode, it never touches playback, the current song, or the random/repeat/single/consume settings -- it's meant for topping up the queue in the background without interrupting whatever's currently playing.
+
+If a track fails to add partway through, only the tracks this run itself appended are removed; the pre-existing queue and playback are left exactly as they were, same as the default mode's own restore-on-failure guarantee.
 
 ## Acknowledgments
 

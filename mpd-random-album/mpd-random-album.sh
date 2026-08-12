@@ -18,6 +18,9 @@
 #     insensitive), and/or by a specific album artist (exact match).
 #   - Optionally avoids re-selecting any of the last N albums picked,
 #     remembered across runs in a small cache file.
+#   - Optional --append mode adds the selected albums to the end of the
+#     existing queue instead of replacing it, without disturbing whatever
+#     is currently playing.
 #   - Resolves every selected album before modifying the queue.
 #   - Skips albums that disappear from the library between selection and
 #     resolution when --force is given; aborts the run otherwise.
@@ -40,6 +43,7 @@
 #   mpd-random-album.sh --year 1970-1979 5
 #   mpd-random-album.sh --genre jazz 3
 #   mpd-random-album.sh --artist "Pink Floyd" 2
+#   mpd-random-album.sh --append 2
 #   mpd-random-album.sh --allow-repeats 3
 #
 # Note: SC2317 ("unreachable" code) is disabled file-wide above because the
@@ -68,10 +72,11 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
 fi
 
 # Defaults for settings that may not exist in a config predating them, so
-# an old config file (missing AVOID_REPEATS/CACHE_SIZE) doesn't trip set
-# -u's "unbound variable" instead of just falling back sensibly.
+# an old config file (missing AVOID_REPEATS/CACHE_SIZE/APPEND) doesn't
+# trip set -u's "unbound variable" instead of just falling back sensibly.
 AVOID_REPEATS=true
 CACHE_SIZE=20
+APPEND=false
 
 # shellcheck source=mpd-random-album.conf.example
 source "$CONFIG_FILE"
@@ -97,6 +102,7 @@ ORIGINAL_SINGLE=""
 ORIGINAL_CONSUME=""
 ORIGINAL_STATE=""
 ORIGINAL_SONG_POSITION=""
+APPEND_START_LENGTH=0
 
 declare -a ORIGINAL_QUEUE=()
 declare -a RANDOM_ALBUMS=()
@@ -140,6 +146,29 @@ restore_queue() {
     # the error handler.
     #
     trap - ERR
+
+    if [[ "$APPEND" == true ]]; then
+        #
+        # Append mode never cleared the queue or touched playback, so
+        # there's nothing to restore beyond removing whatever this run
+        # itself appended. Repeatedly deleting the position right after the
+        # pre-append queue length removes exactly the appended block: each
+        # deletion shifts the next appended track down into that same
+        # position. Deleting past the current queue end (e.g. because fewer
+        # tracks were actually appended than SELECTED_TRACKS expected) just
+        # fails, caught by "|| true" like every other command here.
+        #
+        local i
+        for ((i = 0; i < ${#SELECTED_TRACKS[@]}; i++)); do
+            mpc del "$((APPEND_START_LENGTH + 1))" >/dev/null 2>&1 || true
+        done
+
+        QUEUE_MODIFIED=false
+        RESTORING_QUEUE=false
+
+        trap handle_error ERR
+        return 0
+    fi
 
     mpc stop >/dev/null 2>&1 || true
     mpc clear >/dev/null 2>&1 || true
@@ -364,6 +393,9 @@ Options:
   -g, --genre GENRE    Only select albums with a track whose genre
                        contains GENRE (case insensitive).
   -h, --help           Show this help message.
+  -p, --append         Add the selected albums to the end of the existing
+                       queue instead of replacing it, without disturbing
+                       current playback.
   -q, --quiet          Suppress informational messages.
   -y, --year YEAR      Only select albums with a track dated YEAR, or
                         within a YEAR-YEAR range (e.g. 1970-1979).
@@ -426,6 +458,10 @@ parse_arguments() {
             -h|--help)
                 show_help
                 exit 0
+                ;;
+            -p|--append)
+                APPEND=true
+                shift
                 ;;
             -q|--quiet)
                 QUIET=true
@@ -812,6 +848,27 @@ clear_and_fill_queue() {
     done
 }
 
+#
+# Append mode (-p/--append): add the selected tracks to the end of the
+# existing queue instead of replacing it. Unlike clear_and_fill_queue(),
+# this never clears the queue, never touches random/repeat/single/consume,
+# and never starts or otherwise disturbs current playback -- the whole
+# point of append mode is to top up the queue in the background.
+#
+append_to_queue() {
+    local track
+
+    APPEND_START_LENGTH="$(verify_queue)"
+
+    QUEUE_MODIFIED=true
+
+    for track in "${SELECTED_TRACKS[@]}"; do
+        if ! mpc add -- "$track" >/dev/null; then
+            error_exit "Unable to add track to MPD queue: $track"
+        fi
+    done
+}
+
 # ---------------------------------------------------------------------------
 # Final validation and playback
 # ---------------------------------------------------------------------------
@@ -852,6 +909,30 @@ start_playback() {
             fi
             ;;
     esac
+
+    QUEUE_MODIFIED=false
+}
+
+#
+# Verify and report an append-mode run. Unlike start_playback(), the
+# expected queue length is the pre-append length plus what was just added
+# (not just the added count on its own, since the existing queue was never
+# cleared), and playback is deliberately left untouched.
+#
+verify_and_report_append() {
+    local queue_length
+    local expected_length
+
+    queue_length="$(verify_queue)"
+    expected_length=$((APPEND_START_LENGTH + ${#SELECTED_TRACKS[@]}))
+
+    if (( queue_length != expected_length )); then
+        error_exit \
+            "Queue verification failed: expected $expected_length track(s), found $queue_length."
+    fi
+
+    log_message \
+        "Added ${#RESOLVED_ALBUMS[@]} random album(s) containing ${#SELECTED_TRACKS[@]} track(s) to the queue."
 
     QUEUE_MODIFIED=false
 }
@@ -924,8 +1005,14 @@ main() {
         return 0
     fi
 
-    clear_and_fill_queue
-    start_playback
+    if [[ "$APPEND" == true ]]; then
+        append_to_queue
+        verify_and_report_append
+    else
+        clear_and_fill_queue
+        start_playback
+    fi
+
     update_cache || warning_message "Failed to update the recent-albums cache."
 
     if (( resolved_album_count < requested_album_count )); then
@@ -935,7 +1022,9 @@ main() {
         return 2
     fi
 
-    log_message "Playback started successfully."
+    if [[ "$APPEND" != true ]]; then
+        log_message "Playback started successfully."
+    fi
 
     return 0
 }

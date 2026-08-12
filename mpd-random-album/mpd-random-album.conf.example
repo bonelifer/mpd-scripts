@@ -40,3 +40,11 @@ AVOID_REPEATS=true
 # reported via the same partial-success/--force handling as an album that
 # vanished from the library (see FORCE above).
 CACHE_SIZE=20
+
+# Add selected albums to the end of the existing queue instead of clearing
+# and replacing it, by default. Never touches playback, the current song,
+# or the random/repeat/single/consume settings.
+# true  = append to the queue by default
+# false = clear and replace the queue by default
+# Can be overridden per invocation with -p/--append.
+APPEND=false
