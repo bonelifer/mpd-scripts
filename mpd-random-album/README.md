@@ -6,7 +6,7 @@ Clears the current MPD queue and replaces it with a randomly selected collection
 
 - Selects random unique album/album-artist combinations, using exact matching (`mpc find`, not `mpc search`) so similarly-named albums (e.g. `The Wall` vs. `The Wall (Remastered)`) don't get conflated -- including two *different artists'* albums that happen to share a title (e.g. two unrelated "Greatest Hits"), which are kept fully separate rather than treated as duplicates
 - Optionally avoids re-picking any of the last `CACHE_SIZE` albums selected, remembered across runs, so consecutive invocations don't keep handing you the same few albums
-- Optional `-y`/`--year` filter to restrict selection to albums with a matching release year
+- Optional `-y`/`--year` filter to restrict selection to albums with a track dated a given year, or within a year range
 - Resolves every selected album *before* touching the existing queue -- nothing is modified until the whole selection succeeds (or degrades gracefully with `--force`)
 - Saves the original queue and playback state (random/repeat/single/consume, play state, song position) beforehand, and restores it automatically if anything fails partway through
 - Verifies the resulting queue actually contains what was intended before starting playback
@@ -30,7 +30,7 @@ mpd-random-album.sh [OPTIONS] [ALBUM_COUNT]
 | `-d`, `--dry-run` | Select and resolve albums without changing the queue |
 | `-f`, `--force` | Skip albums that fail to resolve instead of aborting the run |
 | `-q`, `--quiet` | Suppress informational messages |
-| `-y`, `--year YEAR` | Only select albums with a track dated `YEAR` (matches as a prefix, so `1975` also matches a full `1975-06-12`-style date) |
+| `-y`, `--year YEAR` | Only select albums with a track dated `YEAR`, or a `YEAR-YEAR` range (e.g. `1970-1979`); a full `1975-06-12`-style date still matches a bare `1975` |
 | `-h`, `--help` | Show help |
 
 `ALBUM_COUNT` defaults to `DEFAULT_ALBUM_COUNT` from the config file if not given.
@@ -43,7 +43,8 @@ mpd-random-album.sh 5             # five random albums
 mpd-random-album.sh --quiet 3
 mpd-random-album.sh --dry-run 10
 mpd-random-album.sh --force 5     # don't abort if one of the 5 has vanished from the library
-mpd-random-album.sh --year 1975 3 # three random albums with a track dated 1975
+mpd-random-album.sh --year 1975 3      # three random albums with a track dated 1975
+mpd-random-album.sh --year 1970-1979 3 # three random albums from that decade
 mpd-random-album.sh --allow-repeats 1  # force a pick even if the whole pool is "recent"
 ```
 
