@@ -26,3 +26,17 @@ DRY_RUN=false
 # false = abort on the first album that fails to resolve, by default
 # Can be overridden per invocation with -f/--force.
 FORCE=false
+
+# Avoid re-selecting any of the last CACHE_SIZE albums picked, remembered
+# across runs in ~/.cache/mpd-scripts/mpd-random-album/recent-albums.tsv.
+# true  = avoid recently-picked albums by default
+# false = every run is a fresh, unconstrained random pick
+# Can be overridden per invocation with -A/--allow-repeats (forces false).
+AVOID_REPEATS=true
+
+# How many of the most recently picked albums to remember and avoid, when
+# AVOID_REPEATS is on. If fewer non-recent albums remain in the library
+# than requested, this behaves like any other resolution shortfall --
+# reported via the same partial-success/--force handling as an album that
+# vanished from the library (see FORCE above).
+CACHE_SIZE=20

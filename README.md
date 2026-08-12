@@ -47,7 +47,7 @@ Collection of scripts related to mpd & mpc.
 | **[rm-artists-playlist](./rm-artists-playlist/)** | Removes songs by a list of artists from a saved MPD playlist or the current queue, or lists available playlists. |
 | **[mpd-add-random-artist](./mpd-add-random-artist/)** | Adds a random sample of a specified artist's tracks to the current MPD queue, matching exactly by default or loosely with `-l`. |
 | **[mpd-add-random](./mpd-add-random/)** | Adds a random selection of tracks from the local music library to the current MPD queue. |
-| **[mpd-random-album](./mpd-random-album/)** | Clears the queue and replaces it with randomly selected complete albums, saving and restoring the original queue/state if anything fails. |
+| **[mpd-random-album](./mpd-random-album/)** | Clears the queue and replaces it with randomly selected complete albums, with an optional year filter, a recent-picks cache to avoid repeats, saving and restoring the original queue/state if anything fails. |
 | **[add-current-song](./add-current-song/)** | Adds the currently playing MPD song to an M3U playlist, with duplicate prevention, sorting, locking, and atomic rewrites. |
 | **[mpd-tray-icon](./mpd-tray-icon/)** | A GTK3 tray icon showing the currently playing MPD track, with Play/Pause/Next/Previous controls. |
 | **[mpd-radio-tray](./mpd-radio-tray/)** | A PyQt5 system tray app for managing and playing categorized internet radio station URLs with MPD, similar to RadioTray-NG. |
@@ -92,7 +92,7 @@ Contributions are welcome!
 - [alarmpd](./alarmpd/) is based on [alarmpd](https://github.com/ingobecker/alarmpd) by Ingo Becker.
 - [mpd-kb-control](./mpd-kb-control/) is based on [mpd_kb_control](https://github.com/nogaems/mpd_kb_control) by nogaems.
 - [mpd-auto-stop](./mpd-auto-stop/) is based on [mpd_auto_stop](https://github.com/vms20591/mpd_auto_stop) by Meenakshi Sundaram V.
-- [add-current-song](./add-current-song/) and [mpd-random-album](./mpd-random-album/) are derived from [Alejandro-Roldan/mpc-scripts](https://github.com/Alejandro-Roldan/mpc-scripts).
+- [add-current-song](./add-current-song/) and [mpd-random-album](./mpd-random-album/) are derived from [Alejandro-Roldan/mpc-scripts](https://github.com/Alejandro-Roldan/mpc-scripts); [mpd-random-album](./mpd-random-album/)'s recent-albums cache was additionally inspired by [ibeex/mpd_queue_random_album](https://github.com/ibeex/mpd_queue_random_album).
 - [mpd-usb-automount](./mpd-usb-automount/) is based on a [gist](https://gist.github.com/daks/8030543) by [daks](https://gist.github.com/daks).
 - Documentation updates assisted by [Claude](https://www.anthropic.com/claude).
 

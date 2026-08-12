@@ -4,19 +4,18 @@
 #
 # Script: mpd-random-album.sh
 #
-# Note: SC2317 ("unreachable" code) is disabled file-wide above because the
-# static analysis doesn't trace functions that are only ever invoked via
-# `trap` (restore_queue, handle_error, handle_signal, handle_int,
-# handle_term, cleanup) -- it otherwise flags their bodies as unreachable
-# even though they're the script's actual error/signal/exit handlers.
-#
 # Purpose:
 #   Clear the current MPD queue and replace it with a randomly selected
 #   collection of complete albums, then begin playback.
 #
 # Behavior:
 #   - Selects random unique album/album-artist combinations.
-#   - Uses exact album and album-artist matching when resolving albums.
+#   - Uses exact album and album-artist matching when resolving albums (and
+#     when excluding recently-picked ones), so two different artists'
+#     albums that happen to share a title are never conflated.
+#   - Optionally restricts selection to albums with a matching release year.
+#   - Optionally avoids re-selecting any of the last N albums picked,
+#     remembered across runs in a small cache file.
 #   - Resolves every selected album before modifying the queue.
 #   - Skips albums that disappear from the library between selection and
 #     resolution when --force is given; aborts the run otherwise.
@@ -35,6 +34,14 @@
 #   mpd-random-album.sh 5
 #   mpd-random-album.sh --quiet 3
 #   mpd-random-album.sh --dry-run 10
+#   mpd-random-album.sh --year 1975 5
+#   mpd-random-album.sh --allow-repeats 3
+#
+# Note: SC2317 ("unreachable" code) is disabled file-wide above because the
+# static analysis doesn't trace functions that are only ever invoked via
+# `trap` (restore_queue, handle_error, handle_signal, handle_int,
+# handle_term, cleanup) -- it otherwise flags their bodies as unreachable
+# even though they're the script's actual error/signal/exit handlers.
 #
 
 set -Eeuo pipefail
@@ -55,8 +62,21 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
     cp "$(dirname "$0")/mpd-random-album.conf.example" "$CONFIG_FILE"
 fi
 
+# Defaults for settings that may not exist in a config predating them, so
+# an old config file (missing AVOID_REPEATS/CACHE_SIZE) doesn't trip set
+# -u's "unbound variable" instead of just falling back sensibly.
+AVOID_REPEATS=true
+CACHE_SIZE=20
+
 # shellcheck source=mpd-random-album.conf.example
 source "$CONFIG_FILE"
+
+# Recently-picked albums live here (not under ~/.config, since this is
+# regeneratable cache data rather than user configuration or critical
+# state) so AVOID_REPEATS can skip them on future runs. One
+# "albumartist\talbum" pair per line, oldest first.
+CACHE_DIR="$HOME/.cache/mpd-scripts/mpd-random-album"
+CACHE_FILE="$CACHE_DIR/recent-albums.tsv"
 
 # ---------------------------------------------------------------------------
 # Runtime state
@@ -330,10 +350,15 @@ Description:
   Replace the current MPD queue with randomly selected complete albums.
 
 Options:
-  -d, --dry-run    Select and resolve albums without changing the queue.
-  -f, --force      Skip albums that fail to resolve instead of aborting.
-  -h, --help       Show this help message.
-  -q, --quiet      Suppress informational messages.
+  -A, --allow-repeats  Don't avoid recently-picked albums for this run,
+                       even if AVOID_REPEATS is on in the config.
+  -d, --dry-run        Select and resolve albums without changing the queue.
+  -f, --force          Skip albums that fail to resolve instead of aborting.
+  -h, --help           Show this help message.
+  -q, --quiet          Suppress informational messages.
+  -y, --year YEAR      Only select albums with a track dated YEAR (matched
+                        as a prefix, so "1975" also matches a full date
+                        like "1975-06-12").
 
 Arguments:
   ALBUM_COUNT      Number of albums to select. Defaults to 1.
@@ -351,9 +376,21 @@ parse_arguments() {
     local album_count_set=false
 
     ALBUM_COUNT="$DEFAULT_ALBUM_COUNT"
+    YEAR_FILTER=""
+    ALLOW_REPEATS_OVERRIDE=false
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
+            -A|--allow-repeats)
+                # Deliberately does NOT touch AVOID_REPEATS itself -- that
+                # stays the persistent config value, so update_cache() still
+                # records this run's picks (see there for why: a forced
+                # repeat should still count as "just played" for the next,
+                # non-overridden run). Only select_random_albums()'s
+                # exclusion check consults this override.
+                ALLOW_REPEATS_OVERRIDE=true
+                shift
+                ;;
             -d|--dry-run)
                 DRY_RUN=true
                 shift
@@ -369,6 +406,13 @@ parse_arguments() {
             -q|--quiet)
                 QUIET=true
                 shift
+                ;;
+            -y|--year)
+                if [[ $# -lt 2 ]]; then
+                    error_exit "-y/--year requires an argument."
+                fi
+                YEAR_FILTER="$2"
+                shift 2
                 ;;
             --)
                 shift
@@ -395,6 +439,10 @@ parse_arguments() {
 
     if ! [[ "$ALBUM_COUNT" =~ ^[1-9][0-9]*$ ]]; then
         error_exit "Album count must be a positive integer."
+    fi
+
+    if [[ -n "$YEAR_FILTER" ]] && ! [[ "$YEAR_FILTER" =~ ^[0-9]{4}$ ]]; then
+        error_exit "-y/--year must be a 4-digit year, got '$YEAR_FILTER'."
     fi
 }
 
@@ -524,23 +572,54 @@ validate_album_record() {
 select_random_albums() {
     local album_count="$1"
     local album_record
+    local -a candidates=()
+    local excluded_recent=false
 
-    RANDOM_ALBUMS=()
-
-    mapfile -t RANDOM_ALBUMS < <(
-        mpc listall --format='%albumartist%\t%album%' |
-            awk -F '\t' '
-                NF == 2 &&
+    # %date% is always requested even when YEAR_FILTER is unset, so the
+    # same pipeline serves both cases; awk's (year == "" || ...) just
+    # always matches when there's no filter. index($3, year) == 1 is a
+    # prefix match rather than an exact one, so a filter of "1975" also
+    # matches a full "1975-06-12"-style date, without the substring-match
+    # false positives a plain "contains" search would have (a filter of
+    # "75" incorrectly matching "1975" via a bare index() > 0 check).
+    mapfile -t candidates < <(
+        mpc listall --format='%albumartist%\t%album%\t%date%' |
+            awk -F '\t' -v year="$YEAR_FILTER" '
+                NF >= 2 &&
                 $1 != "" &&
-                $2 != "" {
+                $2 != "" &&
+                (year == "" || index($3, year) == 1) {
                     print $1 "\t" $2
                 }
             ' |
-            sort -u |
-            shuf -n "$album_count"
+            sort -u
     )
 
+    # Excludes albums picked recently (see AVOID_REPEATS/-A/--allow-repeats
+    # and update_cache()) from the candidate pool before shuf ever sees it,
+    # rather than picking-and-retrying one at a time -- this can't loop
+    # indefinitely, and a pool that's shrunk too far to satisfy
+    # album_count falls straight through to the existing partial-success
+    # (or --force) handling exactly like an album vanishing from the
+    # library would.
+    if [[ "$AVOID_REPEATS" == true && "$ALLOW_REPEATS_OVERRIDE" != true && -s "$CACHE_FILE" && ${#candidates[@]} -gt 0 ]]; then
+        local -a filtered=()
+        mapfile -t filtered < <(printf '%s\n' "${candidates[@]}" | grep -vxFf "$CACHE_FILE" || true)
+        if [[ ${#filtered[@]} -lt ${#candidates[@]} ]]; then
+            excluded_recent=true
+        fi
+        candidates=("${filtered[@]}")
+    fi
+
+    RANDOM_ALBUMS=()
+    if [[ ${#candidates[@]} -gt 0 ]]; then
+        mapfile -t RANDOM_ALBUMS < <(printf '%s\n' "${candidates[@]}" | shuf -n "$album_count")
+    fi
+
     if [[ ${#RANDOM_ALBUMS[@]} -eq 0 ]]; then
+        if [[ "$excluded_recent" == true ]]; then
+            error_exit "No albums remain after excluding recently-picked ones. Use -A/--allow-repeats, lower CACHE_SIZE, or add more music."
+        fi
         error_exit "No valid albums were found in the MPD library."
     fi
 
@@ -706,6 +785,46 @@ start_playback() {
 }
 
 # ---------------------------------------------------------------------------
+# Recent-albums cache
+# ---------------------------------------------------------------------------
+
+#
+# Records this run's resolved albums as "recently picked" for AVOID_REPEATS
+# to exclude on future runs, trimming the cache to the last CACHE_SIZE
+# entries. Only called after a real (non-dry-run) run has actually changed
+# the queue, so a dry run or a failed run never pollutes it. A failure here
+# is reported but never fatal -- the queue/playback change it's recording
+# has already succeeded by the time this runs, and a stale/missing cache
+# file just means AVOID_REPEATS has less history to work with next time,
+# not a reason to make an otherwise-successful run exit non-zero.
+#
+update_cache() {
+    if [[ "$AVOID_REPEATS" != true ]]; then
+        return 0
+    fi
+
+    if ! [[ "$CACHE_SIZE" =~ ^[0-9]+$ ]]; then
+        warning_message "CACHE_SIZE in $CONFIG_FILE is invalid ('$CACHE_SIZE'); skipping recent-albums cache update."
+        return 0
+    fi
+
+    if (( CACHE_SIZE == 0 )); then
+        return 0
+    fi
+
+    mkdir -p "$CACHE_DIR"
+    touch "$CACHE_FILE"
+
+    local -a combined
+    mapfile -t combined < <(cat "$CACHE_FILE"; printf '%s\n' "${RESOLVED_ALBUMS[@]}")
+
+    local cache_tmp
+    cache_tmp="$(mktemp "${CACHE_FILE}.XXXXXX")"
+    printf '%s\n' "${combined[@]}" | tail -n "$CACHE_SIZE" > "$cache_tmp"
+    mv "$cache_tmp" "$CACHE_FILE"
+}
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -735,6 +854,7 @@ main() {
 
     clear_and_fill_queue
     start_playback
+    update_cache || warning_message "Failed to update the recent-albums cache."
 
     if (( resolved_album_count < requested_album_count )); then
         warning_message \
