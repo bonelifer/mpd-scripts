@@ -14,8 +14,8 @@
 #     when excluding recently-picked ones), so two different artists'
 #     albums that happen to share a title are never conflated.
 #   - Optionally restricts selection to albums with a track dated within a
-#     given year or year range, and/or matching a genre (substring, case
-#     insensitive).
+#     given year or year range, matching a genre (substring, case
+#     insensitive), and/or by a specific album artist (exact match).
 #   - Optionally avoids re-selecting any of the last N albums picked,
 #     remembered across runs in a small cache file.
 #   - Resolves every selected album before modifying the queue.
@@ -39,6 +39,7 @@
 #   mpd-random-album.sh --year 1975 5
 #   mpd-random-album.sh --year 1970-1979 5
 #   mpd-random-album.sh --genre jazz 3
+#   mpd-random-album.sh --artist "Pink Floyd" 2
 #   mpd-random-album.sh --allow-repeats 3
 #
 # Note: SC2317 ("unreachable" code) is disabled file-wide above because the
@@ -356,6 +357,8 @@ Description:
 Options:
   -A, --allow-repeats  Don't avoid recently-picked albums for this run,
                        even if AVOID_REPEATS is on in the config.
+  -a, --artist ARTIST  Only select albums by ARTIST (exact match against
+                       the album artist).
   -d, --dry-run        Select and resolve albums without changing the queue.
   -f, --force          Skip albums that fail to resolve instead of aborting.
   -g, --genre GENRE    Only select albums with a track whose genre
@@ -383,6 +386,7 @@ parse_arguments() {
     ALBUM_COUNT="$DEFAULT_ALBUM_COUNT"
     YEAR_FILTER=""
     GENRE_FILTER=""
+    ARTIST_FILTER=""
     ALLOW_REPEATS_OVERRIDE=false
 
     while [[ $# -gt 0 ]]; do
@@ -396,6 +400,13 @@ parse_arguments() {
                 # exclusion check consults this override.
                 ALLOW_REPEATS_OVERRIDE=true
                 shift
+                ;;
+            -a|--artist)
+                if [[ $# -lt 2 ]]; then
+                    error_exit "-a/--artist requires an argument."
+                fi
+                ARTIST_FILTER="$2"
+                shift 2
                 ;;
             -d|--dry-run)
                 DRY_RUN=true
@@ -634,9 +645,13 @@ select_random_albums() {
     # sidesteps any regex-metacharacter surprises from an arbitrary
     # user-supplied genre string, the same reasoning the year filter
     # originally used it for before it needed numeric range comparison.
+    #
+    # Artist matching (-a/--artist) is the opposite deliberately: an exact
+    # match against $1, consistent with how album/albumartist identity is
+    # always treated exactly everywhere else in this script.
     mapfile -t candidates < <(
         mpc listall --format='%albumartist%\t%album%\t%date%\t%genre%' |
-            awk -F '\t' -v start="$YEAR_START" -v end="$YEAR_END" -v genre="${GENRE_FILTER,,}" '
+            awk -F '\t' -v start="$YEAR_START" -v end="$YEAR_END" -v genre="${GENRE_FILTER,,}" -v artist="$ARTIST_FILTER" '
                 NF >= 2 &&
                 $1 != "" &&
                 $2 != "" &&
@@ -644,7 +659,8 @@ select_random_albums() {
                     (substr($3, 1, 4) ~ /^[0-9][0-9][0-9][0-9]$/ &&
                      substr($3, 1, 4) + 0 >= start + 0 &&
                      substr($3, 1, 4) + 0 <= end + 0)) &&
-                (genre == "" || index(tolower($4), genre) > 0) {
+                (genre == "" || index(tolower($4), genre) > 0) &&
+                (artist == "" || $1 == artist) {
                     print $1 "\t" $2
                 }
             ' |

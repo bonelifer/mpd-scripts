@@ -8,6 +8,7 @@ Clears the current MPD queue and replaces it with a randomly selected collection
 - Optionally avoids re-picking any of the last `CACHE_SIZE` albums selected, remembered across runs, so consecutive invocations don't keep handing you the same few albums
 - Optional `-y`/`--year` filter to restrict selection to albums with a track dated a given year, or within a year range
 - Optional `-g`/`--genre` filter (case-insensitive substring match) to restrict selection to a genre
+- Optional `-a`/`--artist` filter (exact match) to restrict selection to a specific album artist
 - Resolves every selected album *before* touching the existing queue -- nothing is modified until the whole selection succeeds (or degrades gracefully with `--force`)
 - Saves the original queue and playback state (random/repeat/single/consume, play state, song position) beforehand, and restores it automatically if anything fails partway through
 - Verifies the resulting queue actually contains what was intended before starting playback
@@ -28,6 +29,7 @@ mpd-random-album.sh [OPTIONS] [ALBUM_COUNT]
 | Option | Description |
 | --- | --- |
 | `-A`, `--allow-repeats` | Don't avoid recently-picked albums for this run, even if `AVOID_REPEATS` is on |
+| `-a`, `--artist ARTIST` | Only select albums by `ARTIST` (exact match against the album artist) |
 | `-d`, `--dry-run` | Select and resolve albums without changing the queue |
 | `-f`, `--force` | Skip albums that fail to resolve instead of aborting the run |
 | `-g`, `--genre GENRE` | Only select albums with a track whose genre contains `GENRE` (case insensitive) |
@@ -48,6 +50,7 @@ mpd-random-album.sh --force 5     # don't abort if one of the 5 has vanished fro
 mpd-random-album.sh --year 1975 3      # three random albums with a track dated 1975
 mpd-random-album.sh --year 1970-1979 3 # three random albums from that decade
 mpd-random-album.sh --genre jazz 3     # three random albums tagged (or containing) "jazz"
+mpd-random-album.sh --artist "Pink Floyd" 2 # two random albums by exactly "Pink Floyd"
 mpd-random-album.sh --allow-repeats 1  # force a pick even if the whole pool is "recent"
 ```
 
