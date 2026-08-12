@@ -4,7 +4,9 @@ Clears the current MPD queue and replaces it with a randomly selected collection
 
 ## Features
 
-- Selects random unique album/album-artist combinations, using exact matching (`mpc find`, not `mpc search`) so similarly-named albums (e.g. `The Wall` vs. `The Wall (Remastered)`) don't get conflated
+- Selects random unique album/album-artist combinations, using exact matching (`mpc find`, not `mpc search`) so similarly-named albums (e.g. `The Wall` vs. `The Wall (Remastered)`) don't get conflated -- including two *different artists'* albums that happen to share a title (e.g. two unrelated "Greatest Hits"), which are kept fully separate rather than treated as duplicates
+- Optionally avoids re-picking any of the last `CACHE_SIZE` albums selected, remembered across runs, so consecutive invocations don't keep handing you the same few albums
+- Optional `-y`/`--year` filter to restrict selection to albums with a matching release year
 - Resolves every selected album *before* touching the existing queue -- nothing is modified until the whole selection succeeds (or degrades gracefully with `--force`)
 - Saves the original queue and playback state (random/repeat/single/consume, play state, song position) beforehand, and restores it automatically if anything fails partway through
 - Verifies the resulting queue actually contains what was intended before starting playback
@@ -24,9 +26,11 @@ mpd-random-album.sh [OPTIONS] [ALBUM_COUNT]
 
 | Option | Description |
 | --- | --- |
+| `-A`, `--allow-repeats` | Don't avoid recently-picked albums for this run, even if `AVOID_REPEATS` is on |
 | `-d`, `--dry-run` | Select and resolve albums without changing the queue |
 | `-f`, `--force` | Skip albums that fail to resolve instead of aborting the run |
 | `-q`, `--quiet` | Suppress informational messages |
+| `-y`, `--year YEAR` | Only select albums with a track dated `YEAR` (matches as a prefix, so `1975` also matches a full `1975-06-12`-style date) |
 | `-h`, `--help` | Show help |
 
 `ALBUM_COUNT` defaults to `DEFAULT_ALBUM_COUNT` from the config file if not given.
@@ -39,6 +43,8 @@ mpd-random-album.sh 5             # five random albums
 mpd-random-album.sh --quiet 3
 mpd-random-album.sh --dry-run 10
 mpd-random-album.sh --force 5     # don't abort if one of the 5 has vanished from the library
+mpd-random-album.sh --year 1975 3 # three random albums with a track dated 1975
+mpd-random-album.sh --allow-repeats 1  # force a pick even if the whole pool is "recent"
 ```
 
 ## Configuration
@@ -51,6 +57,8 @@ Settings live in `~/.config/mpd-scripts/mpd-random-album/mpd-random-album.conf`,
 | `QUIET` | Suppress informational messages by default | `false` |
 | `DRY_RUN` | Select/resolve without changing the queue, by default | `false` |
 | `FORCE` | Skip failed albums instead of aborting, by default | `false` |
+| `AVOID_REPEATS` | Avoid re-picking recently-selected albums by default | `true` |
+| `CACHE_SIZE` | How many recently-picked albums to remember and avoid | `20` |
 
 Each setting can still be overridden per invocation with its corresponding flag.
 
@@ -58,9 +66,19 @@ Each setting can still be overridden per invocation with its corresponding flag.
 
 By default, if a selected album can't be resolved (e.g. it was removed from the library between selection and resolution), the run **aborts** and the original queue/state is restored -- nothing is left half-changed. Pass `--force` (or set `FORCE=true` in the config) to skip unresolvable albums instead and continue with whatever did resolve, exiting `2` if that means fewer albums were added than requested.
 
+## Avoiding repeats
+
+When `AVOID_REPEATS` is on (the default), each run excludes the last `CACHE_SIZE` albums picked -- recorded in `~/.cache/mpd-scripts/mpd-random-album/recent-albums.tsv`, keyed by the same exact `(albumartist, album)` pair used for selection and resolution, so two different artists' albums that happen to share a title are never confused with each other in the exclusion history either.
+
+If excluding recent picks leaves too few albums to satisfy the requested count, that's treated exactly like an album vanishing from the library: it aborts and restores the original queue by default, or falls through to the usual partial-success/`--force` handling.
+
+`-A`/`--allow-repeats` skips the exclusion for a single run without touching the config -- useful if the pool is nearly exhausted, or you just want to deliberately hear something recent again. Recording still happens afterward regardless of `-A`, so a normal (non-`-A`) run right after still correctly treats that album as "just played" rather than forgetting about it. Only permanently disabling `AVOID_REPEATS` in the config stops recording entirely.
+
+A dry run (`-d`/`--dry-run`) never writes to the cache, since nothing was actually queued or played.
+
 ## Acknowledgments
 
-Derived from `RandAlbum` in [Alejandro-Roldan/mpc-scripts](https://github.com/Alejandro-Roldan/mpc-scripts).
+Derived from `RandAlbum` in [Alejandro-Roldan/mpc-scripts](https://github.com/Alejandro-Roldan/mpc-scripts). The recent-albums cache (`AVOID_REPEATS`/`CACHE_SIZE`/`-A`) was inspired by the equivalent feature in [ibeex/mpd_queue_random_album](https://github.com/ibeex/mpd_queue_random_album), reimplemented to key the cache by `(albumartist, album)` instead of the bare album title -- that project's version could conflate two different artists' albums sharing a common title (e.g. two unrelated "Greatest Hits") both in selection and in the recency cache, since it keyed and matched on album title alone.
 
 ## License
 
