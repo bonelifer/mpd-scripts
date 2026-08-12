@@ -13,7 +13,8 @@
 #   - Uses exact album and album-artist matching when resolving albums (and
 #     when excluding recently-picked ones), so two different artists'
 #     albums that happen to share a title are never conflated.
-#   - Optionally restricts selection to albums with a matching release year.
+#   - Optionally restricts selection to albums with a track dated within a
+#     given year or year range.
 #   - Optionally avoids re-selecting any of the last N albums picked,
 #     remembered across runs in a small cache file.
 #   - Resolves every selected album before modifying the queue.
@@ -35,6 +36,7 @@
 #   mpd-random-album.sh --quiet 3
 #   mpd-random-album.sh --dry-run 10
 #   mpd-random-album.sh --year 1975 5
+#   mpd-random-album.sh --year 1970-1979 5
 #   mpd-random-album.sh --allow-repeats 3
 #
 # Note: SC2317 ("unreachable" code) is disabled file-wide above because the
@@ -356,9 +358,8 @@ Options:
   -f, --force          Skip albums that fail to resolve instead of aborting.
   -h, --help           Show this help message.
   -q, --quiet          Suppress informational messages.
-  -y, --year YEAR      Only select albums with a track dated YEAR (matched
-                        as a prefix, so "1975" also matches a full date
-                        like "1975-06-12").
+  -y, --year YEAR      Only select albums with a track dated YEAR, or
+                        within a YEAR-YEAR range (e.g. 1970-1979).
 
 Arguments:
   ALBUM_COUNT      Number of albums to select. Defaults to 1.
@@ -441,8 +442,25 @@ parse_arguments() {
         error_exit "Album count must be a positive integer."
     fi
 
-    if [[ -n "$YEAR_FILTER" ]] && ! [[ "$YEAR_FILTER" =~ ^[0-9]{4}$ ]]; then
-        error_exit "-y/--year must be a 4-digit year, got '$YEAR_FILTER'."
+    # YEAR_FILTER is either a single 4-digit year or a "START-END" range
+    # (inclusive); either form sets YEAR_START/YEAR_END, which
+    # select_random_albums() actually filters on. A bare year sets both to
+    # the same value, so it's just a range of one.
+    YEAR_START=""
+    YEAR_END=""
+    if [[ -n "$YEAR_FILTER" ]]; then
+        if [[ "$YEAR_FILTER" =~ ^([0-9]{4})-([0-9]{4})$ ]]; then
+            YEAR_START="${BASH_REMATCH[1]}"
+            YEAR_END="${BASH_REMATCH[2]}"
+            if (( YEAR_START > YEAR_END )); then
+                error_exit "-y/--year range must have start <= end, got '$YEAR_FILTER'."
+            fi
+        elif [[ "$YEAR_FILTER" =~ ^[0-9]{4}$ ]]; then
+            YEAR_START="$YEAR_FILTER"
+            YEAR_END="$YEAR_FILTER"
+        else
+            error_exit "-y/--year must be a 4-digit year or a START-END range, got '$YEAR_FILTER'."
+        fi
     fi
 }
 
@@ -575,20 +593,35 @@ select_random_albums() {
     local -a candidates=()
     local excluded_recent=false
 
-    # %date% is always requested even when YEAR_FILTER is unset, so the
-    # same pipeline serves both cases; awk's (year == "" || ...) just
-    # always matches when there's no filter. index($3, year) == 1 is a
-    # prefix match rather than an exact one, so a filter of "1975" also
-    # matches a full "1975-06-12"-style date, without the substring-match
-    # false positives a plain "contains" search would have (a filter of
-    # "75" incorrectly matching "1975" via a bare index() > 0 check).
+    # %date% is always requested even when YEAR_START/YEAR_END are unset,
+    # so the same pipeline serves both cases; awk's (start == "" || ...)
+    # just always matches when there's no filter. track_year is the
+    # leading 4 digits of the date field, compared numerically against
+    # [start, end] rather than string-matched -- a plain substring search
+    # would have false positives (e.g. a filter of "75" incorrectly
+    # matching "1975"), and a numeric range needs a numeric comparison
+    # regardless. A single year (-y 1975) is just a range of one
+    # (YEAR_START == YEAR_END), so it's handled by the same comparison.
+    # Tracks whose date isn't a clean 4-digit-leading value never match a
+    # filter, rather than erroring -- same "skip what doesn't cleanly fit"
+    # treatment as everywhere else this script filters candidates.
+    #
+    # The digit check below is spelled out as four [0-9] classes rather
+    # than [0-9]{4} deliberately -- mawk (Debian/Ubuntu's default awk,
+    # which this script only ever requires "awk" for) doesn't support
+    # brace-interval regex syntax and silently matches nothing with it,
+    # unlike bash's own =~ used for the same 4-digit check elsewhere in
+    # this script, which has no such limitation.
     mapfile -t candidates < <(
         mpc listall --format='%albumartist%\t%album%\t%date%' |
-            awk -F '\t' -v year="$YEAR_FILTER" '
+            awk -F '\t' -v start="$YEAR_START" -v end="$YEAR_END" '
                 NF >= 2 &&
                 $1 != "" &&
                 $2 != "" &&
-                (year == "" || index($3, year) == 1) {
+                (start == "" ||
+                    (substr($3, 1, 4) ~ /^[0-9][0-9][0-9][0-9]$/ &&
+                     substr($3, 1, 4) + 0 >= start + 0 &&
+                     substr($3, 1, 4) + 0 <= end + 0)) {
                     print $1 "\t" $2
                 }
             ' |
