@@ -14,7 +14,8 @@
 #     when excluding recently-picked ones), so two different artists'
 #     albums that happen to share a title are never conflated.
 #   - Optionally restricts selection to albums with a track dated within a
-#     given year or year range.
+#     given year or year range, and/or matching a genre (substring, case
+#     insensitive).
 #   - Optionally avoids re-selecting any of the last N albums picked,
 #     remembered across runs in a small cache file.
 #   - Resolves every selected album before modifying the queue.
@@ -37,6 +38,7 @@
 #   mpd-random-album.sh --dry-run 10
 #   mpd-random-album.sh --year 1975 5
 #   mpd-random-album.sh --year 1970-1979 5
+#   mpd-random-album.sh --genre jazz 3
 #   mpd-random-album.sh --allow-repeats 3
 #
 # Note: SC2317 ("unreachable" code) is disabled file-wide above because the
@@ -356,6 +358,8 @@ Options:
                        even if AVOID_REPEATS is on in the config.
   -d, --dry-run        Select and resolve albums without changing the queue.
   -f, --force          Skip albums that fail to resolve instead of aborting.
+  -g, --genre GENRE    Only select albums with a track whose genre
+                       contains GENRE (case insensitive).
   -h, --help           Show this help message.
   -q, --quiet          Suppress informational messages.
   -y, --year YEAR      Only select albums with a track dated YEAR, or
@@ -378,6 +382,7 @@ parse_arguments() {
 
     ALBUM_COUNT="$DEFAULT_ALBUM_COUNT"
     YEAR_FILTER=""
+    GENRE_FILTER=""
     ALLOW_REPEATS_OVERRIDE=false
 
     while [[ $# -gt 0 ]]; do
@@ -399,6 +404,13 @@ parse_arguments() {
             -f|--force)
                 FORCE=true
                 shift
+                ;;
+            -g|--genre)
+                if [[ $# -lt 2 ]]; then
+                    error_exit "-g/--genre requires an argument."
+                fi
+                GENRE_FILTER="$2"
+                shift 2
                 ;;
             -h|--help)
                 show_help
@@ -612,16 +624,27 @@ select_random_albums() {
     # brace-interval regex syntax and silently matches nothing with it,
     # unlike bash's own =~ used for the same 4-digit check elsewhere in
     # this script, which has no such limitation.
+    #
+    # Genre matching (-g/--genre) is deliberately a case-insensitive
+    # substring match via index(), not the exact matching used for
+    # album/albumartist -- genre tagging is inherently loose and
+    # inconsistent across libraries ("Rock" vs. "Classic Rock" vs.
+    # "rock"), unlike album/artist identity, where exact matching is what
+    # prevents two different things from being conflated. index() also
+    # sidesteps any regex-metacharacter surprises from an arbitrary
+    # user-supplied genre string, the same reasoning the year filter
+    # originally used it for before it needed numeric range comparison.
     mapfile -t candidates < <(
-        mpc listall --format='%albumartist%\t%album%\t%date%' |
-            awk -F '\t' -v start="$YEAR_START" -v end="$YEAR_END" '
+        mpc listall --format='%albumartist%\t%album%\t%date%\t%genre%' |
+            awk -F '\t' -v start="$YEAR_START" -v end="$YEAR_END" -v genre="${GENRE_FILTER,,}" '
                 NF >= 2 &&
                 $1 != "" &&
                 $2 != "" &&
                 (start == "" ||
                     (substr($3, 1, 4) ~ /^[0-9][0-9][0-9][0-9]$/ &&
                      substr($3, 1, 4) + 0 >= start + 0 &&
-                     substr($3, 1, 4) + 0 <= end + 0)) {
+                     substr($3, 1, 4) + 0 <= end + 0)) &&
+                (genre == "" || index(tolower($4), genre) > 0) {
                     print $1 "\t" $2
                 }
             ' |
