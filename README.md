@@ -47,7 +47,7 @@ Collection of scripts related to mpd & mpc.
 | **[rm-artists-playlist](./rm-artists-playlist/)** | Removes songs by a list of artists from a saved MPD playlist or the current queue, or lists available playlists. |
 | **[mpd-add-random-artist](./mpd-add-random-artist/)** | Adds a random sample of a specified artist's tracks to the current MPD queue, matching exactly by default or loosely with `-l`. |
 | **[mpd-add-random](./mpd-add-random/)** | Adds a random selection of tracks from the local music library to the current MPD queue. |
-| **[mpd-random-album](./mpd-random-album/)** | Clears the queue and replaces it with randomly selected complete albums, with an optional year filter, a recent-picks cache to avoid repeats, saving and restoring the original queue/state if anything fails. |
+| **[mpd-random-album](./mpd-random-album/)** | Clears the queue (or appends to it) and fills it with randomly selected complete albums, with optional year/genre/artist filters, a recent-picks cache to avoid repeats, a notification hook, and saving/restoring the original queue/state if anything fails. |
 | **[add-current-song](./add-current-song/)** | Adds the currently playing MPD song to an M3U playlist, with duplicate prevention, sorting, locking, and atomic rewrites. |
 | **[mpd-tray-icon](./mpd-tray-icon/)** | A GTK3 tray icon showing the currently playing MPD track, with Play/Pause/Next/Previous controls. |
 | **[mpd-radio-tray](./mpd-radio-tray/)** | A PyQt5 system tray app for managing and playing categorized internet radio station URLs with MPD, similar to RadioTray-NG. |
