@@ -14,9 +14,15 @@
 #     when excluding recently-picked ones), so two different artists'
 #     albums that happen to share a title are never conflated.
 #   - Optionally restricts selection to albums with a track dated within a
-#     given year or year range.
+#     given year or year range, matching a genre (substring, case
+#     insensitive), and/or by a specific album artist (exact match).
 #   - Optionally avoids re-selecting any of the last N albums picked,
 #     remembered across runs in a small cache file.
+#   - Optional --append mode adds the selected albums to the end of the
+#     existing queue instead of replacing it, without disturbing whatever
+#     is currently playing.
+#   - Optionally runs a SELECTION_HOOK shell command (from the config)
+#     after a successful selection, e.g. to send a desktop notification.
 #   - Resolves every selected album before modifying the queue.
 #   - Skips albums that disappear from the library between selection and
 #     resolution when --force is given; aborts the run otherwise.
@@ -37,6 +43,9 @@
 #   mpd-random-album.sh --dry-run 10
 #   mpd-random-album.sh --year 1975 5
 #   mpd-random-album.sh --year 1970-1979 5
+#   mpd-random-album.sh --genre jazz 3
+#   mpd-random-album.sh --artist "Pink Floyd" 2
+#   mpd-random-album.sh --append 2
 #   mpd-random-album.sh --allow-repeats 3
 #
 # Note: SC2317 ("unreachable" code) is disabled file-wide above because the
@@ -65,10 +74,13 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
 fi
 
 # Defaults for settings that may not exist in a config predating them, so
-# an old config file (missing AVOID_REPEATS/CACHE_SIZE) doesn't trip set
-# -u's "unbound variable" instead of just falling back sensibly.
+# an old config file (missing AVOID_REPEATS/CACHE_SIZE/APPEND/
+# SELECTION_HOOK) doesn't trip set -u's "unbound variable" instead of just
+# falling back sensibly.
 AVOID_REPEATS=true
 CACHE_SIZE=20
+APPEND=false
+SELECTION_HOOK=""
 
 # shellcheck source=mpd-random-album.conf.example
 source "$CONFIG_FILE"
@@ -94,6 +106,7 @@ ORIGINAL_SINGLE=""
 ORIGINAL_CONSUME=""
 ORIGINAL_STATE=""
 ORIGINAL_SONG_POSITION=""
+APPEND_START_LENGTH=0
 
 declare -a ORIGINAL_QUEUE=()
 declare -a RANDOM_ALBUMS=()
@@ -137,6 +150,29 @@ restore_queue() {
     # the error handler.
     #
     trap - ERR
+
+    if [[ "$APPEND" == true ]]; then
+        #
+        # Append mode never cleared the queue or touched playback, so
+        # there's nothing to restore beyond removing whatever this run
+        # itself appended. Repeatedly deleting the position right after the
+        # pre-append queue length removes exactly the appended block: each
+        # deletion shifts the next appended track down into that same
+        # position. Deleting past the current queue end (e.g. because fewer
+        # tracks were actually appended than SELECTED_TRACKS expected) just
+        # fails, caught by "|| true" like every other command here.
+        #
+        local i
+        for ((i = 0; i < ${#SELECTED_TRACKS[@]}; i++)); do
+            mpc del "$((APPEND_START_LENGTH + 1))" >/dev/null 2>&1 || true
+        done
+
+        QUEUE_MODIFIED=false
+        RESTORING_QUEUE=false
+
+        trap handle_error ERR
+        return 0
+    fi
 
     mpc stop >/dev/null 2>&1 || true
     mpc clear >/dev/null 2>&1 || true
@@ -354,9 +390,16 @@ Description:
 Options:
   -A, --allow-repeats  Don't avoid recently-picked albums for this run,
                        even if AVOID_REPEATS is on in the config.
+  -a, --artist ARTIST  Only select albums by ARTIST (exact match against
+                       the album artist).
   -d, --dry-run        Select and resolve albums without changing the queue.
   -f, --force          Skip albums that fail to resolve instead of aborting.
+  -g, --genre GENRE    Only select albums with a track whose genre
+                       contains GENRE (case insensitive).
   -h, --help           Show this help message.
+  -p, --append         Add the selected albums to the end of the existing
+                       queue instead of replacing it, without disturbing
+                       current playback.
   -q, --quiet          Suppress informational messages.
   -y, --year YEAR      Only select albums with a track dated YEAR, or
                         within a YEAR-YEAR range (e.g. 1970-1979).
@@ -378,6 +421,8 @@ parse_arguments() {
 
     ALBUM_COUNT="$DEFAULT_ALBUM_COUNT"
     YEAR_FILTER=""
+    GENRE_FILTER=""
+    ARTIST_FILTER=""
     ALLOW_REPEATS_OVERRIDE=false
 
     while [[ $# -gt 0 ]]; do
@@ -392,6 +437,13 @@ parse_arguments() {
                 ALLOW_REPEATS_OVERRIDE=true
                 shift
                 ;;
+            -a|--artist)
+                if [[ $# -lt 2 ]]; then
+                    error_exit "-a/--artist requires an argument."
+                fi
+                ARTIST_FILTER="$2"
+                shift 2
+                ;;
             -d|--dry-run)
                 DRY_RUN=true
                 shift
@@ -400,9 +452,20 @@ parse_arguments() {
                 FORCE=true
                 shift
                 ;;
+            -g|--genre)
+                if [[ $# -lt 2 ]]; then
+                    error_exit "-g/--genre requires an argument."
+                fi
+                GENRE_FILTER="$2"
+                shift 2
+                ;;
             -h|--help)
                 show_help
                 exit 0
+                ;;
+            -p|--append)
+                APPEND=true
+                shift
                 ;;
             -q|--quiet)
                 QUIET=true
@@ -612,16 +675,32 @@ select_random_albums() {
     # brace-interval regex syntax and silently matches nothing with it,
     # unlike bash's own =~ used for the same 4-digit check elsewhere in
     # this script, which has no such limitation.
+    #
+    # Genre matching (-g/--genre) is deliberately a case-insensitive
+    # substring match via index(), not the exact matching used for
+    # album/albumartist -- genre tagging is inherently loose and
+    # inconsistent across libraries ("Rock" vs. "Classic Rock" vs.
+    # "rock"), unlike album/artist identity, where exact matching is what
+    # prevents two different things from being conflated. index() also
+    # sidesteps any regex-metacharacter surprises from an arbitrary
+    # user-supplied genre string, the same reasoning the year filter
+    # originally used it for before it needed numeric range comparison.
+    #
+    # Artist matching (-a/--artist) is the opposite deliberately: an exact
+    # match against $1, consistent with how album/albumartist identity is
+    # always treated exactly everywhere else in this script.
     mapfile -t candidates < <(
-        mpc listall --format='%albumartist%\t%album%\t%date%' |
-            awk -F '\t' -v start="$YEAR_START" -v end="$YEAR_END" '
+        mpc listall --format='%albumartist%\t%album%\t%date%\t%genre%' |
+            awk -F '\t' -v start="$YEAR_START" -v end="$YEAR_END" -v genre="${GENRE_FILTER,,}" -v artist="$ARTIST_FILTER" '
                 NF >= 2 &&
                 $1 != "" &&
                 $2 != "" &&
                 (start == "" ||
                     (substr($3, 1, 4) ~ /^[0-9][0-9][0-9][0-9]$/ &&
                      substr($3, 1, 4) + 0 >= start + 0 &&
-                     substr($3, 1, 4) + 0 <= end + 0)) {
+                     substr($3, 1, 4) + 0 <= end + 0)) &&
+                (genre == "" || index(tolower($4), genre) > 0) &&
+                (artist == "" || $1 == artist) {
                     print $1 "\t" $2
                 }
             ' |
@@ -773,6 +852,27 @@ clear_and_fill_queue() {
     done
 }
 
+#
+# Append mode (-p/--append): add the selected tracks to the end of the
+# existing queue instead of replacing it. Unlike clear_and_fill_queue(),
+# this never clears the queue, never touches random/repeat/single/consume,
+# and never starts or otherwise disturbs current playback -- the whole
+# point of append mode is to top up the queue in the background.
+#
+append_to_queue() {
+    local track
+
+    APPEND_START_LENGTH="$(verify_queue)"
+
+    QUEUE_MODIFIED=true
+
+    for track in "${SELECTED_TRACKS[@]}"; do
+        if ! mpc add -- "$track" >/dev/null; then
+            error_exit "Unable to add track to MPD queue: $track"
+        fi
+    done
+}
+
 # ---------------------------------------------------------------------------
 # Final validation and playback
 # ---------------------------------------------------------------------------
@@ -813,6 +913,30 @@ start_playback() {
             fi
             ;;
     esac
+
+    QUEUE_MODIFIED=false
+}
+
+#
+# Verify and report an append-mode run. Unlike start_playback(), the
+# expected queue length is the pre-append length plus what was just added
+# (not just the added count on its own, since the existing queue was never
+# cleared), and playback is deliberately left untouched.
+#
+verify_and_report_append() {
+    local queue_length
+    local expected_length
+
+    queue_length="$(verify_queue)"
+    expected_length=$((APPEND_START_LENGTH + ${#SELECTED_TRACKS[@]}))
+
+    if (( queue_length != expected_length )); then
+        error_exit \
+            "Queue verification failed: expected $expected_length track(s), found $queue_length."
+    fi
+
+    log_message \
+        "Added ${#RESOLVED_ALBUMS[@]} random album(s) containing ${#SELECTED_TRACKS[@]} track(s) to the queue."
 
     QUEUE_MODIFIED=false
 }
@@ -858,6 +982,48 @@ update_cache() {
 }
 
 # ---------------------------------------------------------------------------
+# Selection hook
+# ---------------------------------------------------------------------------
+
+#
+# Runs the optional SELECTION_HOOK shell command from the config after a
+# successful (or partially successful) selection -- e.g. to send a desktop
+# notification. Fire-and-forget and never fatal, matching the same
+# shell-hook pattern used by alarmpd/mpd-auto-stop elsewhere in this repo.
+# Selection details are exported as environment variables rather than
+# passed as arguments, so a hook command doesn't need its own argument
+# parsing to read them.
+#
+run_selection_hook() {
+    local album_record
+    local album_artist
+    local album
+    local mode
+    local -a album_lines=()
+
+    if [[ -z "$SELECTION_HOOK" ]]; then
+        return 0
+    fi
+
+    for album_record in "${RESOLVED_ALBUMS[@]}"; do
+        album_artist="${album_record%%$'\t'*}"
+        album="${album_record#*$'\t'}"
+        album_lines+=("$album_artist - $album")
+    done
+
+    mode="replace"
+    if [[ "$APPEND" == true ]]; then
+        mode="append"
+    fi
+
+    MPD_RANDOM_ALBUM_ALBUMS="$(printf '%s\n' "${album_lines[@]}")" \
+    MPD_RANDOM_ALBUM_ALBUM_COUNT="${#RESOLVED_ALBUMS[@]}" \
+    MPD_RANDOM_ALBUM_TRACK_COUNT="${#SELECTED_TRACKS[@]}" \
+    MPD_RANDOM_ALBUM_MODE="$mode" \
+        bash -c "$SELECTION_HOOK" >/dev/null 2>&1 &
+}
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -885,9 +1051,16 @@ main() {
         return 0
     fi
 
-    clear_and_fill_queue
-    start_playback
+    if [[ "$APPEND" == true ]]; then
+        append_to_queue
+        verify_and_report_append
+    else
+        clear_and_fill_queue
+        start_playback
+    fi
+
     update_cache || warning_message "Failed to update the recent-albums cache."
+    run_selection_hook
 
     if (( resolved_album_count < requested_album_count )); then
         warning_message \
@@ -896,7 +1069,9 @@ main() {
         return 2
     fi
 
-    log_message "Playback started successfully."
+    if [[ "$APPEND" != true ]]; then
+        log_message "Playback started successfully."
+    fi
 
     return 0
 }
