@@ -10,6 +10,7 @@ Clears the current MPD queue and replaces it with a randomly selected collection
 - Optional `-g`/`--genre` filter (case-insensitive substring match) to restrict selection to a genre
 - Optional `-a`/`--artist` filter (exact match) to restrict selection to a specific album artist
 - Optional `-p`/`--append` mode adds the selected albums to the end of the existing queue instead of replacing it, without disturbing current playback
+- Optional `SELECTION_HOOK` shell command, run after a successful selection (e.g. to send a desktop notification)
 - Resolves every selected album *before* touching the existing queue -- nothing is modified until the whole selection succeeds (or degrades gracefully with `--force`)
 - Saves the original queue and playback state (random/repeat/single/consume, play state, song position) beforehand, and restores it automatically if anything fails partway through
 - Verifies the resulting queue actually contains what was intended before starting playback
@@ -70,6 +71,7 @@ Settings live in `~/.config/mpd-scripts/mpd-random-album/mpd-random-album.conf`,
 | `AVOID_REPEATS` | Avoid re-picking recently-selected albums by default | `true` |
 | `CACHE_SIZE` | How many recently-picked albums to remember and avoid | `20` |
 | `APPEND` | Add to the end of the existing queue instead of replacing it, by default | `false` |
+| `SELECTION_HOOK` | Shell command run after a successful selection | *(none)* |
 
 Each setting can still be overridden per invocation with its corresponding flag.
 
@@ -92,6 +94,23 @@ A dry run (`-d`/`--dry-run`) never writes to the cache, since nothing was actual
 `-p`/`--append` (or `APPEND=true` in the config) adds the selected albums to the end of the existing queue instead of clearing and replacing it. Unlike the default mode, it never touches playback, the current song, or the random/repeat/single/consume settings -- it's meant for topping up the queue in the background without interrupting whatever's currently playing.
 
 If a track fails to add partway through, only the tracks this run itself appended are removed; the pre-existing queue and playback are left exactly as they were, same as the default mode's own restore-on-failure guarantee.
+
+## Notification hook
+
+`SELECTION_HOOK` in the config runs an arbitrary shell command after a successful (or partially successful) selection -- fire-and-forget and never fatal, the same pattern used by [`alarmpd`](../alarmpd/) and [`mpd-auto-stop`](../mpd-auto-stop/) elsewhere in this repo. Leave it blank (the default) to disable it. A dry run never fires it, since nothing was actually selected for real.
+
+What was selected is passed via environment variables rather than arguments, so the hook command doesn't need its own argument parsing:
+
+| Variable | Description |
+| --- | --- |
+| `MPD_RANDOM_ALBUM_ALBUMS` | Newline-separated `Artist - Album` list |
+| `MPD_RANDOM_ALBUM_ALBUM_COUNT` | Number of albums selected |
+| `MPD_RANDOM_ALBUM_TRACK_COUNT` | Number of tracks selected |
+| `MPD_RANDOM_ALBUM_MODE` | `replace` or `append` |
+
+```
+SELECTION_HOOK='notify-send "MPD" "$MPD_RANDOM_ALBUM_ALBUMS"'
+```
 
 ## Acknowledgments
 

@@ -48,3 +48,15 @@ CACHE_SIZE=20
 # false = clear and replace the queue by default
 # Can be overridden per invocation with -p/--append.
 APPEND=false
+
+# Optional shell command run after a successful (or partially successful)
+# selection, e.g. to send a desktop notification. Fire-and-forget and
+# never fatal -- a missing/broken hook has no effect on the run itself.
+# Leave blank to disable (the default). Details about what was selected
+# are passed via environment variables rather than arguments:
+#   MPD_RANDOM_ALBUM_ALBUMS       newline-separated "Artist - Album" list
+#   MPD_RANDOM_ALBUM_ALBUM_COUNT  number of albums selected
+#   MPD_RANDOM_ALBUM_TRACK_COUNT  number of tracks selected
+#   MPD_RANDOM_ALBUM_MODE         "replace" or "append"
+# Example: SELECTION_HOOK='notify-send "MPD" "$MPD_RANDOM_ALBUM_ALBUMS"'
+SELECTION_HOOK=

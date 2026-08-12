@@ -21,6 +21,8 @@
 #   - Optional --append mode adds the selected albums to the end of the
 #     existing queue instead of replacing it, without disturbing whatever
 #     is currently playing.
+#   - Optionally runs a SELECTION_HOOK shell command (from the config)
+#     after a successful selection, e.g. to send a desktop notification.
 #   - Resolves every selected album before modifying the queue.
 #   - Skips albums that disappear from the library between selection and
 #     resolution when --force is given; aborts the run otherwise.
@@ -72,11 +74,13 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
 fi
 
 # Defaults for settings that may not exist in a config predating them, so
-# an old config file (missing AVOID_REPEATS/CACHE_SIZE/APPEND) doesn't
-# trip set -u's "unbound variable" instead of just falling back sensibly.
+# an old config file (missing AVOID_REPEATS/CACHE_SIZE/APPEND/
+# SELECTION_HOOK) doesn't trip set -u's "unbound variable" instead of just
+# falling back sensibly.
 AVOID_REPEATS=true
 CACHE_SIZE=20
 APPEND=false
+SELECTION_HOOK=""
 
 # shellcheck source=mpd-random-album.conf.example
 source "$CONFIG_FILE"
@@ -978,6 +982,48 @@ update_cache() {
 }
 
 # ---------------------------------------------------------------------------
+# Selection hook
+# ---------------------------------------------------------------------------
+
+#
+# Runs the optional SELECTION_HOOK shell command from the config after a
+# successful (or partially successful) selection -- e.g. to send a desktop
+# notification. Fire-and-forget and never fatal, matching the same
+# shell-hook pattern used by alarmpd/mpd-auto-stop elsewhere in this repo.
+# Selection details are exported as environment variables rather than
+# passed as arguments, so a hook command doesn't need its own argument
+# parsing to read them.
+#
+run_selection_hook() {
+    local album_record
+    local album_artist
+    local album
+    local mode
+    local -a album_lines=()
+
+    if [[ -z "$SELECTION_HOOK" ]]; then
+        return 0
+    fi
+
+    for album_record in "${RESOLVED_ALBUMS[@]}"; do
+        album_artist="${album_record%%$'\t'*}"
+        album="${album_record#*$'\t'}"
+        album_lines+=("$album_artist - $album")
+    done
+
+    mode="replace"
+    if [[ "$APPEND" == true ]]; then
+        mode="append"
+    fi
+
+    MPD_RANDOM_ALBUM_ALBUMS="$(printf '%s\n' "${album_lines[@]}")" \
+    MPD_RANDOM_ALBUM_ALBUM_COUNT="${#RESOLVED_ALBUMS[@]}" \
+    MPD_RANDOM_ALBUM_TRACK_COUNT="${#SELECTED_TRACKS[@]}" \
+    MPD_RANDOM_ALBUM_MODE="$mode" \
+        bash -c "$SELECTION_HOOK" >/dev/null 2>&1 &
+}
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -1014,6 +1060,7 @@ main() {
     fi
 
     update_cache || warning_message "Failed to update the recent-albums cache."
+    run_selection_hook
 
     if (( resolved_album_count < requested_album_count )); then
         warning_message \
