@@ -16,7 +16,8 @@
 #    installer.
 # 5. Offers to install the optional MPD Rewind Daemon, mpdsimilar on/off
 #    switch API, mpd-smart-shuffle, alarmpd, mpd-auto-stop, and volume
-#    control scripts, each delegating to its own installer.
+#    control scripts, each delegating to its own installer, and the
+#    mpd-era-dj Claude Code skill.
 #
 # Run this once; no manual copying into your PATH is needed afterwards.
 
@@ -285,6 +286,7 @@ SIMPLE_SCRIPTS=(
     "mpc-fade|mpc-fade.sh|mpc-fade.conf.example"
     "mpd-add-random|mpd-add-random.sh|mpd-add-random.conf.example"
     "mpd-add-random-artist|mpd-add-random-artist.sh|"
+    "mpd-era-dj|mpd-era-dj.py|mpd-era-dj.conf.example"
     "mpd-find-dup|mpd-remove-duplicates-queue.sh mpd-deduplicate-save-and-reload.sh|mpd-deduplicate-save-and-reload.conf.example"
     "mpd-queue-shuffle|mpd-queue-shuffle.sh|mpd-queue-shuffle.conf.example"
     "mpd-radio-tray|mpd-radio-tray.py|mpd-radio-tray.conf.example stations.txt.example"
@@ -503,6 +505,30 @@ EOF
     esac
 }
 
+# Offers to install the mpd-era-dj Claude Code skill, which picks songs for
+# mpd-era-dj.py by station format and year. Only asked when Claude Code is
+# set up for this user (~/.claude exists), since the skill is useless
+# without it. An existing copy is replaced, so re-running picks up changes.
+offer_era_dj_skill() {
+    local skill_src="$SCRIPT_DIR/mpd-era-dj/skill/SKILL.md"
+    local skill_dir="$HOME/.claude/skills/mpd-era-dj"
+
+    if [ ! -f "$skill_src" ] || [ ! -d "$HOME/.claude" ]; then
+        return
+    fi
+
+    echo
+    read -r -p "Also install the mpd-era-dj Claude Code skill (radio-DJ playlists by year and station format)? [y/N] " REPLY
+
+    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+        mkdir -p "$skill_dir"
+        cp "$skill_src" "$skill_dir/SKILL.md"
+        echo "Installed the skill to $skill_dir."
+    else
+        echo "Skipped. Re-run install.sh later if you change your mind."
+    fi
+}
+
 migrate_config_dirs
 setup_path
 install_dependencies
@@ -514,4 +540,5 @@ offer_mpd_smart_shuffle
 offer_alarmpd
 offer_mpd_auto_stop
 offer_volume_scripts
+offer_era_dj_skill
 print_migration_summary
