@@ -81,9 +81,14 @@ reissue or compilation.
    - Use `-d` to preview without saving.
 
 6. **Short playlist.** If the result says `short` or `short_of_current`, add
-   more candidates (especially from owned artists that fit) to the same
-   file and rerun once with `-r`, since the playlist being replaced is the
-   one this run just made.
+   more candidates (especially from owned artists that fit and aren't in
+   the playlist yet) to the same file and rerun once with `-r`, since the
+   playlist being replaced is the one this run just made. The script caps
+   each artist (`artist_cap` in the result) and ends the playlist rather
+   than stacking one artist, so more songs by an artist already at the cap
+   won't help; only more artists will. If the user wants it longer anyway,
+   `-m` raises the cap (for example `-m 0.2`), at the cost of hearing that
+   artist more often.
 
 7. **Report.** Tell the user the playlist name, length and slot counts, say
    if older songs had to fill in for missing current ones, and list the

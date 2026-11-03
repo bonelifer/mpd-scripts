@@ -36,8 +36,11 @@ accents, punctuation, "&"/"and", a leading "The", "feat." credits and
 trailing remaster/version notes. Live, demo, remix and similar versions are
 used only when the song is in the library in no other form. The playlist is
 then filled slot by slot to the mix, keeping the same artist at least
-artist_separation songs apart. When a slot runs out, the others fill the
-remaining space; nothing newer than the chosen year is ever added.
+artist_separation songs apart and to at most max_artist_share of the
+playlist. When a slot runs out, the others fill the remaining space;
+nothing newer than the chosen year is ever added. When no song fits the
+artist rules, the playlist ends shorter than asked rather than repeating
+one artist.
 
 The playlist is saved as a stored MPD playlist (the queue is left alone
 unless --play is given). A report lists what was used, what was missing
@@ -341,36 +344,50 @@ def build_pools(request: dict, library: Library, recurrent_years: int) -> tuple[
     return pools, report
 
 
-def pick_song(pool: list[dict], recent: list[str], placed_files: set) -> dict | None:
-    """Take a song from pool whose artist isn't among the recent ones.
+def pick_song(pool: list[dict], recent: list[str], artist_counts: dict, artist_cap: int) -> dict | None:
+    """Take a song from pool whose artist isn't among the recent ones and
+    hasn't reached the per-artist cap.
 
-    Returns None when every song left in the pool breaks the spacing rule.
+    Returns None when every song left in the pool breaks one of those rules.
     """
     for index, song in enumerate(pool):
-        if song["artist_key"] not in recent and song["file"] not in placed_files:
+        if song["artist_key"] not in recent and artist_counts.get(song["artist_key"], 0) < artist_cap:
             return pool.pop(index)
     return None
 
 
+def artist_cap_for(pools: dict, max_songs: int | None, max_seconds: float | None, max_share: float) -> int:
+    """Return the most songs any one artist may have in the playlist.
+
+    The cap is max_share of the playlist's length, and at least 1. For a
+    length in hours, the song count is estimated from the average length of
+    the matched songs.
+    """
+    if max_songs is None:
+        lengths = [song["seconds"] for pool in pools.values() for song in pool if song["seconds"] > 0]
+        average = sum(lengths) / len(lengths) if lengths else 240.0
+        max_songs = max_seconds / average
+    return max(1, round(max_share * max_songs))
+
+
 def build_playlist(pools: dict, mix: dict, max_songs: int | None, max_seconds: float | None,
-                   separation: int) -> tuple[list[dict], int]:
-    """Fill the playlist slot by slot, following the mix and artist spacing.
+                   separation: int, artist_cap: int) -> list[dict]:
+    """Fill the playlist slot by slot, following the mix and the artist rules.
 
     At each step the slot furthest behind its share of the playlist so far
     (by song count, or by playing time when max_seconds is set) supplies the
     next song. A slot that is empty, or has only artists played too
-    recently, is passed over for the next one; if every slot is blocked
-    only by spacing, the rule is relaxed for that one song.
+    recently or already at artist_cap, is passed over for the next one. When
+    no slot has a song that fits, the playlist ends there, shorter than
+    asked, rather than stacking one artist's songs together.
 
     Returns:
-        (playlist, relaxed): the ordered songs and how many times the
-        spacing rule had to be relaxed.
+        The ordered songs.
     """
     total_share = sum(mix.values())
     shares = {slot: mix.get(slot, 0) / total_share for slot in SLOTS}
     used = {slot: 0.0 for slot in SLOTS}
-    playlist, recent, placed_files = [], [], set()
-    relaxed = 0
+    playlist, recent, artist_counts = [], [], {}
 
     def amount(song: dict) -> float:
         return song["seconds"] if max_seconds is not None else 1.0
@@ -389,19 +406,18 @@ def build_playlist(pools: dict, mix: dict, max_songs: int | None, max_seconds: f
         order = sorted(live, key=lambda slot: (shares[slot] == 0, used[slot] - shares[slot] * (done + 1)))
         song = None
         for slot in order:
-            song = pick_song(pools[slot], recent, placed_files)
+            song = pick_song(pools[slot], recent, artist_counts, artist_cap)
             if song:
                 break
         if song is None:
-            relaxed += 1
-            song = pools[order[0]].pop(0)
+            break
         used[song["slot"]] += amount(song)
         playlist.append(song)
-        placed_files.add(song["file"])
+        artist_counts[song["artist_key"]] = artist_counts.get(song["artist_key"], 0) + 1
         if separation > 0:
             recent.append(song["artist_key"])
             del recent[:-separation]
-    return playlist, relaxed
+    return playlist
 
 
 def save_playlist(client: MPDClient, name: str, files: list[str], replace: bool) -> None:
@@ -439,11 +455,11 @@ def print_report(result: dict) -> None:
     counts = result["slot_counts"]
     print(f"  current ({year}): {counts['current']}, recurrent: {counts['recurrent']}, gold: {counts['gold']}")
     if result["short_of_current"]:
-        print(f"  Only {result['matched']['current']} songs from {year} were found, so older songs filled the rest.")
+        print(f"  Only {counts['current']} songs from {year} could be used ({result['matched']['current']} were found), "
+              f"so older songs filled the rest.")
     if result["short"]:
-        print("  The playlist is shorter than asked: the library had no more matching songs.")
-    if result["relaxed"]:
-        print(f"  Artist spacing was relaxed {result['relaxed']} time(s) for lack of other artists.")
+        print(f"  The playlist is shorter than asked: the library ran out of songs that fit, with at most "
+              f"{result['artist_cap']} per artist and the same artist {result['separation']} songs apart.")
     if result["played"]:
         print("  Now playing (the queue was replaced).")
     print()
@@ -515,6 +531,9 @@ def parse_args() -> argparse.Namespace:
                         help="Show the playlist and report without saving or playing anything.")
     parser.add_argument("-s", "--separation", type=int, metavar="N",
                         help="Songs that must pass before the same artist plays again (default: artist_separation in the config).")
+    parser.add_argument("-m", "--max-share", type=float, metavar="SHARE",
+                        help="Largest share of the playlist one artist may have, from 0 to 1 "
+                             "(default: max_artist_share in the config).")
     parser.add_argument("-j", "--json", action="store_true",
                         help="Print the result as JSON instead of the readable report.")
     parser.add_argument("--seed", type=int, metavar="N",
@@ -532,6 +551,8 @@ def parse_args() -> argparse.Namespace:
         parser.error("-t/--hours must be more than 0.")
     if args.separation is not None and args.separation < 0:
         parser.error("-s/--separation must be 0 or more.")
+    if args.max_share is not None and not 0 < args.max_share <= 1:
+        parser.error("-m/--max-share must be more than 0 and at most 1.")
     if args.dry_run and (args.play or args.replace):
         parser.error("-d/--dry-run cannot be combined with -p/--play or -r/--replace.")
     return args
@@ -554,6 +575,13 @@ def main() -> None:
 
     recurrent_years = config_number(config, "recurrent_years", int, 0)
     separation = args.separation if args.separation is not None else config_number(config, "artist_separation", int, 0)
+    max_share = args.max_share if args.max_share is not None else config.get("max_artist_share", "0.1")
+    try:
+        max_share = float(max_share)
+    except ValueError:
+        die(f"Error: max_artist_share in {CONFIG_FILE} must be a number, got '{max_share}'.")
+    if not 0 < max_share <= 1:
+        die(f"Error: max_artist_share in {CONFIG_FILE} must be more than 0 and at most 1, got {max_share}.")
     mix = request.get("mix") or {slot: config_number(config, f"mix_{slot}", float, 0) for slot in SLOTS}
     if sum(mix.values()) <= 0:
         die(f"Error: mix_current, mix_recurrent and mix_gold in {CONFIG_FILE} must not all be 0.")
@@ -565,7 +593,8 @@ def main() -> None:
     library = Library([song for song in client.listallinfo() if "file" in song])
     pools, report = build_pools(request, library, recurrent_years)
     matched = {slot: len(pools[slot]) for slot in SLOTS}
-    playlist, relaxed = build_playlist(pools, mix, max_songs, max_seconds, separation)
+    artist_cap = artist_cap_for(pools, max_songs, max_seconds, max_share)
+    playlist = build_playlist(pools, mix, max_songs, max_seconds, separation, artist_cap)
     seconds = sum(song["seconds"] for song in playlist)
 
     if not playlist:
@@ -593,7 +622,8 @@ def main() -> None:
         "matched": matched,
         "short_of_current": slot_counts["current"] < int(wanted_current),
         "short": (len(playlist) < max_songs) if max_songs is not None else (seconds < max_seconds),
-        "relaxed": relaxed,
+        "artist_cap": artist_cap,
+        "separation": separation,
         "playlist": [{key: song[key] for key in ("artist", "title", "year", "slot", "file")} for song in playlist],
         **{key: report[key] for key in ("missing", "after_cutoff", "no_year")},
         "duplicates": report["duplicates"],

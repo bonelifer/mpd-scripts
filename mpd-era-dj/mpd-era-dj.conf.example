@@ -20,6 +20,13 @@ default_songs = 40
 # overridden with -s/--separation. 0 turns the rule off.
 artist_separation = 8
 
+# Largest share of the playlist one artist may have, from 0 to 1 (0.1
+# means at most 4 songs in 40). When no song fits this rule and
+# artist_separation, the playlist ends there, shorter than asked, instead
+# of stacking one artist's songs together. Can be overridden with
+# -m/--max-share.
+max_artist_share = 0.1
+
 # How many years before the chosen year still count as "recurrent" (recent
 # hits) rather than "gold" (older hits).
 recurrent_years = 2
