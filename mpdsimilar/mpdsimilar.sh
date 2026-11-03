@@ -14,6 +14,8 @@
 #   --on            Set the on/off switch to "on" and exit.
 #   --off           Set the on/off switch to "off" and exit.
 #   -t, --toggle    Flip the on/off switch (on -> off, off -> on) and exit.
+#   --status        Print the on/off switch state ("on" or "off") and exit;
+#                   exits 1 if the state file is invalid.
 #   -i, --install   Install missing required packages via apt-get.
 #   -h, --help      Show usage and exit. Also shown when run with no options.
 #
@@ -136,6 +138,7 @@ Options:
   --on            Set the on/off switch to "on" and exit.
   --off           Set the on/off switch to "off" and exit.
   -t, --toggle    Flip the on/off switch (on -> off, off -> on) and exit.
+  --status        Print the on/off switch state ("on" or "off") and exit.
   -i, --install   Install missing required packages via apt-get.
   -h, --help      Show this help message.
 
@@ -411,6 +414,7 @@ while [[ $# -gt 0 ]]; do
         --on)          write_state on;        exit 0 ;;
         --off)         write_state off;       exit 0 ;;
         -t|--toggle)   toggle_state;          exit 0 ;;
+        --status)      read_state || exit 1;  exit 0 ;;
         -i|--install)  install_missing_apps;  exit 0 ;;
         -h|--help)     display_help ;;
         *)
