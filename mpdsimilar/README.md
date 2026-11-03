@@ -47,6 +47,7 @@ Settings live in `~/.config/mpd-scripts/mpdsimilar/mpdsimilar.conf`, seeded auto
 - `-f`, `--force`: Run even when the on/off switch is off.
 - `--on`, `--off`: Switch it on or off, then exit.
 - `-t`, `--toggle`: Flip the switch (on to off, off to on), then exit.
+- `--status`: Print `on` or `off`, then exit (exit code 1 if the state file is invalid).
 - `-i`, `--install`: Install missing required packages via `apt-get`.
 - `-h`, `--help`: Show usage and exit. Also shown when run with no options.
 
@@ -66,6 +67,7 @@ Example usage:
 ```bash
 ./mpdsimilar.sh --off   # pause, e.g. an hourly "mpdsimilar.sh -a -s" cron job
 ./mpdsimilar.sh -t      # flip it back on
+./mpdsimilar.sh --status  # prints "on"
 ```
 
 ### Switch API (optional)
