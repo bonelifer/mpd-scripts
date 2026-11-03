@@ -13,7 +13,7 @@ It comes in two parts:
 - Songs are sorted by their original release year into **current** (the chosen year), **recurrent** (the few years before) and **gold** (older), and the playlist is filled to a mix of the three. When one runs out, the others fill the space.
 - Matches by artist and title, so a hit on a later compilation still counts. Ignores case, accents, punctuation, `&`/`and`, a leading "The", `feat.` credits and notes like "(2011 Remaster)". Album date tags aren't used, since they hold the album's date, not the song's.
 - Prefers the normal version of a song over live, demo, remix and similar versions, and the original album over a later compilation.
-- Keeps the same artist a set number of songs apart.
+- Keeps the same artist a set number of songs apart, and limits how much of the playlist one artist can fill. When no song fits those rules, the playlist ends shorter than asked instead of stacking one artist's songs together.
 - Length in songs (`-n`) or hours (`-t`).
 - Saves a stored playlist and leaves the queue alone, unless `-p` is given. Won't overwrite an existing playlist without `-r`.
 - Reports what was used, what is missing from your library, and what the cutoff rejected, as text or JSON (`-j`).
@@ -31,6 +31,7 @@ Settings live in `~/.config/mpd-scripts/mpd-era-dj/mpd-era-dj.conf`, seeded from
 - `mpd_host`, `mpd_port`, `mpd_password`: MPD connection. Overridden by `-H`, `-P`, `-a`.
 - `default_songs`: playlist length when neither `-n` nor `-t` is given. Default `40`.
 - `artist_separation`: songs that must pass before the same artist plays again; `0` turns it off. Overridden by `-s`. Default `8`.
+- `max_artist_share`: the largest share of the playlist one artist may have, from 0 to 1; `0.1` means at most 4 songs in 40. Overridden by `-m`. Default `0.1`.
 - `recurrent_years`: how many years before the chosen year count as recurrent. Default `2`.
 - `mix_current`, `mix_recurrent`, `mix_gold`: the share of each slot, when the song list has no `mix` of its own. Only the proportions matter. Defaults `0.6`, `0.25`, `0.15`.
 
@@ -66,6 +67,7 @@ Settings live in `~/.config/mpd-scripts/mpd-era-dj/mpd-era-dj.conf`, seeded from
 - `-p`, `--play`: replace the current queue with the new playlist and start playing it.
 - `-d`, `--dry-run`: show the playlist and report without saving or playing anything.
 - `-s`, `--separation N`: songs between repeats of the same artist.
+- `-m`, `--max-share SHARE`: the largest share of the playlist one artist may have, from 0 to 1.
 - `-j`, `--json`: print the result as JSON.
 - `--seed N`: random seed, so the same input gives the same playlist.
 - `-H`, `--host`, `-P`, `--port`, `-a`, `--password`: MPD connection overrides.
