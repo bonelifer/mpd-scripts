@@ -1,0 +1,32 @@
+# mpd-era-dj configuration
+#
+# Copied to ~/.config/mpd-scripts/mpd-era-dj/mpd-era-dj.conf on first run if
+# that file doesn't already exist. Edit the copy there, not this template.
+
+[mpd-era-dj]
+
+# MPD connection details. Can be overridden per invocation with
+# -H/--host, -P/--port, -a/--password.
+mpd_host = localhost
+mpd_port = 6600
+
+# Leave blank unless your MPD requires a password.
+mpd_password =
+
+# Playlist length in songs when neither -n/--songs nor -t/--hours is given.
+default_songs = 40
+
+# Songs that must pass before the same artist plays again. Can be
+# overridden with -s/--separation. 0 turns the rule off.
+artist_separation = 8
+
+# How many years before the chosen year still count as "recurrent" (recent
+# hits) rather than "gold" (older hits).
+recurrent_years = 2
+
+# Share of the playlist for each slot, used when the song list doesn't give
+# its own "mix". They don't need to add up to 1; only their proportions
+# matter.
+mix_current = 0.6
+mix_recurrent = 0.25
+mix_gold = 0.15
