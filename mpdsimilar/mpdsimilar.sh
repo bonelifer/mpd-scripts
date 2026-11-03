@@ -10,10 +10,22 @@
 #   -a, --all       Add similar artist tracks for every track already in the queue.
 #   -s, --shuffle   Shuffle the playlist after adding new tracks.
 #   -l, --length N  Override the configured max playlist size with N for this run.
+#   -f, --force     Run even when the on/off switch is set to "off".
+#   --on            Set the on/off switch to "on" and exit.
+#   --off           Set the on/off switch to "off" and exit.
+#   -t, --toggle    Flip the on/off switch (on -> off, off -> on) and exit.
 #   -i, --install   Install missing required packages via apt-get.
 #   -h, --help      Show usage and exit. Also shown when run with no options.
 #
 # -c and -a are mutually exclusive.
+#
+# On/off switch:
+#   ~/.config/mpd-scripts/mpdsimilar/state holds "on" or "off". When it says
+#   "off", -c/-a runs exit before touching the queue (no crop, no additions,
+#   no shuffle) unless -f/--force is given -- handy for pausing a cron job
+#   without editing the crontab. A missing file counts as "on"; any other
+#   content is an error and nothing is added. mpdsimilar-api.py switches the
+#   same file from a browser or curl.
 #
 # Configuration:
 #   All configurable parameters live in
@@ -77,6 +89,7 @@ install_missing_apps() {
 # to version control.
 config_dir="${HOME}/.config/mpd-scripts/mpdsimilar"
 config_file="${config_dir}/mpdsimilar.conf"
+state_file="${config_dir}/state"
 
 # Seed the live config from the tracked .example template on first run, then
 # source it. Exits early (after seeding) so the user can fill in their key.
@@ -119,12 +132,70 @@ Options:
   -a, --all       Add similar artist tracks for each track in the current queue.
   -s, --shuffle   Shuffle the playlist after adding new tracks.
   -l, --length N  Override the max playlist size configured in mpdsimilar.conf, for this run.
+  -f, --force     Run even when the on/off switch is set to "off".
+  --on            Set the on/off switch to "on" and exit.
+  --off           Set the on/off switch to "off" and exit.
+  -t, --toggle    Flip the on/off switch (on -> off, off -> on) and exit.
   -i, --install   Install missing required packages via apt-get.
   -h, --help      Show this help message.
 
 Note: -c and -a are mutually exclusive.
+On/off switch: ${state_file} ("on" or "off"; missing means "on").
 HELP
     exit 0
+}
+
+# Write "on" or "off" to the state file atomically (temp file + rename),
+# so a run reading it never sees a half-written value.
+#
+# Arguments:
+#   $1  "on" or "off".
+write_state() {
+    local new_state="$1"
+    local temp_file
+
+    mkdir -p "${config_dir}"
+    temp_file=$(mktemp "${config_dir}/.state.XXXXXX")
+    printf '%s\n' "${new_state}" > "${temp_file}"
+    chmod 644 "${temp_file}"
+    mv -f "${temp_file}" "${state_file}"
+    echo "mpdsimilar switched ${new_state}."
+}
+
+# Read the state file and print "on" or "off". A missing file is "on".
+# Returns 1 (and prints an error) when the file holds anything else.
+read_state() {
+    local value
+
+    if [[ ! -e "${state_file}" ]]; then
+        echo "on"
+        return 0
+    fi
+
+    if ! value=$(tr -d '[:space:]' < "${state_file}" 2>/dev/null); then
+        echo "Error: cannot read ${state_file}." >&2
+        return 1
+    fi
+
+    case "${value,,}" in
+        on|off) echo "${value,,}" ;;
+        *)
+            echo "Error: ${state_file} must contain 'on' or 'off', got '${value}'." >&2
+            return 1
+            ;;
+    esac
+}
+
+# Flip the state file. An invalid state file is an error rather than a guess.
+toggle_state() {
+    local current_state
+
+    current_state=$(read_state) || exit 1
+    if [[ "${current_state}" == on ]]; then
+        write_state off
+    else
+        write_state on
+    fi
 }
 
 # Return the current number of tracks in the MPD playlist.
@@ -317,6 +388,7 @@ current_track=false
 all_tracks=false
 shuffle_playlist=false
 length_override=""
+force_run=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -335,6 +407,10 @@ while [[ $# -gt 0 ]]; do
             length_override="$2"
             shift 2
             ;;
+        -f|--force)    force_run=true;        shift ;;
+        --on)          write_state on;        exit 0 ;;
+        --off)         write_state off;       exit 0 ;;
+        -t|--toggle)   toggle_state;          exit 0 ;;
         -i|--install)  install_missing_apps;  exit 0 ;;
         -h|--help)     display_help ;;
         *)
@@ -352,6 +428,21 @@ fi
 # Only reached once -h/--help/-i/--install (which exit within the parsing loop
 # above) are ruled out, so those work even when curl/jq/mpc aren't installed.
 check_required_apps
+
+# The on/off switch is checked before anything touches the queue (-c crops
+# it), so an "off" run changes nothing.
+if [[ "${force_run}" != true ]] \
+    && [[ "${current_track}" == true || "${all_tracks}" == true ]]; then
+    if ! run_state=$(read_state); then
+        echo "Not adding tracks because the on/off switch file is invalid." >&2
+        exit 1
+    fi
+
+    if [[ "${run_state}" == off ]]; then
+        echo "mpdsimilar is switched off (${state_file}); skipping. Use -f to run anyway."
+        exit 0
+    fi
+fi
 
 # Only the Last.fm-hitting paths need the config (API key + tunables).
 if [[ "${current_track}" == true || "${all_tracks}" == true ]]; then

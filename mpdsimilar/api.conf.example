@@ -1,0 +1,22 @@
+# api.conf — settings for mpdsimilar-api.py, the on/off switch for
+# mpdsimilar.sh.
+#
+# Copied to ~/.config/mpd-scripts/mpdsimilar/api.conf on first run if that
+# file doesn't already exist. Edit the copy there, not this template.
+
+[api]
+# Address to listen on. 127.0.0.1 keeps the switch reachable only from this
+# machine; 0.0.0.0 would open it to the whole LAN.
+bind = 127.0.0.1
+
+# Port to listen on.
+port = 8095
+
+# Where to send the browser after /on, /off or /toggle when the request has
+# no ?next= URL. Leave empty to show the status page instead. Not checked
+# against allowed_redirect_hosts, since it comes from this file.
+default_redirect =
+
+# Comma-separated hosts a ?next= URL may point to. Paths on this server
+# ("/...") are always allowed.
+allowed_redirect_hosts = localhost, 127.0.0.1

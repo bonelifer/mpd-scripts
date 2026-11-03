@@ -1,0 +1,14 @@
+[Unit]
+Description=mpdsimilar on/off switch HTTP API
+After=network.target
+
+[Service]
+# Runs in the foreground, which is what systemd expects for Type=simple;
+# journald captures its one-line-per-request log on stderr.
+Type=simple
+ExecStart=/usr/bin/env python3 %h/bin/mpdsimilar-api.py --serve
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

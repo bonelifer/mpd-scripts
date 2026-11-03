@@ -14,9 +14,9 @@
 #    alongside it, e.g. a .conf.example template or a stations list) into
 #    the directory chosen in step 2, and installs MPD Notifier via its own
 #    installer.
-# 5. Offers to install the optional MPD Rewind Daemon, mpd-smart-shuffle,
-#    alarmpd, mpd-auto-stop, and volume control scripts, each delegating to
-#    its own installer.
+# 5. Offers to install the optional MPD Rewind Daemon, mpdsimilar on/off
+#    switch API, mpd-smart-shuffle, alarmpd, mpd-auto-stop, and volume
+#    control scripts, each delegating to its own installer.
 #
 # Run this once; no manual copying into your PATH is needed afterwards.
 
@@ -356,6 +356,26 @@ offer_mpd_rewind_daemon() {
     fi
 }
 
+# Offers to install the optional mpdsimilar on/off switch API (a small
+# background web server), delegating to its own installer if you say yes,
+# for the same reason as offer_mpd_rewind_daemon above.
+offer_mpdsimilar_api() {
+    local api_installer="$SCRIPT_DIR/mpdsimilar/install-api.sh"
+
+    if [ ! -x "$api_installer" ]; then
+        return
+    fi
+
+    echo
+    read -r -p "Also install the optional mpdsimilar on/off switch API (pause mpdsimilar from a browser or curl)? [y/N] " REPLY
+
+    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+        "$api_installer" || echo "mpdsimilar API installation did not complete successfully; you can retry with mpdsimilar/install-api.sh." >&2
+    else
+        echo "Skipped. Run mpdsimilar/install-api.sh later if you change your mind."
+    fi
+}
+
 # Offers to install the optional mpd-smart-shuffle tool (background play
 # monitor + smarter random-queue-fill script), delegating to its own
 # installer if you say yes, for the same reason as offer_mpd_rewind_daemon
@@ -489,6 +509,7 @@ install_dependencies
 copy_simple_scripts
 install_mpd_notifier
 offer_mpd_rewind_daemon
+offer_mpdsimilar_api
 offer_mpd_smart_shuffle
 offer_alarmpd
 offer_mpd_auto_stop
